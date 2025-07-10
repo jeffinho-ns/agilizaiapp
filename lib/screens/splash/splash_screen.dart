@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:agilizaiapp/screens/onboarding/onboarding_screen.dart';
-import 'package:agilizaiapp/screens/main_screen.dart'; // Importe a MainScreen
+import 'package:agilizaiapp/screens/main_screen.dart';
 import 'package:agilizaiapp/main.dart'; // Importe para ter acesso ao mainScreenKey se ela estiver lá
-
-// Certifique-se de que mainScreenKey é uma GlobalKey
-// Se mainScreenKey não estiver definida globalmente ou em outro arquivo acessível,
-// você precisará defini-la, por exemplo, no seu arquivo main.dart ou globalmente.
-// Exemplo: final GlobalKey<NavigatorState> mainScreenKey = GlobalKey<NavigatorState>();
-// Se for apenas uma key para o widget, o construtor da MainScreen já resolve.
-// Por simplicidade e dado o seu código, vou assumir que mainScreenKey já existe e é acessível.
+import 'dart:async'; // Importe a biblioteca async para usar Completer
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,49 +13,45 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  // Variável para controlar a visibilidade do GIF
   bool _showGif = false;
+  final Completer<void> _gifCompleter = Completer<void>();
 
   @override
   void initState() {
     super.initState();
-    // Inicia o processo para exibir o GIF e checar o status de autenticação
     _initSplash();
   }
 
   Future<void> _initSplash() async {
-    // Primeiro, exibe o GIF instantaneamente
     setState(() {
       _showGif = true;
     });
 
-    // Aguarda um tempo mínimo para que o GIF seja visto (ex: 3 segundos para o GIF + 1 para o delay)
-    // O ideal seria que o tempo fosse o da duração do GIF, mas para simplicidade, um valor fixo.
-    await Future.delayed(
-      const Duration(seconds: 3),
-    ); // Tempo de exibição do GIF
+    // Tempo mínimo para a splash screen, que agora será a duração do GIF (5 segundos).
+    final Future<void> gifAnimationDuration = Future.delayed(
+      const Duration(seconds: 5),
+    ); // Ajustado para 5 segundos
 
-    // Agora, verifica o status de autenticação
-    await _checkAuthAndNavigate();
+    // Aguarda tanto o carregamento do GIF quanto a duração total da animação.
+    await Future.wait([
+      _gifCompleter.future, // Aguarda o sinal de que o GIF carregou
+      gifAnimationDuration, // Aguarda a duração total da animação do GIF
+    ]);
+
+    // Agora, verifica o status de autenticação e navega.
+    _checkAuthAndNavigate();
   }
 
   Future<void> _checkAuthAndNavigate() async {
     const storage = FlutterSecureStorage();
     final token = await storage.read(key: 'jwt_token');
 
-    // Após o tempo de exibição do GIF, faz o redirecionamento
     if (token != null) {
-      // Se tem token, vai para a Home (MainScreen)
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => MainScreen(
-            key: mainScreenKey,
-          ), // Garanta que mainScreenKey está definida
-        ),
+        MaterialPageRoute(builder: (_) => MainScreen(key: mainScreenKey)),
         (route) => false,
       );
     } else {
-      // Se não tem token, vai para o Onboarding/Login
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const OnboardingScreen()),
       );
@@ -71,14 +61,28 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Fundo branco para a splash screen
+      backgroundColor: Colors.white,
       body: Center(
         child: _showGif
             ? Image.asset(
-                'assets/images/logo.gif', // Caminho para o seu GIF
-                gaplessPlayback: true, // Garante que o GIF não pisque no loop
+                'assets/images/logo.gif',
+                gaplessPlayback: true,
+                frameBuilder:
+                    (
+                      BuildContext context,
+                      Widget child,
+                      int? frame,
+                      bool wasSynchronouslyLoaded,
+                    ) {
+                      if (wasSynchronouslyLoaded || frame != null) {
+                        if (!_gifCompleter.isCompleted) {
+                          _gifCompleter.complete();
+                        }
+                      }
+                      return child;
+                    },
               )
-            : Container(), // Ou um widget vazio se o GIF não for para ser mostrado inicialmente
+            : Container(),
       ),
     );
   }

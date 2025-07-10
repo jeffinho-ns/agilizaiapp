@@ -485,7 +485,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                     const Icon(Icons.table_bar, color: Colors.grey, size: 16),
                     const SizedBox(width: 8),
                     Text(
-                      reservation.mesas,
+                      'Mesas: ${reservation.mesas ?? 'N/A'}',
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],

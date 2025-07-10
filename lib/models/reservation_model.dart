@@ -1,58 +1,96 @@
 // lib/models/reservation_model.dart
+
 class Reservation {
   final int id;
-  final int userId; // Mapeia para user_id no backend
-  final int?
-  eventId; // Mapeia para event_id no backend (pode ser null para place-reservation)
-  final int quantidadePessoas;
-  final String mesas;
-  final String dataDaReserva;
-  final String casaDaReserva;
-  final String statusDaReserva; // e.g., 'Aguardando', 'Aprovado', 'Rejeitado'
-  final String? qrcodeUrl; // URL do QR Code, pode ser nulo se não aprovado
+  final String? mesas; // AGORA DEFINITIVAMENTE ANULÁVEL (String?)
+  final String casaDaReserva; // Assumimos que 'casa_do_evento' nunca é null
+  final String? dataDaReserva; // Pode ser null (place-reservation passa null)
+  final String? imagemDoEvento; // Já estava como String?
+  final String statusDaReserva; // Assumimos que 'status' nunca é null
+  final int userId; // Assumimos que 'user_id' nunca é null
+  final String? qrcodeUrl; // Pode ser null
+  final int? quantidadePessoas; // Pode ser null
 
-  // NOVO: Adicionado para a imagem do evento/local
-  final String? imagemDoEvento; // Mapeia para imagem_do_evento no backend
-
-  // Adicione mais campos aqui conforme necessário se sua reserva retornar mais dados
-  // Ex: nome, email, telefone do usuário (se relevante aqui), nome_do_evento, etc.
+  // Novos campos que podem vir da API de 'reservas' (da query SELECT *)
   final String?
-  nomeDoEvento; // Opcional, se a reserva também carregar o nome do evento
+  nomeDoEvento; // Pode ser null se for reserva de local, por exemplo
+  final String? horaDoEvento; // Pode ser null
+  final String? localDoEvento; // Pode ser null
+  final String? brinde; // Pode ser null
+  final int? eventId; // Pode ser null (para reserva de local)
 
-  Reservation({
+  // Campos do User que são copiados para a reserva
+  final String? userName; // 'name' do user
+  final String? userEmail; // 'email' do user
+  final String? userTelefone; // 'telefone' do user
+  final String? userFotoPerfil; // 'foto_perfil' do user
+
+  const Reservation({
     required this.id,
-    required this.userId,
-    this.eventId, // Tornar nullável
-    required this.quantidadePessoas,
-    required this.mesas,
-    required this.dataDaReserva,
+    this.mesas,
     required this.casaDaReserva,
+    this.dataDaReserva,
+    this.imagemDoEvento,
     required this.statusDaReserva,
+    required this.userId,
     this.qrcodeUrl,
-    this.imagemDoEvento, // NOVO
-    this.nomeDoEvento, // NOVO
+    this.quantidadePessoas,
+    this.nomeDoEvento,
+    this.horaDoEvento,
+    this.localDoEvento,
+    this.brinde,
+    this.eventId,
+    this.userName,
+    this.userEmail,
+    this.userTelefone,
+    this.userFotoPerfil,
   });
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
     return Reservation(
       id: json['id'] as int,
-      userId: json['user_id'] as int, // Corresponde ao `user_id` do seu banco
-      eventId:
-          json['event_id']
-              as int?, // `event_id` pode ser null para reservas de local
-      quantidadePessoas: json['quantidade_pessoas'] as int,
-      mesas: json['mesas'] as String,
-      dataDaReserva: json['data_da_reserva'] as String,
-      casaDaReserva: json['casa_da_reserva'] as String,
-      statusDaReserva:
-          json['status'] as String, // Corresponde ao `status` do seu banco
-      qrcodeUrl: json['qrcode_url'] as String?,
-      imagemDoEvento:
-          json['imagem_do_evento']
-              as String?, // NOVO: Mapear o nome do arquivo da imagem
-      nomeDoEvento:
-          json['nome_do_evento']
-              as String?, // NOVO: Mapear o nome do evento da reserva
+      casaDaReserva: json['casa_do_evento'] as String,
+      dataDaReserva: json['data_do_evento'] as String?, // Cast para String?
+      imagemDoEvento: json['imagem_do_evento'] as String?,
+      statusDaReserva: json['status'] as String,
+      userId: json['user_id'] as int,
+      mesas: json['mesas'] as String?, // Cast para String?
+      qrcodeUrl:
+          json['qrcodeUrl'] as String?, // Se sua API retornar 'qrcodeUrl'
+      quantidadePessoas: json['quantidade_pessoas'] as int?, // Cast para int?
+      nomeDoEvento: json['nome_do_evento'] as String?, // Cast para String?
+      horaDoEvento: json['hora_do_evento'] as String?, // NOVO: Campo da API
+      localDoEvento: json['local_do_evento'] as String?, // NOVO: Campo da API
+      brinde: json['brinde'] as String?, // NOVO: Campo da API
+      eventId: json['event_id'] as int?, // NOVO: Campo da API
+      // Campos do usuário que são copiados para a tabela de reservas
+      userName: json['name'] as String?, // 'name' do user
+      userEmail: json['email'] as String?, // 'email' do user
+      userTelefone: json['telefone'] as String?, // 'telefone' do user
+      userFotoPerfil: json['foto_perfil'] as String?, // 'foto_perfil' do user
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'mesas': mesas,
+      'casa_do_evento': casaDaReserva,
+      'data_do_evento': dataDaReserva,
+      'imagem_do_evento': imagemDoEvento,
+      'status': statusDaReserva,
+      'user_id': userId,
+      'qrcodeUrl': qrcodeUrl,
+      'quantidade_pessoas': quantidadePessoas,
+      'nome_do_evento': nomeDoEvento,
+      'hora_do_evento': horaDoEvento,
+      'local_do_evento': localDoEvento,
+      'brinde': brinde,
+      'event_id': eventId,
+      'name': userName,
+      'email': userEmail,
+      'telefone': userTelefone,
+      'foto_perfil': userFotoPerfil,
+    };
   }
 }

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:agilizaiapp/models/user_model.dart'; // NOVO: Importe seu User model
+import 'package:agilizaiapp/models/user_model.dart'; // Importe seu User model
 import 'package:agilizaiapp/screens/auth/reset_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/screens/auth/signup_screen.dart';
@@ -21,14 +21,19 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _rememberMe = false;
   bool _isLoading = false;
 
-  // NOVO: Função para salvar o usuário completo no SharedPreferences
+  // Função para salvar o usuário completo no SharedPreferences
   Future<void> _saveCurrentUser(User user) async {
     final prefs = await SharedPreferences.getInstance();
     String userJson = jsonEncode(user.toJson());
     await prefs.setString('currentUser', userJson);
+    // LINHA CRÍTICA ADICIONADA: Salva o ID do usuário separadamente como uma String
+    await prefs.setString('userId', user.id.toString());
+    print(
+      'DEBUG: Usuário completo e userId (${user.id}) salvos no SharedPreferences.',
+    );
   }
 
-  // NOVO: Função para buscar o perfil do usuário com o token e salvar
+  // Função para buscar o perfil do usuário com o token e salvar
   Future<bool> _fetchAndSaveUserProfile(String token) async {
     try {
       // ATENÇÃO: Verifique se a URL do perfil está correta!
@@ -39,20 +44,16 @@ class _SignInScreenState extends State<SignInScreen> {
           'Authorization': 'Bearer $token', // Envia o token para autenticação
         },
       );
-      print(
-        'DEBUG: Resposta da API de perfil: ${response.statusCode}',
-      ); // Print 2
+      print('DEBUG: Resposta da API de perfil: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final userData = jsonDecode(response.body);
-        print('DEBUG: Dados do perfil recebidos: $userData'); // Print 3
+        print('DEBUG: Dados do perfil recebidos: $userData');
         final user = User.fromJson(userData);
         await _saveCurrentUser(
           user,
-        ); // _saveCurrentUser é a função com SharedPreferences
-        print(
-          'DEBUG: Usuário salvo com sucesso no SharedPreferences!',
-        ); // Print 4
+        ); // Chama _saveCurrentUser que agora salva o userId também
+        print('DEBUG: Usuário salvo com sucesso no SharedPreferences!');
         return true;
       } else {
         print('DEBUG: Falha ao buscar perfil. Resposta: ${response.body}');
@@ -89,7 +90,7 @@ class _SignInScreenState extends State<SignInScreen> {
           const storage = FlutterSecureStorage();
           await storage.write(key: 'jwt_token', value: token);
 
-          // ALTERADO: Chama a função para buscar e salvar o perfil
+          // Chama a função para buscar e salvar o perfil, que agora salva o userId
           final profileFetched = await _fetchAndSaveUserProfile(token);
 
           if (profileFetched && mounted) {
@@ -138,7 +139,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ... (O resto do seu código da UI permanece o mesmo)
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -189,7 +189,7 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ... (Row do Remember Me e Forgot Password)
+            // Row do Remember Me e Forgot Password
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -248,7 +248,6 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
             ),
 
-            // ... (Resto da UI que já estava correta)
             const SizedBox(height: 40),
             const Row(
               children: [
