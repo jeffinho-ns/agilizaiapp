@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/models/user_model.dart'; // IMPORT ADICIONADO
+import 'package:agilizaiapp/models/reservation_model.dart'; // NOVO: Importe o modelo de Reservation
 import 'package:agilizaiapp/screens/event/event_booked_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -90,10 +91,16 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       // 5. Tratar a resposta
       if (response.statusCode == 201) {
         // 201 = Created
+        final Reservation newReservation = Reservation.fromJson(
+          jsonDecode(response.body),
+        );
         if (mounted) {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => EventBookedScreen(event: widget.event),
+              builder: (_) => EventBookedScreen(
+                reservation: newReservation,
+                event: widget.event, // Passa o evento original
+              ),
             ),
           );
         }
@@ -404,7 +411,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   height: 400,
                   width: double.infinity,
                   color: Colors.grey[200],
-                  child: Center(
+                  child: const Center(
                     child: Text('Falha ao carregar imagem do combo'),
                   ),
                 );
@@ -429,7 +436,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: Colors.grey[200],
-                    child: Center(
+                    child: const Center(
                       child: Text('Mapa indisponível ou falha de rede'),
                     ),
                   );

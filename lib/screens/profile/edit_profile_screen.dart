@@ -371,30 +371,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       children: [
                         CircleAvatar(
                           radius: 60,
-                          // CORREÇÃO AQUI: Usa _currentUser!.fotoPerfil! diretamente,
-                          // pois o User model já constrói a URL completa ou a mantém
+                          // Sempre forneça um ImageProvider.
                           backgroundImage: _imageFile != null
-                              ? FileImage(_imageFile!) as ImageProvider<Object>?
+                              ? FileImage(_imageFile!)
+                                    as ImageProvider<
+                                      Object
+                                    > // Usa FileImage se uma nova imagem foi selecionada
                               : (_currentUser?.fotoPerfil != null &&
                                         _currentUser!.fotoPerfil!.isNotEmpty
-                                    ? NetworkImage(
-                                        _currentUser!.fotoPerfil!,
-                                      ) // <<-- AGORA APENAS USA O VALOR
-                                    : null),
-                          child:
-                              (_imageFile == null &&
-                                  (_currentUser?.fotoPerfil == null ||
-                                      _currentUser!.fotoPerfil!.isEmpty))
-                              ? const Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: Colors.grey,
-                                )
-                              : null,
+                                    ? NetworkImage(_currentUser!.fotoPerfil!)
+                                          as ImageProvider<
+                                            Object
+                                          > // Usa NetworkImage se o usuário atual já tem uma foto
+                                    : const AssetImage(
+                                            'assets/images/default_avatar.png',
+                                          )
+                                          as ImageProvider<
+                                            Object
+                                          >), // Fallback para um asset local
+                          // Remova o 'child' se você quer que o backgroundImage sempre preencha o círculo.
+                          // O erro de asserção acontece porque 'backgroundImage' não pode ser null.
+                          // O 'child' é tipicamente usado quando você não tem nenhuma imagem (por exemplo, um Icon).
+                          // Se você preferir o Ícone em vez de uma imagem de placeholder, precisará de uma configuração diferente (por exemplo, AnimatedSwitcher).
+                          // Por enquanto, vamos priorizar a correção da asserção.
                           onBackgroundImageError: (exception, stackTrace) {
                             print(
                               'Erro ao carregar imagem de perfil para edição: $exception',
                             );
+                            // Você pode querer exibir um ícone de erro temporário ou definir um estado para mostrar um fallback.
+                            // O fallback de 'backgroundImage' acima já lida com o caso principal.
                           },
                         ),
                         Positioned(

@@ -1,86 +1,42 @@
 import 'dart:convert'; // Para jsonDecode
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/models/user_model.dart';
-import 'package:agilizaiapp/models/reservation_model.dart'; // NOVO: Importe o modelo de Reservation
+import 'package:agilizaiapp/models/reservation_model.dart'; // Importe o modelo de Reservation
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart'; // Para buscar o usuário logado
-import 'package:qr_flutter/qr_flutter.dart'; // NOVO: Para exibir o QR Code
+import 'package:qr_flutter/qr_flutter.dart'; // Para exibir o QR Code
+import 'package:intl/intl.dart'; // Para formatação de data
 
 class EventBookedScreen extends StatefulWidget {
-  final Event event;
-  const EventBookedScreen({super.key, required this.event});
+  final Reservation reservation;
+  final Event? event; // Evento agora é opcional
+
+  const EventBookedScreen({
+    super.key,
+    required this.reservation,
+    this.event, // Torne o evento opcional
+  });
 
   @override
   State<EventBookedScreen> createState() => _EventBookedScreenState();
 }
 
 class _EventBookedScreenState extends State<EventBookedScreen> {
-  User? _currentUser; // Para armazenar os dados do usuário logado
-  Reservation? _currentReservation; // Para armazenar os detalhes da reserva
-  bool _isLoading = true; // Para gerenciar o estado de carregamento
-  String? _errorMessage; // Para exibir mensagens de erro
-
   // URLs da API (mantenha consistência com event_details.dart)
-  static const String _apiBaseUrl =
-      'https://vamos-comemorar-api.onrender.com/api/events';
+  static const String _imageBaseUrl =
+      'https://vamos-comemorar-api.onrender.com/uploads/events';
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserDataAndReservation();
-  }
-
-  // Função para buscar os dados do usuário logado e a reserva
-  Future<void> _fetchUserDataAndReservation() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      // 1. Buscar o usuário logado do SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      final String? userJson = prefs.getString('currentUser');
-      if (userJson == null) {
-        throw Exception('Usuário não logado. Faça login novamente.');
-      }
-      _currentUser = User.fromJson(jsonDecode(userJson));
-
-      // 2. Buscar a reserva específica para este evento e usuário
-      // Para isso, sua API precisa de um endpoint para buscar reservas por userId e eventId
-      // Exemplo: GET /api/reservations?userId=X&eventId=Y
-      final response = await http.get(
-        Uri.parse(
-          '$_apiBaseUrl/reservas?userId=${_currentUser!.id}&eventId=${widget.event.id}',
-        ),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> reservationsJson = jsonDecode(response.body);
-        if (reservationsJson.isNotEmpty) {
-          // Pega a primeira reserva encontrada, ou implemente lógica se houver múltiplas
-          _currentReservation = Reservation.fromJson(reservationsJson.first);
-        } else {
-          throw Exception('Nenhuma reserva encontrada para este evento.');
-        }
-      } else {
-        final errorBody = jsonDecode(response.body);
-        throw Exception(
-          'Falha ao carregar reserva: ${errorBody['error'] ?? response.statusCode}',
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Erro ao carregar dados: ${e.toString()}';
-      });
-      print('DEBUG: Erro ao carregar dados: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+  String _getImageUrl() {
+    if (widget.event?.imagemDoEventoUrl != null &&
+        widget.event!.imagemDoEventoUrl!.isNotEmpty) {
+      return widget.event!.imagemDoEventoUrl!;
     }
+    if (widget.reservation.imagemDoEvento != null &&
+        widget.reservation.imagemDoEvento!.isNotEmpty) {
+      return '$_imageBaseUrl/${widget.reservation.imagemDoEvento}';
+    }
+    return 'https://i.imgur.com/715zr01.jpeg'; // Fallback
   }
 
   // Função para exibir o SnackBar de "Aguardando Aprovação"
@@ -95,9 +51,16 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
 
   // Função para exibir o popup com o QR Code
   void _showQrCodePopup(String qrCodeData) {
+    print('DEBUG (showQrCodePopup): Dados do QR Code recebidos: $qrCodeData');
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        // Define a largura do popup para ser 80% da tela, mas no máximo 350 pixels.
+        final popupWidth = (MediaQuery.of(context).size.width * 0.8).clamp(
+          250.0,
+          350.0,
+        );
+
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -107,44 +70,77 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              QrImageView(
-                data: qrCodeData, // Use a URL do QR Code ou dados reais
-                version: QrVersions.auto,
-                size: 200.0,
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                eyeStyle: const QrEyeStyle(
-                  eyeShape: QrEyeShape.square,
-                  color: Colors.black,
-                ),
-                dataModuleStyle: const QrDataModuleStyle(
-                  dataModuleShape: QrDataModuleShape.square,
-                  color: Colors.black,
-                ),
-                errorStateBuilder: (cxt, err) {
-                  return const Center(
-                    child: Text(
-                      'Ops! Algo deu errado ao gerar o QR Code.',
-                      textAlign: TextAlign.center,
+          // Defina um padding customizado para o conteúdo para remover o espaço extra padrão.
+          contentPadding: const EdgeInsets.fromLTRB(24.0, 20.0, 24.0, 0),
+          // A SOLUÇÃO ESTÁ AQUI: Envolvemos a Column em um SizedBox com largura definida.
+          content: SizedBox(
+            width: popupWidth,
+            child: Column(
+              mainAxisSize: MainAxisSize
+                  .min, // Essencial para a coluna não tentar preencher verticalmente
+              children: [
+                if (qrCodeData.isNotEmpty)
+                  QrImageView(
+                    data: qrCodeData,
+                    version: QrVersions.auto,
+                    size: 200.0,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    eyeStyle: const QrEyeStyle(
+                      eyeShape: QrEyeShape.square,
+                      color: Colors.black,
                     ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Apresente este QR Code na entrada do evento.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14),
-              ),
-            ],
+                    dataModuleStyle: const QrDataModuleStyle(
+                      dataModuleShape: QrDataModuleShape.square,
+                      color: Colors.black,
+                    ),
+                    errorStateBuilder: (cxt, err) {
+                      print(
+                        'DEBUG (QrImageView Error): Erro ao gerar QrImageView: $err',
+                      );
+                      return const Center(
+                        child: Text(
+                          'Ops! Algo deu errado ao gerar o QR Code.',
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    },
+                  )
+                else
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 80.0),
+                    child: Text(
+                      'QR Code não disponível para esta reserva.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                const SizedBox(height: 24),
+                // O Text agora não precisa mais de um SizedBox com largura infinita.
+                Text(
+                  'Evento: ${widget.reservation.nomeDoEvento ?? widget.reservation.casaDaReserva ?? 'N/A'}\n'
+                  'Data: ${widget.reservation.dataDaReserva != null ? DateFormat('dd/MM/yyyy').format(DateTime.parse(widget.reservation.dataDaReserva!)) : 'N/A'}\n' // Removido HH:mm para simplificar
+                  'Hora: ${widget.reservation.horaDoEvento ?? 'N/A'}\n'
+                  'Local: ${widget.reservation.localDoEvento ?? 'N/A'}\n'
+                  'Pessoas: ${widget.reservation.quantidadePessoas ?? 'N/A'}\n'
+                  'Mesas: ${widget.reservation.mesas ?? 'N/A'}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Apresente este QR Code na entrada do evento.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24), // Espaço antes dos botões
+              ],
+            ),
           ),
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Fecha o popup
+                Navigator.of(context).pop();
               },
               child: const Text(
                 'Fechar',
@@ -155,6 +151,8 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
               ),
             ),
           ],
+          // Centraliza os botões (actions)
+          actionsAlignment: MainAxisAlignment.center,
         );
       },
     );
@@ -162,41 +160,6 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFFF26422)),
-        ),
-      );
-    }
-
-    if (_errorMessage != null) {
-      return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 50),
-                const SizedBox(height: 16),
-                Text(
-                  _errorMessage!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, color: Colors.red),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _fetchUserDataAndReservation,
-                  child: const Text('Tentar Novamente'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     // Se não está carregando e não há erro, exibe o conteúdo
     return Scaffold(
       body: CustomScrollView(
@@ -206,7 +169,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
             delegate: SliverChildListDelegate([
               const SizedBox(height: 16),
               // Passa a reserva para o widget de detalhes
-              _buildEventDetailsPanel(context, _currentReservation),
+              _buildEventDetailsPanel(context),
               const SizedBox(height: 24),
               _buildOrganizerInfo(), // Mantém o organizador mockado por enquanto, ou você pode buscar do evento ou de outra API
               const SizedBox(height: 24),
@@ -229,8 +192,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
           fit: StackFit.expand,
           children: [
             Image.network(
-              widget.event.imagemDoEventoUrl ??
-                  'https://i.imgur.com/715zr01.jpeg',
+              _getImageUrl(),
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
@@ -306,14 +268,13 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
           }),
           // Condição para o botão "My Ticket"
           _buildActionButton(Icons.confirmation_num_outlined, 'My Ticket', () {
-            if (_currentReservation?.statusDaReserva == 'approved') {
-              // Supondo que o status 'approved' significa aprovado
-              if (_currentReservation?.qrcodeUrl != null &&
-                  _currentReservation!.qrcodeUrl!.isNotEmpty) {
-                _showQrCodePopup(_currentReservation!.qrcodeUrl!);
+            if (widget.reservation.statusDaReserva == 'Aprovado') {
+              if (widget.reservation.qrcodeUrl != null &&
+                  widget.reservation.qrcodeUrl!.isNotEmpty) {
+                _showQrCodePopup(widget.reservation.qrcodeUrl!);
               } else {
                 _showQrCodePopup(
-                  'https://example.com/default-qrcode-data-${_currentReservation?.id}',
+                  'https://example.com/default-qrcode-data-${widget.reservation.id}',
                 ); // Fallback ou dados do evento
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -324,15 +285,14 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                   ),
                 );
               }
-            } else if (_currentReservation?.statusDaReserva == 'pending') {
-              // Supondo que 'pending' significa aguardando
+            } else if (widget.reservation.statusDaReserva == 'Aguardando') {
               _showPendingMessage();
             } else {
-              // Se o status for outro (e.g., 'rejected', 'cancelled' ou desconhecido)
+              // Se o status for outro (e.g., 'Rejeitado', 'Cancelado' ou desconhecido)
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    "Status da reserva: ${_currentReservation?.statusDaReserva ?? 'Desconhecido'}",
+                    "Status da reserva: ${widget.reservation.statusDaReserva ?? 'Desconhecido'}",
                   ),
                   backgroundColor: Colors.grey,
                 ),
@@ -378,25 +338,31 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
   }
 
   // _buildEventDetailsPanel agora recebe a reserva para exibir as informações
-  Widget _buildEventDetailsPanel(
-    BuildContext context,
-    Reservation? reservation,
-  ) {
-    String displayDate = widget.event.dataDoEvento ?? 'Data Indefinida';
+  Widget _buildEventDetailsPanel(BuildContext context) {
+    String displayDate = widget.reservation.dataDaReserva != null
+        ? DateFormat(
+            'dd/MM/yyyy HH:mm',
+          ).format(DateTime.parse(widget.reservation.dataDaReserva!))
+        : widget.event?.dataDoEvento ?? 'Data Indefinida';
+
+    String displayTime =
+        widget.reservation.horaDoEvento ??
+        widget.event?.horaDoEvento ??
+        'Hora Indefinida';
+
     String bookingStatusText = 'Status Desconhecido';
     Color bookingStatusColor = Colors.grey;
 
-    if (reservation != null) {
-      if (reservation.statusDaReserva == 'approved') {
-        bookingStatusText = 'APROVADO';
-        bookingStatusColor = Colors.green;
-      } else if (reservation.statusDaReserva == 'pending') {
-        bookingStatusText = 'AGUARDANDO';
-        bookingStatusColor = Colors.orange;
-      } else if (reservation.statusDaReserva == 'rejected') {
-        bookingStatusText = 'REJEITADO';
-        bookingStatusColor = Colors.red;
-      }
+    if (widget.reservation.statusDaReserva == 'Aprovado') {
+      bookingStatusText = 'APROVADO';
+      bookingStatusColor = Colors.green;
+    } else if (widget.reservation.statusDaReserva == 'Aguardando') {
+      bookingStatusText = 'AGUARDANDO';
+      bookingStatusColor = Colors.orange;
+    } else if (widget.reservation.statusDaReserva == 'Rejeitado' ||
+        widget.reservation.statusDaReserva == 'Cancelado') {
+      bookingStatusText = 'REJEITADO'; // Ou 'CANCELADO'
+      bookingStatusColor = Colors.red;
     }
 
     return Padding(
@@ -422,8 +388,12 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Flexible(
+                  // Usar Flexible para o nome do evento
                   child: Text(
-                    widget.event.nomeDoEvento ?? 'Nome Indefinido',
+                    widget.reservation.nomeDoEvento ??
+                        widget.event?.nomeDoEvento ??
+                        widget.reservation.casaDaReserva ??
+                        'Nome Indefinido',
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -450,54 +420,101 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16), // Aumentei o espaçamento aqui
+            // NOVO: Separar Local e Data/Hora para melhor organização e evitar overflow
             Row(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start, // Alinhar ícones e texto no topo
               children: [
                 const Icon(Icons.location_on, color: Colors.grey, size: 18),
                 const SizedBox(width: 8),
-                Text(
-                  widget.event.localDoEvento ?? 'Local Indefinido',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                Expanded(
+                  // Usar Expanded para o local
+                  child: Text(
+                    widget.reservation.localDoEvento ??
+                        widget.event?.localDoEvento ??
+                        'Local Indefinido',
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    maxLines:
+                        2, // Permite quebrar a linha em duas se for muito longo
+                    overflow: TextOverflow
+                        .ellipsis, // Adiciona "..." se exceder 2 linhas
+                  ),
                 ),
-                const SizedBox(width: 20),
+              ],
+            ),
+            const SizedBox(height: 8), // Espaçamento entre Local e Data/Hora
+            Row(
+              children: [
                 const Icon(Icons.calendar_today, color: Colors.grey, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   displayDate,
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
+                const SizedBox(width: 16), // Espaçamento entre Data e Hora
+                const Icon(Icons.access_time, color: Colors.grey, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  displayTime,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
               ],
             ),
             const SizedBox(height: 20),
-            // Exibir a quantidade de pessoas da reserva
-            if (reservation != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.people, color: Colors.grey, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${reservation.quantidadePessoas} Pessoa(s)',
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    const SizedBox(width: 20),
-                    const Icon(Icons.table_bar, color: Colors.grey, size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Mesas: ${reservation.mesas ?? 'N/A'}',
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                  ],
-                ),
+            // Exibir a quantidade de pessoas da reserva e mesas
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Column(
+                // Alterado de Row para Column
+                crossAxisAlignment: CrossAxisAlignment
+                    .start, // Alinha o conteúdo da coluna à esquerda
+                children: [
+                  Row(
+                    // Este Row conterá as informações de Pessoas
+                    children: [
+                      const Icon(Icons.people, color: Colors.grey, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${widget.reservation.quantidadePessoas ?? 'N/A'} Pessoa(s)',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ), // Espaçamento entre as duas linhas de informação
+                  Row(
+                    // Este novo Row conterá as informações de Mesas
+                    children: [
+                      const Icon(Icons.table_bar, color: Colors.grey, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Mesas: ${widget.reservation.mesas ?? 'N/A'}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
+            ),
+            // ... (restante do código do _buildEventDetailsPanel)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Poderíamos buscar o número de membros da API aqui também
-                const Text(
-                  '15.7K+ Members are joined:', // Mantenho mockado por enquanto, mas pode ser dinâmico
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                const Flexible(
+                  // Adicionado Flexible aqui para o texto não causar overflow
+                  child: Text(
+                    '15.7K+ Members are joined:', // Mantenho mockado por enquanto, mas pode ser dinâmico
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
                 ),
                 TextButton(
                   onPressed: () {
@@ -678,9 +695,9 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
   }
 
   Widget _buildDescription() {
-    // Usa a descrição do evento que veio no `Event` model
+    // Usa a descrição do evento que veio no `Event` model, se disponível
     String descriptionText =
-        widget.event.descricao ?? 'Sem descrição disponível.';
+        widget.event?.descricao ?? 'Sem descrição disponível.';
     String displayDescription = descriptionText.length > 150
         ? '${descriptionText.substring(0, 150)}...'
         : descriptionText;
@@ -706,15 +723,15 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
               children: [
                 TextSpan(text: displayDescription),
                 if (isLongDescription)
-                  TextSpan(
+                  const TextSpan(
                     text: ' Read More',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Color(0xFFF26422),
                       fontWeight: FontWeight.bold,
                     ),
                     // Você pode adicionar um `TapGestureRecognizer` aqui se quiser expandir a descrição
                     // recognizer: TapGestureRecognizer()..onTap = () {
-                    //   print('Read More clicado (Event Booked Screen)');
+                    //    print('Read More clicado (Event Booked Screen)');
                     // },
                   ),
               ],

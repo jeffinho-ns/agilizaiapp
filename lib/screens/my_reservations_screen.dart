@@ -2,6 +2,8 @@
 
 import 'dart:convert';
 import 'package:agilizaiapp/models/reservation_model.dart'; // Seu modelo de reserva
+import 'package:agilizaiapp/models/event_model.dart'; // NOVO: Para poder passar um Event (mesmo que parcial/nulo)
+import 'package:agilizaiapp/screens/event/event_booked_screen.dart'; // NOVO: Para navegar para EventBookedScreen
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -123,7 +125,16 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> {
 
   void _handleReservaClick(Reservation reserva) {
     if (reserva.statusDaReserva == 'Aprovado') {
-      _showQrCodePopup(reserva);
+      // Navega para EventBookedScreen com a reserva
+      // Passamos 'null' para o Event, pois o EventBookedScreen agora aceita Event?
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => EventBookedScreen(
+            reservation: reserva,
+            event: null, // Event não está disponível aqui, então passamos nulo.
+          ),
+        ),
+      );
     } else if (reserva.statusDaReserva == 'Aguardando') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

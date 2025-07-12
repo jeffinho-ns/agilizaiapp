@@ -217,19 +217,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 60,
-                  // Agora fotoPerfil já vem com a URL completa do User model
                   backgroundImage:
-                      _currentUser!.fotoPerfil != null &&
+                      _currentUser?.fotoPerfil != null &&
                           _currentUser!.fotoPerfil!.isNotEmpty
-                      ? NetworkImage(_currentUser!.fotoPerfil!)
-                      : null,
-                  child:
-                      _currentUser!.fotoPerfil == null ||
-                          _currentUser!.fotoPerfil!.isEmpty
-                      ? const Icon(Icons.person, size: 60, color: Colors.grey)
-                      : null,
+                      ? NetworkImage(
+                          _currentUser!.fotoPerfil!,
+                        ) // Se houver URL válida
+                      : const AssetImage('assets/images/default_avatar.png')
+                            as ImageProvider<Object>, // Fallback para asset
+                  // Remova o 'child' se você quer que o backgroundImage sempre preencha.
+                  // Se você quer o ícone *em vez* da imagem, use o child apenas e o backgroundImage: null
+                  // Mas o erro é que backgroundImage está null, então o fallback é essencial.
                   onBackgroundImageError: (exception, stackTrace) {
-                    print('Erro ao carregar imagem de perfil: $exception');
+                    print(
+                      'Erro ao carregar imagem de perfil (NetworkImage): $exception',
+                    );
+                    // Opcional: Se NetworkImage falhar, você pode querer um ícone.
+                    // Para isso, a lógica do CircleAvatar teria que ser diferente:
+                    // Se você realmente quer o ícone em caso de erro DE CARREGAMENTO da network image,
+                    // você teria que gerenciar o estado da imagem de perfil.
                   },
                 ),
                 Positioned(
