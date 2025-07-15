@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:agilizaiapp/models/event_model.dart';
-import 'package:agilizaiapp/models/user_model.dart'; // IMPORT ADICIONADO
-import 'package:agilizaiapp/models/reservation_model.dart'; // NOVO: Importe o modelo de Reservation
+import 'package:agilizaiapp/models/user_model.dart';
+import 'package:agilizaiapp/models/reservation_model.dart';
 import 'package:agilizaiapp/screens/event/event_booked_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart'; // ✨ IMPORTANTE: Adicione para formatação monetária
 
 class EventDetailsPage extends StatefulWidget {
   final Event event;
@@ -33,45 +34,57 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     _mesas = (_pessoas / 6).ceil();
   }
 
-  // FUNÇÃO ADICIONADA (Estava faltando no seu código)
-  // Responsável por buscar os dados do usuário salvos localmente.
+  // ✨ NOVO: Função para formatar o preço em R$
+  String _formatPrice(dynamic price) {
+    if (price == null) {
+      return 'Grátis';
+    }
+    try {
+      // Tenta converter para double, se for string, tenta fazer o parse
+      final number = price is String
+          ? double.tryParse(price)
+          : price.toDouble();
+      if (number == null || number == 0) {
+        return 'Grátis';
+      }
+      final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+      return formatter.format(number);
+    } catch (e) {
+      print('Erro ao formatar preço: $e');
+      return 'N/A';
+    }
+  }
+
   Future<User?> _getCurrentUser() async {
     final prefs = await SharedPreferences.getInstance();
     final String? userJson = prefs.getString('currentUser');
 
     if (userJson != null) {
       try {
-        // Tenta decodificar o JSON e criar o objeto User
         return User.fromJson(jsonDecode(userJson));
       } catch (e) {
-        // Se houver erro na decodificação, imprime o erro e retorna nulo
         print('Falha ao decodificar o JSON do usuário: $e');
         return null;
       }
     }
-    // Se não houver JSON salvo, retorna nulo
     return null;
   }
 
-  // Função para enviar a reserva para a API (lógica já estava correta)
   Future<void> _confirmReservation() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // 1. Obter o usuário logado
       final user = await _getCurrentUser();
       if (user == null) {
         throw Exception('Usuário não identificado. Faça login novamente.');
       }
 
-      // 2. Garantir que o modelo de evento tenha a 'casaDoEvento'
       if (widget.event.casaDoEvento == null) {
         throw Exception('Informação da casa do evento não encontrada.');
       }
 
-      // 3. Montar o corpo da requisição
       final reservationData = {
         'userId': user.id,
         'eventId': widget.event.id,
@@ -81,16 +94,13 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         'casa_da_reserva': widget.event.casaDoEvento,
       };
 
-      // 4. Enviar a requisição para a API
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(reservationData),
       );
 
-      // 5. Tratar a resposta
       if (response.statusCode == 201) {
-        // 201 = Created
         final Reservation newReservation = Reservation.fromJson(
           jsonDecode(response.body),
         );
@@ -99,7 +109,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             MaterialPageRoute(
               builder: (_) => EventBookedScreen(
                 reservation: newReservation,
-                event: widget.event, // Passa o evento original
+                event: widget.event,
               ),
             ),
           );
@@ -126,7 +136,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     }
   }
 
-  // A partir daqui, o resto do seu código da UI permanece o mesmo...
   @override
   Widget build(BuildContext context) {
     const bottomBarHeight = 90.0;
@@ -139,6 +148,17 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
               widget.event.imagemDoEventoUrl ??
                   'https://i.imgur.com/715zr01.jpeg',
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.grey[200],
+                  child: const Center(
+                    child: Text(
+                      'Falha ao carregar imagem do evento',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           _buildTopButtons(context),
@@ -220,14 +240,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   }
 
   Widget _buildEventHeader(Event event) {
-    String priceText = 'Gratuito';
-    if (event.valorDaEntrada != null) {
-      final price = double.tryParse(event.valorDaEntrada.toString());
-      if (price != null && price > 0) {
-        priceText = 'R\$ ${price.toStringAsFixed(2).replaceAll('.', ',')}';
-      }
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -255,7 +267,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             const Icon(Icons.calendar_today, color: Colors.grey, size: 16),
             const SizedBox(width: 4),
             Text(event.dataDoEvento ?? 'Sem data'),
-            const SizedBox(width: 16),
+            const SizedBox(height: 16),
             const Icon(Icons.access_time, color: Colors.grey, size: 16),
             const SizedBox(width: 4),
             Text(event.horaDoEvento ?? 'Sem hora'),
@@ -269,7 +281,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            priceText,
+            _formatPrice(
+              event.valorDaEntrada,
+            ), // ✨ Usando a função _formatPrice
             style: const TextStyle(
               color: Color(0xFFF26422),
               fontWeight: FontWeight.bold,
@@ -283,9 +297,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   Widget _buildMembersSection() {
     return Row(
       children: [
-        // SOLUÇÃO: Envolver o Text com o widget Flexible.
-        // Isso permite que o texto encolha e quebre a linha se não houver espaço.
-        const Flexible(child: Text("15.7K+ Members are joined:")),
+        // Traduzido
+        const Flexible(child: Text("15.7K+ Membros confirmados:")),
         const SizedBox(width: 8),
         SizedBox(
           width: 80,
@@ -308,16 +321,15 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             }),
           ),
         ),
-        const Spacer(), // O Spacer continua empurrando o botão para a direita.
+        const Spacer(),
         TextButton(
           onPressed: () {},
-          // Estilo adicionado para diminuir o padding interno do botão, ajudando a economizar espaço.
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           child: const Text(
-            'VIEW ALL / INVITE',
+            'VER TODOS / CONVIDAR', // Traduzido
             style: TextStyle(
               color: Color(0xFFF26422),
               fontWeight: FontWeight.bold,
@@ -355,10 +367,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         ],
       ),
       title: const Text(
-        'Tamim Ikram',
+        'Tamim Ikram', // Nome do organizador, pode ser dinâmico no futuro
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
-      subtitle: const Text('Event Organiser'),
+      subtitle: const Text('Organizador do Evento'), // Traduzido
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -383,21 +395,22 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Descrição',
+          'Descrição', // Traduzido
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         Text(
-          event.descricao ?? 'Sem descrição disponível.',
+          event.descricao ?? 'Sem descrição disponível.', // Traduzido
           style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
         ),
         const SizedBox(height: 20),
         const Text(
-          'Combo Especial',
+          'Combo Especial', // Traduzido
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
-        if (event.imagemDoComboUrl != null)
+        if (event.imagemDoComboUrl != null &&
+            event.imagemDoComboUrl!.isNotEmpty)
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
@@ -406,42 +419,54 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
               width: double.infinity,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                // Optional: Display a local asset or a placeholder if image fails
                 return Container(
                   height: 400,
                   width: double.infinity,
                   color: Colors.grey[200],
                   child: const Center(
-                    child: Text('Falha ao carregar imagem do combo'),
+                    child: Text(
+                      'Falha ao carregar imagem do combo',
+                    ), // Traduzido
                   ),
                 );
               },
             ),
+          )
+        else
+          Container(
+            height: 400,
+            width: double.infinity,
+            color: Colors.grey[200],
+            child: const Center(
+              child: Text(
+                'Combo não disponível',
+                style: TextStyle(color: Colors.grey),
+              ), // Mensagem para combo não disponível
+            ),
           ),
         const SizedBox(height: 20),
         const Text(
-          'Localização',
+          'Localização', // Traduzido
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         SizedBox(
           height: 200,
-          child:
-              // ORIGINAL: Image.network('https://via.placeholder.com/600x300?text=Mapa+indisponível'),
-              // TEMPORARY FIX: Use a different placeholder or a local asset
-              // For example, using another placeholder that might be more reliable:
-              Image.network(
-                'https://picsum.photos/600/300', // A more reliable placeholder for testing
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Center(
-                      child: Text('Mapa indisponível ou falha de rede'),
-                    ),
-                  );
-                },
-              ),
+          child: Image.network(
+            'https://picsum.photos/600/300', // Placeholder de mapa, considere usar um mapa real (ex: Maps_flutter)
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: Colors.grey[200],
+                child: const Center(
+                  child: Text(
+                    'Mapa indisponível ou falha de rede',
+                    style: TextStyle(color: Colors.grey),
+                  ), // Traduzido
+                ),
+              );
+            },
+          ),
         ),
         const SizedBox(height: 20),
         _buildReservationForm(),
@@ -454,7 +479,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Quantidade de Pessoas',
+          'Quantidade de Pessoas', // Traduzido
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         DropdownButton<int>(
@@ -462,7 +487,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           isExpanded: true,
           items: List.generate(20, (index) => index + 1)
               .map(
-                (e) => DropdownMenuItem(value: e, child: Text('$e Pessoa(s)')),
+                (e) => DropdownMenuItem(
+                  value: e,
+                  child: Text('$e Pessoa(s)'),
+                ), // Traduzido
               )
               .toList(),
           onChanged: (value) {
@@ -476,10 +504,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         ),
         const SizedBox(height: 16),
         const Text(
-          'Mesas Necessárias (1 mesa para 6 pessoas)',
+          'Mesas Necessárias (1 mesa para 6 pessoas)', // Traduzido
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        Text('$_mesas mesa(s)'),
+        Text('$_mesas mesa(s)'), // Traduzido
       ],
     );
   }
@@ -536,7 +564,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         ),
                       )
                     : const Text(
-                        'CONFIRMAR RESERVA',
+                        'CONFIRMAR RESERVA', // Traduzido
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
               ),

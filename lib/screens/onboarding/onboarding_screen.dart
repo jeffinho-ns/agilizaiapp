@@ -18,26 +18,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  // --- Dados de Onboarding Traduzidos ---
   final List<Map<String, String>> _onboardingData = [
     {
       "image": "assets/images/onboarding-1.png",
-      "title": "Explore Upcoming and Nearby Events",
+      "title": "Explore Eventos Próximos e Futuros",
       "subtitle":
-          "In publishing and graphic design, Lorem is a placeholder text commonly",
+          "No mundo da publicação e do design gráfico, Lorem Ipsum é um texto de preenchimento comumente usado.",
     },
     {
       "image":
           "assets/images/onboarding-2.png", // **Verifique se o nome do arquivo está correto**
-      "title": "Create and Find Events Easily in One Place",
+      "title": "Crie e Encontre Eventos Facilmente em um Só Lugar",
       "subtitle":
-          "In this app you can create any kind of events and you can join all events.",
+          "Neste aplicativo você pode criar qualquer tipo de evento e participar de todos os eventos.",
     },
     {
       "image":
           "assets/images/onboarding-3.png", // **Verifique se o nome do arquivo está correto**
-      "title": "Watching Free Concerts with Friends",
+      "title": "Assista a Shows Gratuitos com Amigos",
       "subtitle":
-          "Find and booking concert tickets near your invite your friends to watch together",
+          "Encontre e reserve ingressos para shows perto de você e convide seus amigos para assistirem juntos.",
     },
   ];
 
@@ -63,6 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   });
                 },
                 itemBuilder: (context, index) {
+                  // Certifique-se de que os assets de imagem existem neste caminho
                   return Image.asset(_onboardingData[index]['image']!);
                 },
               ),
@@ -99,12 +101,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Botão SKIP
+                      // Botão PULAR
                       TextButton(
                         onPressed:
                             _goToNextScreen, // Pula direto para a próxima tela
                         child: const Text(
-                          'Skip',
+                          'Pular', // Traduzido
                           style: TextStyle(color: Colors.white),
                         ),
                       ),
@@ -116,7 +118,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                       ),
 
-                      // Botão NEXT / GET STARTED
+                      // Botão PRÓXIMO / COMEÇAR
                       TextButton(
                         onPressed: () {
                           // Se não for a última página, avança
@@ -133,8 +135,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         // O texto do botão muda na última página
                         child: Text(
                           _currentPage == _onboardingData.length - 1
-                              ? 'Get Started'
-                              : 'Next',
+                              ? 'Começar' // Traduzido
+                              : 'Próximo', // Traduzido
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,

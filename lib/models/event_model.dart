@@ -10,13 +10,15 @@ class Event {
   final String? dataDoEvento; // Usado no cabeçalho
   final String? horaDoEvento; // Usado no cabeçalho
   final String? categoria;
+  final String? tipoEvento;
   final dynamic
-  valorDaEntrada; // Usado no cabeçalho (dynamic para ser flexível)
+      valorDaEntrada; // Usado no cabeçalho (dynamic para ser flexível)
   final String? descricao; // Usado na seção de descrição
 
   // URLs de imagem que já vêm prontas da sua API
   final String? imagemDoEventoUrl;
   final String? imagemDoComboUrl;
+  final int? adicionadoPor;
 
   Event({
     required this.id,
@@ -24,12 +26,14 @@ class Event {
     this.nomeDoEvento,
     this.localDoEvento,
     this.dataDoEvento,
+    this.tipoEvento,
     this.horaDoEvento,
     this.categoria,
     this.valorDaEntrada,
     this.descricao,
     this.imagemDoEventoUrl,
     this.imagemDoComboUrl,
+    this.adicionadoPor,
   });
 
   // Factory minimalista e segura para criar um Event a partir de JSON
@@ -43,13 +47,15 @@ class Event {
       dataDoEvento: json['data_do_evento'] as String?,
       horaDoEvento: json['hora_do_evento'] as String?,
       categoria: json['categoria'] as String?,
-      valorDaEntrada:
-          json['valor_da_entrada'], // Deixado como dynamic para evitar erros de tipo
+      tipoEvento: json['tipo_evento'] as String?,
+      valorDaEntrada: json[
+          'valor_da_entrada'], // Deixado como dynamic para evitar erros de tipo
       descricao: json['descricao'] as String?,
 
       // URLs que a API já fornece prontas
       imagemDoEventoUrl: json['imagem_do_evento_url'] as String?,
       imagemDoComboUrl: json['imagem_do_combo_url'] as String?,
+      adicionadoPor: json['adicionado_por'] as int?,
     );
   }
 }

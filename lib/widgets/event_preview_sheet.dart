@@ -3,17 +3,36 @@
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/screens/event/event_details_screen.dart'; // Importa a tela de detalhes
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Para formatação monetária
 
 class EventPreviewSheet extends StatelessWidget {
   final Event event;
-  // A única mudança: Tornamos o scrollController opcional para compatibilidade.
   final ScrollController? scrollController;
 
   const EventPreviewSheet({
     super.key,
     required this.event,
-    this.scrollController, // Ele pode ser nulo agora
+    this.scrollController,
   });
+
+  // Função auxiliar para formatar o preço em R$
+  String _formatPrice(dynamic price) {
+    if (price == null) {
+      return 'Grátis';
+    }
+    try {
+      final number = price is String
+          ? double.tryParse(price)
+          : price.toDouble();
+      if (number == null || number == 0) {
+        return 'Grátis';
+      }
+      final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+      return formatter.format(number);
+    } catch (e) {
+      return 'N/A';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +50,15 @@ class EventPreviewSheet extends StatelessWidget {
                 event.imagemDoEventoUrl ?? 'https://i.imgur.com/715zr01.jpeg',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
-                  return Container(color: Colors.grey);
+                  return Container(
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: Text(
+                        'Falha ao carregar imagem',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
@@ -83,8 +110,7 @@ class EventPreviewSheet extends StatelessWidget {
             right: 24,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize
-                  .min, // Para a coluna não tentar ocupar todo o espaço
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   event.nomeDoEvento ?? 'Nome Indefinido',
@@ -107,15 +133,27 @@ class EventPreviewSheet extends StatelessWidget {
                 const SizedBox(height: 24),
                 _buildMembersRow(),
                 const SizedBox(height: 32),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    _formatPrice(event.valorDaEntrada), // Preço formatado
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(); // Fecha o PreviewSheet
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          // Passe o evento aqui
-                          builder: (_) => EventDetailsPage(event: event),
+                          builder: (_) => EventDetailsPage(
+                            event: event,
+                          ), // Navega para a tela de detalhes
                         ),
                       );
                     },
@@ -127,9 +165,8 @@ class EventPreviewSheet extends StatelessWidget {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-
                     child: const Text(
-                      'CHOOSE YOUR SEAT',
+                      'ESCOLHER SEU LUGAR', // Traduzido
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -145,7 +182,6 @@ class EventPreviewSheet extends StatelessWidget {
     );
   }
 
-  // Widget auxiliar para os botões do topo
   Widget _buildTopIconButton(
     BuildContext context,
     IconData icon,
@@ -162,13 +198,11 @@ class EventPreviewSheet extends StatelessWidget {
     );
   }
 
-  // Widget auxiliar para as linhas de informação (local, data)
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
         Icon(icon, color: Colors.white, size: 20),
         const SizedBox(width: 12),
-        // Expanded para garantir que o texto não quebre o layout
         Expanded(
           child: Text(
             text,
@@ -180,9 +214,7 @@ class EventPreviewSheet extends StatelessWidget {
     );
   }
 
-  // Widget para a seção de membros
   Widget _buildMembersRow() {
-    // Avatares empilhados
     final avatars = [
       _buildMemberAvatar('https://randomuser.me/api/portraits/women/1.jpg'),
       _buildMemberAvatar('https://randomuser.me/api/portraits/men/2.jpg'),
@@ -193,27 +225,19 @@ class EventPreviewSheet extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: 100, // Largura total para os avatares empilhados
+          width: 100,
           height: 40,
           child: Stack(
             children: List.generate(avatars.length, (index) {
-              return Positioned(
-                left: index * 25.0, // Espaçamento entre os avatares
-                child: avatars[index],
-              );
+              return Positioned(left: index * 25.0, child: avatars[index]);
             }),
           ),
         ),
         const SizedBox(width: 8),
-
-        // SOLUÇÃO: Envolver o Text com o widget Expanded.
-        // Ele força o texto a usar apenas o espaço restante na linha.
         const Expanded(
           child: Text(
-            '15.7K+ Members are joined',
+            '15.7K+ Membros confirmados', // Traduzido
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-            // Boa prática: adicionar overflow para cortar o texto com "..." se
-            // o espaço for extremamente pequeno.
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -221,11 +245,10 @@ class EventPreviewSheet extends StatelessWidget {
     );
   }
 
-  // Widget para cada avatar de membro
   Widget _buildMemberAvatar(String imageUrl) {
     return CircleAvatar(
       radius: 20,
-      backgroundColor: Colors.white, // Borda branca
+      backgroundColor: Colors.white,
       child: CircleAvatar(radius: 18, backgroundImage: NetworkImage(imageUrl)),
     );
   }
