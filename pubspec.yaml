@@ -24,6 +24,9 @@ dependencies:
   image_picker: ^1.0.0
   table_calendar: ^3.1.2
   shared_preferences: ^2.2.3
+  flutter_launcher_icons: "^0.13.1"
+  google_sign_in: ^6.2.1
+  font_awesome_flutter: ^10.7.0
   flutter_localizations:
     sdk: flutter
 
@@ -33,10 +36,23 @@ dev_dependencies:
   flutter_lints: ^3.0.0
  
 
+ # flutter_launcher_icons configuration
+flutter_launcher_icons:
+  android: "launcher_icon" # Nome do ícone no Android. Opcional, o padrão é "launcher_icon".
+  ios: true # Define se deve gerar ícones para iOS
+  image_path: "assets/app_icon.png" # Caminho para a sua imagem PNG do ícone
+  min_sdk_android: 21 # A versão mínima do SDK Android que seu app suporta
+  remove_alpha_ios: true # Opcional: remove o canal alfa para iOS, útil se seu ícone tem transparência e o iOS adiciona um fundo preto.
+  # adaptive_icon_background: "#FFFFFF" # Opcional (Android 8+): cor de fundo para ícones adaptativos
+  # adaptive_icon_foreground: "assets/app_icon_foreground.png" # Opcional (Android 8+): imagem de primeiro plano para ícones adaptativos
+
 # --- Seção 'flutter' ---
 flutter:
   uses-material-design: true
   generate: true
+
+
+
 
   # Apenas a pasta 'images' agora
   assets: # <<< Este 'assets:' é para o empacotamento do Flutter
