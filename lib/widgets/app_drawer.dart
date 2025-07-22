@@ -1,16 +1,17 @@
 // lib/widgets/app_drawer.dart
 
-import 'package:agilizaiapp/screens/main_screen.dart'; // IMPORTANTE: Importar a main_screen.dart
+import 'package:agilizaiapp/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:agilizaiapp/providers/user_profile_provider.dart';
 import 'package:agilizaiapp/models/user_model.dart';
 import 'package:agilizaiapp/screens/splash/splash_screen.dart';
-import 'package:agilizaiapp/screens/profile/edit_profile_screen.dart';
+import 'package:agilizaiapp/screens/profile/edit_profile_screen.dart'; // Tela de Configurações/Editar Perfil já importada
 import 'package:agilizaiapp/screens/profile/profile_screen.dart';
+import 'package:agilizaiapp/screens/my_reservations_screen.dart';
 
-import 'package:agilizaiapp/screens/my_reservations_screen.dart'; // Importe a nova tela de reservas
+import 'package:agilizaiapp/screens/search/search_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   final VoidCallback? onClose;
@@ -53,49 +54,49 @@ class AppDrawer extends StatelessWidget {
               const SizedBox(height: 20),
               _buildSectionTitle('BROWSE'),
 
-              // Itens que controlam o MainScreen
               _buildDrawerItem(
                 icon: Icons.home_outlined,
                 text: 'Home',
                 onTap: () {
                   onClose?.call();
-                  mainScreenKey.currentState?.onItemTapped(
-                    0,
-                  ); // Vai para a aba Home (índice 0)
+                  mainScreenKey.currentState?.onItemTapped(0);
                 },
               ),
               _buildDrawerItem(
                 icon: Icons.person_outline,
-                text: 'My Profile',
+                text: 'Meu Perfil',
                 onTap: () {
                   onClose?.call();
-                  // CORRETO: usa a chave para chamar o método
                   mainScreenKey.currentState?.onItemTapped(3);
                 },
               ),
               _buildDrawerItem(
                 icon: Icons.calendar_today_outlined,
-                text: 'Calendar',
+                text: 'Calendário',
                 onTap: () {
                   onClose?.call();
-                  mainScreenKey.currentState?.onItemTapped(
-                    1,
-                  ); // Vai para a aba Calendar (índice 1)
+                  mainScreenKey.currentState?.onItemTapped(1);
                 },
               ),
 
-              // Itens que (no futuro) abrirão telas separadas
+              // ALTERAÇÃO 1: Link para a SearchScreen
               _buildDrawerItem(
                 icon: Icons.search_outlined,
-                text: 'Search',
-                onTap: () => _showSnackbar(context, 'Search clicado!'),
+                text: 'Buscar',
+                onTap: () {
+                  onClose?.call();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SearchScreen(),
+                    ),
+                  );
+                },
               ),
               _buildDrawerItem(
                 icon: Icons.bookmark_border_outlined,
                 text: 'Reservas',
-                // CORREÇÃO: Usar 'onTap' em vez de 'onPressed'
                 onTap: () {
-                  onClose?.call(); // Fecha o drawer ao clicar no item
+                  onClose?.call();
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => const MyReservationsScreen(),
@@ -108,10 +109,19 @@ class AppDrawer extends StatelessWidget {
                 text: 'Contact us',
                 onTap: () => _showSnackbar(context, 'Contact us clicado!'),
               ),
+
+              // ALTERAÇÃO 2: Link para a EditProfileScreen (sua tela de Configurações)
               _buildDrawerItem(
                 icon: Icons.settings_outlined,
-                text: 'Settings',
-                onTap: () => _showSnackbar(context, 'Settings clicado!'),
+                text: 'Configurações',
+                onTap: () {
+                  onClose?.call();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfileScreen(),
+                    ),
+                  );
+                },
               ),
 
               const Padding(
@@ -131,7 +141,7 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  // MÉTODOS AUXILIARES (COMPLETOS)
+  // MÉTODOS AUXILIARES (sem alterações)
 
   void _showSnackbar(BuildContext context, String message) {
     onClose?.call();
@@ -214,7 +224,7 @@ class AppDrawer extends StatelessWidget {
   Widget _buildDrawerItem({
     required IconData icon,
     required String text,
-    VoidCallback? onTap, // <-- Aqui é 'onTap'
+    VoidCallback? onTap,
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -225,7 +235,7 @@ class AppDrawer extends StatelessWidget {
           text,
           style: const TextStyle(color: Colors.white, fontSize: 16),
         ),
-        onTap: onTap, // <-- Aqui é usado 'onTap'
+        onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),

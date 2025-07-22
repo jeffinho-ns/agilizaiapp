@@ -8,7 +8,7 @@ class EmptyEventsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Meus Eventos',
+          'Meus Eventos', // Já estava em português
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -45,7 +45,7 @@ class EmptyEventsScreen extends StatelessWidget {
                 height: 32,
               ), // Espaço entre a imagem e o texto/botão
               const Text(
-                'Nenhum evento encontrado!',
+                'Nenhum evento encontrado!', // Já estava em português
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -55,7 +55,7 @@ class EmptyEventsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Parece que você ainda não tem eventos para exibir. Que tal criar ou explorar alguns?',
+                'Parece que você ainda não tem eventos para exibir. Que tal criar ou explorar alguns?', // Já estava em português
                 style: TextStyle(fontSize: 16, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
@@ -80,7 +80,7 @@ class EmptyEventsScreen extends StatelessWidget {
                     ),
                   ),
                   child: const Text(
-                    'EXPLORAR EVENTOS',
+                    'EXPLORAR EVENTOS', // Já estava em português
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),

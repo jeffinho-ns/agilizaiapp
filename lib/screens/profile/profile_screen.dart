@@ -177,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Profile',
+          'Perfil', // Traduzido de 'Profile'
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -217,25 +217,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 60,
-                  backgroundImage:
-                      _currentUser?.fotoPerfil != null &&
+                  backgroundImage: _currentUser?.fotoPerfil != null &&
                           _currentUser!.fotoPerfil!.isNotEmpty
                       ? NetworkImage(
                           _currentUser!.fotoPerfil!,
                         ) // Se houver URL válida
                       : const AssetImage('assets/images/default_avatar.png')
-                            as ImageProvider<Object>, // Fallback para asset
-                  // Remova o 'child' se você quer que o backgroundImage sempre preencha.
-                  // Se você quer o ícone *em vez* da imagem, use o child apenas e o backgroundImage: null
-                  // Mas o erro é que backgroundImage está null, então o fallback é essencial.
+                          as ImageProvider<Object>, // Fallback para asset
                   onBackgroundImageError: (exception, stackTrace) {
                     print(
                       'Erro ao carregar imagem de perfil (NetworkImage): $exception',
                     );
-                    // Opcional: Se NetworkImage falhar, você pode querer um ícone.
-                    // Para isso, a lógica do CircleAvatar teria que ser diferente:
-                    // Se você realmente quer o ícone em caso de erro DE CARREGAMENTO da network image,
-                    // você teria que gerenciar o estado da imagem de perfil.
                   },
                 ),
                 Positioned(
@@ -263,17 +255,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-
-            // Removidas as estatísticas (Followers, Following, Events)
-            // Removida a seção 'About Me'
-            // Removida a seção 'Interest'
             Align(
               alignment: Alignment.centerLeft,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Contact Information',
+                    'Informações de Contato', // Traduzido de 'Contact Information'
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
@@ -281,33 +269,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 8),
                   _buildInfoRow(
                     Icons.phone,
-                    'Phone:',
+                    'Telefone:', // Traduzido de 'Phone'
                     _currentUser!.telefone ?? 'N/A',
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 32),
-
             Align(
               alignment: Alignment.centerLeft,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Personal Details',
+                    'Detalhes Pessoais', // Traduzido de 'Personal Details'
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   _buildInfoRow(
                     Icons.calendar_today,
-                    'Date of Birth:',
+                    'Data de Nascimento:', // Traduzido de 'Date of Birth'
                     _currentUser!.dataNascimento ?? 'N/A',
-                  ), // Usando dataNascimento
+                  ),
                   const SizedBox(height: 8),
                   _buildInfoRow(
                     Icons.person,
-                    'Gender:',
+                    'Gênero:', // Traduzido de 'Gender'
                     _currentUser!.sexo ?? 'N/A',
                   ),
                   const SizedBox(height: 8),
@@ -320,26 +307,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 32),
-
             Align(
               alignment: Alignment.centerLeft,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Address',
+                    'Endereço', // Traduzido de 'Address'
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   _buildInfoRow(
                     Icons.location_on,
-                    'Full Address:',
+                    'Endereço Completo:', // Traduzido de 'Full Address'
                     _formatAddress(_currentUser!),
                   ),
-                  // Você pode adicionar mais linhas aqui se quiser quebrar o endereço
-                  // _buildInfoRow(Icons.home, 'Street:', _currentUser!.endereco ?? 'N/A'),
-                  // _buildInfoRow(Icons.push_pin, 'Number:', _currentUser!.numero ?? 'N/A'),
-                  // ... e assim por diante para bairro, cidade, estado, cep, complemento
                 ],
               ),
             ),
@@ -350,19 +332,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Account Details',
+                    'Detalhes da Conta', // Traduzido de 'Account Details'
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   _buildInfoRow(
                     Icons.person_outline,
-                    'Role:',
+                    'Função:', // Traduzido de 'Role'
                     _currentUser!.role ?? 'N/A',
                   ),
                   const SizedBox(height: 8),
                   _buildInfoRow(
                     Icons.cloud,
-                    'Provider:',
+                    'Provedor:', // Traduzido de 'Provider'
                     _currentUser!.provider ?? 'N/A',
                   ),
                 ],
@@ -373,65 +355,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
-  // O método _buildStatisticItem não é mais usado, pode ser removido
-  /*
-  Widget _buildStatisticItem(String value, String label) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-      ],
-    );
-  }
-  */
-
-  // O método _buildInterestChip não é mais usado, pode ser removido
-  /*
-  Widget _buildInterestChip(String label) {
-    IconData icon;
-    switch (label.toLowerCase()) {
-      case 'design':
-        icon = Icons.design_services;
-        break;
-      case 'food':
-        icon = Icons.fastfood;
-        break;
-      case 'programing':
-        icon = Icons.code;
-        break;
-      case 'music':
-        icon = Icons.music_note;
-        break;
-      case 'sports':
-        icon = Icons.sports_baseball;
-        break;
-      case 'art':
-        icon = Icons.palette;
-        break;
-      default:
-        icon = Icons.interests;
-    }
-
-    return Chip(
-      avatar: Icon(icon, color: const Color(0xFFF26422)),
-      label: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.black87,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      backgroundColor: const Color(0xFFF26422).withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-    );
-  }
-  */
 
   Widget _buildInfoRow(IconData icon, String title, String value) {
     return Row(

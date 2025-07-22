@@ -37,8 +37,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _estadoController = TextEditingController(); // NOVO: Campo para Estado
   final _complementoController =
       TextEditingController(); // NOVO: Campo para Complemento
-  // _locationController e _interestedEventsController foram removidos pois não estão no BD
-  // _aboutMeController foi removido pois não está no BD
 
   User? _currentUser;
   bool _isLoading = true;
@@ -164,6 +162,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           : DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      locale:
+          const Locale('pt', 'BR'), // Define o local para português do Brasil
     );
 
     if (pickedDate != null) {
@@ -289,11 +289,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       const storage = FlutterSecureStorage();
       await storage.delete(key: 'jwt_token');
 
+      // Limpa os dados do usuário no Provider
       Provider.of<UserProfileProvider>(
         context,
         listen: false,
       ).setUser(User(id: 0, name: '', email: ''));
 
+      // Redireciona para a SplashScreen e remove todas as rotas anteriores
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const SplashScreen()),
         (Route<dynamic> route) => false,
@@ -319,7 +321,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Edit Profile',
+          'Editar Perfil', // Traduzido de 'Edit Profile'
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -333,225 +335,217 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage.isNotEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      _errorMessage,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red, fontSize: 16),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _fetchCurrentUser,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF26422),
-                    ),
-                    child: const Text(
-                      'Tentar Novamente',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Foto de Perfil com função de alteração
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 60,
-                          // Sempre forneça um ImageProvider.
-                          backgroundImage: _imageFile != null
-                              ? FileImage(_imageFile!)
-                                    as ImageProvider<
-                                      Object
-                                    > // Usa FileImage se uma nova imagem foi selecionada
-                              : (_currentUser?.fotoPerfil != null &&
-                                        _currentUser!.fotoPerfil!.isNotEmpty
-                                    ? NetworkImage(_currentUser!.fotoPerfil!)
-                                          as ImageProvider<
-                                            Object
-                                          > // Usa NetworkImage se o usuário atual já tem uma foto
-                                    : const AssetImage(
-                                            'assets/images/default_avatar.png',
-                                          )
-                                          as ImageProvider<
-                                            Object
-                                          >), // Fallback para um asset local
-                          // Remova o 'child' se você quer que o backgroundImage sempre preencha o círculo.
-                          // O erro de asserção acontece porque 'backgroundImage' não pode ser null.
-                          // O 'child' é tipicamente usado quando você não tem nenhuma imagem (por exemplo, um Icon).
-                          // Se você preferir o Ícone em vez de uma imagem de placeholder, precisará de uma configuração diferente (por exemplo, AnimatedSwitcher).
-                          // Por enquanto, vamos priorizar a correção da asserção.
-                          onBackgroundImageError: (exception, stackTrace) {
-                            print(
-                              'Erro ao carregar imagem de perfil para edição: $exception',
-                            );
-                            // Você pode querer exibir um ícone de erro temporário ou definir um estado para mostrar um fallback.
-                            // O fallback de 'backgroundImage' acima já lida com o caso principal.
-                          },
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          _errorMessage,
+                          textAlign: TextAlign.center,
+                          style:
+                              const TextStyle(color: Colors.red, fontSize: 16),
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF26422),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchCurrentUser,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFF26422),
+                        ),
+                        child: const Text(
+                          'Tentar Novamente', // Traduzido
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Foto de Perfil com função de alteração
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 60,
+                              backgroundImage: _imageFile != null
+                                  ? FileImage(_imageFile!)
+                                      as ImageProvider<Object>
+                                  : (_currentUser?.fotoPerfil != null &&
+                                          _currentUser!.fotoPerfil!.isNotEmpty
+                                      ? NetworkImage(_currentUser!.fotoPerfil!)
+                                          as ImageProvider<Object>
+                                      : const AssetImage(
+                                          'assets/images/default_avatar.png',
+                                        ) as ImageProvider<Object>),
+                              onBackgroundImageError: (exception, stackTrace) {
+                                print(
+                                  'Erro ao carregar imagem de perfil para edição: $exception',
+                                );
+                              },
                             ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 18,
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF26422),
+                                  shape: BoxShape.circle,
+                                  border:
+                                      Border.all(color: Colors.white, width: 2),
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Campos de Edição - Agora refletindo o DB
+                      _buildTextField(
+                        controller: _fullNameController,
+                        label: 'Nome Completo', // Traduzido de 'Full Name'
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        controller: _emailController,
+                        label: 'E-mail', // Traduzido de 'Email'
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        controller: _phoneController,
+                        label: 'Telefone', // Traduzido de 'Phone'
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        controller: _passwordController,
+                        label:
+                            'Senha (deixe em branco para manter a atual)', // Traduzido de 'Password (leave blank to keep current)'
+                        obscureText: true,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildDateField(
+                        context: context,
+                        controller: _dataNascimentoController,
+                        label:
+                            'Data de Nascimento (AAAA-MM-DD)', // Traduzido de 'Date of Birth (YYYY-MM-DD)'
+                        onTap: () => _selectDate(context),
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        controller: _cpfController,
+                        label: 'CPF',
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                          controller: _sexoController,
+                          label: 'Gênero'), // Traduzido de 'Gender'
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        controller: _cepController,
+                        label: 'CEP',
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        controller: _enderecoController,
+                        label: 'Endereço', // Traduzido de 'Address'
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        controller: _numeroController,
+                        label: 'Número', // Traduzido de 'Number'
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        controller: _bairroController,
+                        label: 'Bairro', // Traduzido de 'Neighborhood'
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                          controller: _cidadeController,
+                          label: 'Cidade'), // Traduzido de 'City'
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        controller: _estadoController,
+                        label: 'Estado', // Traduzido de 'State'
+                      ),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                        controller: _complementoController,
+                        label: 'Complemento', // Traduzido de 'Complement'
+                        maxLines: 2,
+                      ),
+                      const SizedBox(height: 40),
+
+                      // Botão Salvar
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _saveProfileChanges,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2C2C2C),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white)
+                              : const Text(
+                                  'SALVAR ALTERAÇÕES', // Traduzido de 'SAVE CHANGES'
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Botão de Sair (Logout)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _logout,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'SAIR', // Traduzido de 'LOGOUT'
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Campos de Edição - Agora refletindo o DB
-                  _buildTextField(
-                    controller: _fullNameController,
-                    label: 'Full Name',
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _emailController,
-                    label: 'Email',
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _phoneController,
-                    label: 'Phone',
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _passwordController,
-                    label: 'Password (deixe em branco para manter a atual)',
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildDateField(
-                    context: context,
-                    controller:
-                        _dataNascimentoController, // Usando dataNascimento
-                    label: 'Date of Birth (YYYY-MM-DD)',
-                    onTap: () => _selectDate(context),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _cpfController,
-                    label: 'CPF',
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(controller: _sexoController, label: 'Gender'),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _cepController,
-                    label: 'CEP',
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _enderecoController,
-                    label: 'Address',
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _numeroController,
-                    label: 'Number',
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _bairroController,
-                    label: 'Neighborhood',
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(controller: _cidadeController, label: 'City'),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _estadoController,
-                    label: 'State',
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _complementoController,
-                    label: 'Complement',
-                    maxLines: 2,
-                  ),
-                  // Campos 'About Me' e 'Interested Events' foram removidos
-                  const SizedBox(height: 40),
-
-                  // Botão Salvar
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _saveProfileChanges,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2C2C2C),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                       ),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              'SAVE CHANGES',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-
-                  // Botão de Sair (Logout)
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _logout,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'SAIR',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
     );
   }
 

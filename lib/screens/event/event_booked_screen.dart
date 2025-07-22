@@ -43,7 +43,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
   void _showPendingMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text("Sua reserva está aguardando aprovação."),
+        content: Text("Sua reserva está aguardando aprovação."), // Traduzido
         backgroundColor: Colors.orange,
       ),
     );
@@ -66,7 +66,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           title: const Text(
-            'Seu Ingresso',
+            'Seu Ingresso', // Traduzido de 'Your Ticket'
             textAlign: TextAlign.center,
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
@@ -100,7 +100,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                       );
                       return const Center(
                         child: Text(
-                          'Ops! Algo deu errado ao gerar o QR Code.',
+                          'Ops! Algo deu errado ao gerar o QR Code.', // Traduzido
                           textAlign: TextAlign.center,
                         ),
                       );
@@ -110,7 +110,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 80.0),
                     child: Text(
-                      'QR Code não disponível para esta reserva.',
+                      'QR Code não disponível para esta reserva.', // Traduzido
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.red),
                     ),
@@ -119,17 +119,17 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                 // O Text agora não precisa mais de um SizedBox com largura infinita.
                 Text(
                   'Evento: ${widget.reservation.nomeDoEvento ?? widget.reservation.casaDaReserva ?? 'N/A'}\n'
-                  'Data: ${widget.reservation.dataDaReserva != null ? DateFormat('dd/MM/yyyy').format(DateTime.parse(widget.reservation.dataDaReserva!)) : 'N/A'}\n' // Removido HH:mm para simplificar
+                  'Data: ${widget.reservation.dataDaReserva != null ? DateFormat('dd/MM/yyyy').format(DateTime.parse(widget.reservation.dataDaReserva!)) : 'N/A'}\n'
                   'Hora: ${widget.reservation.horaDoEvento ?? 'N/A'}\n'
                   'Local: ${widget.reservation.localDoEvento ?? 'N/A'}\n'
                   'Pessoas: ${widget.reservation.quantidadePessoas ?? 'N/A'}\n'
-                  'Mesas: ${widget.reservation.mesas ?? 'N/A'}',
+                  'Mesas: ${widget.reservation.mesas ?? 'N/A'}', // Todas as labels dentro do texto
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Apresente este QR Code na entrada do evento.',
+                  'Apresente este QR Code na entrada do evento.', // Traduzido
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
@@ -143,7 +143,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                 Navigator.of(context).pop();
               },
               child: const Text(
-                'Fechar',
+                'Fechar', // Traduzido de 'Close'
                 style: TextStyle(
                   color: Color(0xFFF26422),
                   fontWeight: FontWeight.bold,
@@ -258,16 +258,20 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildActionButton(Icons.call, 'Call', () {
-            print('Call clicado');
+          _buildActionButton(Icons.call, 'Ligar', () {
+            // Traduzido de 'Call'
+            print('Ligar clicado');
             // Implementar ação de chamada
           }),
-          _buildActionButton(Icons.directions, 'Directions', () {
-            print('Directions clicado');
+          _buildActionButton(Icons.directions, 'Direções', () {
+            // Traduzido de 'Directions'
+            print('Direções clicado');
             // Implementar ação de direções (e.g., abrir mapa)
           }),
           // Condição para o botão "My Ticket"
-          _buildActionButton(Icons.confirmation_num_outlined, 'My Ticket', () {
+          _buildActionButton(Icons.confirmation_num_outlined, 'Meu Ingresso',
+              () {
+            // Traduzido de 'My Ticket'
             if (widget.reservation.statusDaReserva == 'Aprovado') {
               if (widget.reservation.qrcodeUrl != null &&
                   widget.reservation.qrcodeUrl!.isNotEmpty) {
@@ -279,7 +283,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                      "QR Code URL não disponível, exibindo um genérico.",
+                      "URL do QR Code não disponível, exibindo um genérico.", // Traduzido
                     ),
                     backgroundColor: Colors.orange,
                   ),
@@ -292,7 +296,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    "Status da reserva: ${widget.reservation.statusDaReserva ?? 'Desconhecido'}",
+                    "Status da reserva: ${widget.reservation.statusDaReserva ?? 'Desconhecido'}", // Traduzido
                   ),
                   backgroundColor: Colors.grey,
                 ),
@@ -345,23 +349,22 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
           ).format(DateTime.parse(widget.reservation.dataDaReserva!))
         : widget.event?.dataDoEvento ?? 'Data Indefinida';
 
-    String displayTime =
-        widget.reservation.horaDoEvento ??
+    String displayTime = widget.reservation.horaDoEvento ??
         widget.event?.horaDoEvento ??
         'Hora Indefinida';
 
-    String bookingStatusText = 'Status Desconhecido';
+    String bookingStatusText = 'Status Desconhecido'; // Traduzido
     Color bookingStatusColor = Colors.grey;
 
     if (widget.reservation.statusDaReserva == 'Aprovado') {
-      bookingStatusText = 'APROVADO';
+      bookingStatusText = 'APROVADO'; // Traduzido
       bookingStatusColor = Colors.green;
     } else if (widget.reservation.statusDaReserva == 'Aguardando') {
-      bookingStatusText = 'AGUARDANDO';
+      bookingStatusText = 'AGUARDANDO'; // Traduzido
       bookingStatusColor = Colors.orange;
     } else if (widget.reservation.statusDaReserva == 'Rejeitado' ||
         widget.reservation.statusDaReserva == 'Cancelado') {
-      bookingStatusText = 'REJEITADO'; // Ou 'CANCELADO'
+      bookingStatusText = 'REJEITADO'; // Traduzido. Ou 'CANCELADO'
       bookingStatusColor = Colors.red;
     }
 
@@ -393,7 +396,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                     widget.reservation.nomeDoEvento ??
                         widget.event?.nomeDoEvento ??
                         widget.reservation.casaDaReserva ??
-                        'Nome Indefinido',
+                        'Nome Indefinido', // Traduzido
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -433,7 +436,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                   child: Text(
                     widget.reservation.localDoEvento ??
                         widget.event?.localDoEvento ??
-                        'Local Indefinido',
+                        'Local Indefinido', // Traduzido
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                     maxLines:
                         2, // Permite quebrar a linha em duas se for muito longo
@@ -476,7 +479,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                       const Icon(Icons.people, color: Colors.grey, size: 18),
                       const SizedBox(width: 8),
                       Text(
-                        '${widget.reservation.quantidadePessoas ?? 'N/A'} Pessoa(s)',
+                        '${widget.reservation.quantidadePessoas ?? 'N/A'} Pessoa(s)', // Traduzido
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
@@ -493,7 +496,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                       const Icon(Icons.table_bar, color: Colors.grey, size: 16),
                       const SizedBox(width: 8),
                       Text(
-                        'Mesas: ${widget.reservation.mesas ?? 'N/A'}',
+                        'Mesas: ${widget.reservation.mesas ?? 'N/A'}', // Traduzido
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
@@ -504,7 +507,6 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                 ],
               ),
             ),
-            // ... (restante do código do _buildEventDetailsPanel)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -512,16 +514,16 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                 const Flexible(
                   // Adicionado Flexible aqui para o texto não causar overflow
                   child: Text(
-                    '15.7K+ Members are joined:', // Mantenho mockado por enquanto, mas pode ser dinâmico
+                    '15.7K+ Membros confirmados:', // Traduzido de '15.7K+ Members are joined:'
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                   ),
                 ),
                 TextButton(
                   onPressed: () {
-                    // Ação para VIEW ALL / INVITE
+                    // Ação para VER TODOS / CONVIDAR
                   },
                   child: const Text(
-                    'VIEW ALL / INVITE',
+                    'VER TODOS / CONVIDAR', // Traduzido de 'VIEW ALL / INVITE'
                     style: TextStyle(
                       color: Color(0xFFF26422),
                       fontWeight: FontWeight.bold,
@@ -545,25 +547,25 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
     final List<User> mockMembers = [
       User(
         id: 1,
-        name: 'Member A',
+        name: 'Membro A',
         email: 'a@example.com',
         fotoPerfil: 'https://randomuser.me/api/portraits/women/1.jpg',
       ),
       User(
         id: 2,
-        name: 'Member B',
+        name: 'Membro B',
         email: 'b@example.com',
         fotoPerfil: 'https://randomuser.me/api/portraits/men/2.jpg',
       ),
       User(
         id: 3,
-        name: 'Member C',
+        name: 'Membro C',
         email: 'c@example.com',
         fotoPerfil: 'https://randomuser.me/api/portraits/women/3.jpg',
       ),
       User(
         id: 4,
-        name: 'Member D',
+        name: 'Membro D',
         email: 'd@example.com',
         fotoPerfil: 'https://randomuser.me/api/portraits/men/4.jpg',
       ),
@@ -575,8 +577,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
       height: 40,
       child: Stack(
         children: List.generate(mockMembers.length, (index) {
-          final memberImageUrl =
-              mockMembers[index].fotoPerfil ??
+          final memberImageUrl = mockMembers[index].fotoPerfil ??
               'https://via.placeholder.com/150';
           return Positioned(
             left: index * 25.0,
@@ -667,7 +668,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Event Organiser',
+                    'Organizador do Evento', // Traduzido de 'Event Organiser'
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
@@ -697,7 +698,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
   Widget _buildDescription() {
     // Usa a descrição do evento que veio no `Event` model, se disponível
     String descriptionText =
-        widget.event?.descricao ?? 'Sem descrição disponível.';
+        widget.event?.descricao ?? 'Sem descrição disponível.'; // Traduzido
     String displayDescription = descriptionText.length > 150
         ? '${descriptionText.substring(0, 150)}...'
         : descriptionText;
@@ -709,7 +710,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Description',
+            'Descrição', // Traduzido de 'Description'
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
@@ -724,7 +725,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
                 TextSpan(text: displayDescription),
                 if (isLongDescription)
                   const TextSpan(
-                    text: ' Read More',
+                    text: ' Ler Mais', // Traduzido de 'Read More'
                     style: TextStyle(
                       color: Color(0xFFF26422),
                       fontWeight: FontWeight.bold,
@@ -752,7 +753,8 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
             // Ação para o botão de mensagens
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text("Funcionalidade de mensagens em breve!"),
+                content:
+                    Text("Funcionalidade de mensagens em breve!"), // Traduzido
                 backgroundColor: Colors.blue,
               ),
             );
@@ -766,7 +768,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
             ),
           ),
           child: const Text(
-            'Messages',
+            'Mensagens', // Traduzido de 'Messages'
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),

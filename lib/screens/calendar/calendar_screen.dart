@@ -1,5 +1,3 @@
-// lib/screens/calendar/calendar_screen.dart
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:agilizaiapp/models/event_model.dart';
@@ -136,7 +134,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Calendar',
+                'Calendário', // Traduzido
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -159,59 +157,60 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: Column(
         children: [
           if (_isCalendarOpen) _buildCalendarView(),
-
           Expanded(
             child: _isLoading
                 ? const Center(
                     child: CircularProgressIndicator(color: Color(0xFFF26422)),
                   )
                 : _events.isEmpty
-                ? const Center(
-                    child: Text(
-                      "Nenhum evento agendado.",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(top: 10),
-                    itemCount: _isCalendarOpen ? 1 : eventDays.length,
-                    itemBuilder: (context, index) {
-                      final DateTime date = _isCalendarOpen
-                          ? _selectedDay
-                          : eventDays[index];
-                      final List<Event> eventsForDay = _getEventsForDay(date);
+                    ? const Center(
+                        child: Text(
+                          "Nenhum evento agendado.",
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(top: 10),
+                        itemCount: _isCalendarOpen ? 1 : eventDays.length,
+                        itemBuilder: (context, index) {
+                          final DateTime date =
+                              _isCalendarOpen ? _selectedDay : eventDays[index];
+                          final List<Event> eventsForDay =
+                              _getEventsForDay(date);
 
-                      if (eventsForDay.isEmpty && _isCalendarOpen) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(32.0),
-                            child: Text(
-                              "Nenhum evento para esta data.",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
+                          if (eventsForDay.isEmpty && _isCalendarOpen) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: Text(
+                                  "Nenhum evento para esta data.",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        );
-                      }
-
-                      if (eventsForDay.isEmpty) return const SizedBox.shrink();
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildDateHeader(date),
-                          ...eventsForDay.map((event) {
-                            return GestureDetector(
-                              onTap: () => _showEventPreview(context, event),
-                              child: EventTimelineTile(event: event),
                             );
-                          }).toList(),
-                        ],
-                      );
-                    },
-                  ),
+                          }
+
+                          if (eventsForDay.isEmpty)
+                            return const SizedBox.shrink();
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildDateHeader(date),
+                              ...eventsForDay.map((event) {
+                                return GestureDetector(
+                                  onTap: () =>
+                                      _showEventPreview(context, event),
+                                  child: EventTimelineTile(event: event),
+                                );
+                              }).toList(),
+                            ],
+                          );
+                        },
+                      ),
           ),
         ],
       ),
@@ -242,7 +241,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Row(
-                    children: [Text('All Events'), Icon(Icons.arrow_drop_down)],
+                    children: [
+                      Text('Todos os Eventos'), // Traduzido
+                      Icon(Icons.arrow_drop_down)
+                    ],
                   ),
                 ),
                 TextButton.icon(
@@ -250,7 +252,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     /* Navegar para a FilterScreen */
                   },
                   icon: const Icon(Icons.filter_list),
-                  label: const Text('Filter'),
+                  label: const Text('Filtrar'), // Traduzido
                   style: TextButton.styleFrom(foregroundColor: Colors.black),
                 ),
               ],
@@ -311,7 +313,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: Column(
               children: [
                 Text(
-                  DateFormat.MMM().format(date).toUpperCase(),
+                  // Garante que o mês seja em português
+                  DateFormat.MMM('pt_BR').format(date).toUpperCase(),
                   style: const TextStyle(
                     color: Color(0xFFF26422),
                     fontWeight: FontWeight.bold,
@@ -329,7 +332,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           const SizedBox(width: 16),
           Text(
-            DateFormat('EEEE, MMMM d, y').format(date).toUpperCase(),
+            // Garante que o dia da semana e o mês sejam em português
+            DateFormat('EEEE, d MMMM, y', 'pt_BR').format(date).toUpperCase(),
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.grey,

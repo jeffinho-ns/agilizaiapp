@@ -41,12 +41,12 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     }
     try {
       // Tenta converter para double, se for string, tenta fazer o parse
-      final number = price is String
-          ? double.tryParse(price)
-          : price.toDouble();
+      final number =
+          price is String ? double.tryParse(price) : price.toDouble();
       if (number == null || number == 0) {
         return 'Grátis';
       }
+      // Formatação para Real Brasileiro (R$)
       final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
       return formatter.format(number);
     } catch (e) {
@@ -153,7 +153,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   color: Colors.grey[200],
                   child: const Center(
                     child: Text(
-                      'Falha ao carregar imagem do evento',
+                      'Falha ao carregar imagem do evento', // Traduzido
                       style: TextStyle(color: Colors.grey),
                     ),
                   ),
@@ -231,7 +231,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             backgroundColor: Colors.black.withOpacity(0.3),
             child: IconButton(
               icon: const Icon(Icons.favorite, color: Colors.red),
-              onPressed: () {},
+              onPressed: () {
+                // TODO: Implementar lógica de favoritar/desfavoritar
+              },
             ),
           ),
         ],
@@ -244,7 +246,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          event.nomeDoEvento ?? 'Nome Indefinido',
+          event.nomeDoEvento ?? 'Nome Indefinido', // Traduzido
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
@@ -254,7 +256,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                event.localDoEvento ?? 'Local Indefinido',
+                event.localDoEvento ?? 'Local Indefinido', // Traduzido
                 style: const TextStyle(fontSize: 14),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -266,11 +268,11 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           children: [
             const Icon(Icons.calendar_today, color: Colors.grey, size: 16),
             const SizedBox(width: 4),
-            Text(event.dataDoEvento ?? 'Sem data'),
+            Text(event.dataDoEvento ?? 'Sem data'), // Traduzido
             const SizedBox(height: 16),
             const Icon(Icons.access_time, color: Colors.grey, size: 16),
             const SizedBox(width: 4),
-            Text(event.horaDoEvento ?? 'Sem hora'),
+            Text(event.horaDoEvento ?? 'Sem hora'), // Traduzido
           ],
         ),
         const SizedBox(height: 8),
@@ -283,7 +285,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           child: Text(
             _formatPrice(
               event.valorDaEntrada,
-            ), // ✨ Usando a função _formatPrice
+            ), // Usando a função _formatPrice para R$
             style: const TextStyle(
               color: Color(0xFFF26422),
               fontWeight: FontWeight.bold,
@@ -297,8 +299,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   Widget _buildMembersSection() {
     return Row(
       children: [
-        // Traduzido
-        const Flexible(child: Text("15.7K+ Membros confirmados:")),
+        const Flexible(
+            child: Text(
+                "15.7K+ Membros confirmados:")), // Já estava traduzido, mantido
         const SizedBox(width: 8),
         SizedBox(
           width: 80,
@@ -323,13 +326,15 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         ),
         const Spacer(),
         TextButton(
-          onPressed: () {},
+          onPressed: () {
+            // TODO: Implementar lógica de ver todos / convidar
+          },
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           child: const Text(
-            'VER TODOS / CONVIDAR', // Traduzido
+            'VER TODOS / CONVIDAR', // Já estava traduzido, mantido
             style: TextStyle(
               color: Color(0xFFF26422),
               fontWeight: FontWeight.bold,
@@ -370,7 +375,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         'Tamim Ikram', // Nome do organizador, pode ser dinâmico no futuro
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
-      subtitle: const Text('Organizador do Evento'), // Traduzido
+      subtitle: const Text('Organizador do Evento'), // Já estava traduzido
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -425,8 +430,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   color: Colors.grey[200],
                   child: const Center(
                     child: Text(
-                      'Falha ao carregar imagem do combo',
-                    ), // Traduzido
+                      'Falha ao carregar imagem do combo', // Traduzido
+                    ),
                   ),
                 );
               },
@@ -439,9 +444,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             color: Colors.grey[200],
             child: const Center(
               child: Text(
-                'Combo não disponível',
+                'Combo não disponível', // Traduzido
                 style: TextStyle(color: Colors.grey),
-              ), // Mensagem para combo não disponível
+              ),
             ),
           ),
         const SizedBox(height: 20),
@@ -453,16 +458,16 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         SizedBox(
           height: 200,
           child: Image.network(
-            'https://picsum.photos/600/300', // Placeholder de mapa, considere usar um mapa real (ex: Maps_flutter)
+            'https://picsum.photos/600/300', // Placeholder de mapa
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return Container(
                 color: Colors.grey[200],
                 child: const Center(
                   child: Text(
-                    'Mapa indisponível ou falha de rede',
+                    'Mapa indisponível ou falha de rede', // Traduzido
                     style: TextStyle(color: Colors.grey),
-                  ), // Traduzido
+                  ),
                 ),
               );
             },
@@ -489,8 +494,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
               .map(
                 (e) => DropdownMenuItem(
                   value: e,
-                  child: Text('$e Pessoa(s)'),
-                ), // Traduzido
+                  child: Text(
+                      '$e Pessoa(s)'), // Traduzido e mantido dinâmico para "pessoa(s)"
+                ),
               )
               .toList(),
           onChanged: (value) {
@@ -507,7 +513,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           'Mesas Necessárias (1 mesa para 6 pessoas)', // Traduzido
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        Text('$_mesas mesa(s)'), // Traduzido
+        Text('$_mesas mesa(s)'), // Traduzido e mantido dinâmico para "mesa(s)"
       ],
     );
   }
@@ -532,7 +538,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         child: Row(
           children: [
             OutlinedButton(
-              onPressed: () {},
+              onPressed: () {
+                // TODO: Implementar lógica de favoritar/salvar evento
+              },
               style: OutlinedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

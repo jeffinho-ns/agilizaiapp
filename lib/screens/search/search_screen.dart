@@ -1,11 +1,14 @@
 // lib/screens/search/search_screen.dart
 
 import 'dart:convert';
+import 'package:agilizaiapp/screens/event/event_details_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/screens/filter/filter_screen.dart';
 import 'package:agilizaiapp/widgets/search_result_tile.dart';
 import 'package:flutter/material.dart';
+// Importe a tela de detalhes do evento, substitua 'event_detail_screen.dart' pelo seu caminho real
+import 'package:agilizaiapp/screens/event/event_details_screen.dart'; // ASSUMINDO ESTE CAMINHO
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -21,8 +24,24 @@ class _SearchScreenState extends State<SearchScreen> {
   List<Event> _filteredEvents = [];
 
   FilterSettings? _activeFilters;
-  String _selectedCategoryChip = 'All';
-  final List<String> _categories = ['All', 'Design', 'Art', 'Sports', 'Music'];
+  String _selectedCategoryChip = 'All'; // Manter em inglês para o valor interno
+  final List<String> _categories = [
+    'All',
+    'Design',
+    'Art',
+    'Sports',
+    'Music'
+  ]; // Valores internos
+
+  // Mapeamento para traduzir as categorias para exibição
+  final Map<String, String> _translatedCategories = {
+    'All': 'Todos',
+    'Design': 'Design',
+    'Art': 'Arte',
+    'Sports': 'Esportes',
+    'Music': 'Música',
+    // Adicione mais categorias conforme necessário
+  };
 
   @override
   void initState() {
@@ -45,9 +64,8 @@ class _SearchScreenState extends State<SearchScreen> {
       );
       if (response.statusCode == 200) {
         final List<dynamic> eventData = jsonDecode(response.body);
-        final List<Event> loadedEvents = eventData
-            .map((json) => Event.fromJson(json))
-            .toList();
+        final List<Event> loadedEvents =
+            eventData.map((json) => Event.fromJson(json)).toList();
 
         if (mounted) {
           setState(() {
@@ -76,8 +94,9 @@ class _SearchScreenState extends State<SearchScreen> {
   // Função para converter o 'dynamic' do preço para double de forma segura
   double _parsePrice(dynamic priceValue) {
     if (priceValue == null) return 0.0;
-    if (priceValue is num)
+    if (priceValue is num) {
       return priceValue.toDouble(); // Se já for um número (int, double)
+    }
     if (priceValue is String) {
       return double.tryParse(priceValue) ?? 0.0; // Se for texto
     }
@@ -91,9 +110,9 @@ class _SearchScreenState extends State<SearchScreen> {
     if (_searchController.text.isNotEmpty) {
       results = results
           .where(
-            (event) => (event.nomeDoEvento ?? '').toLowerCase().contains(
-              _searchController.text.toLowerCase(),
-            ),
+            (event) => (event.nomeDoEvento ?? '')
+                .toLowerCase()
+                .contains(_searchController.text.toLowerCase()),
           )
           .toList();
     }
@@ -108,9 +127,12 @@ class _SearchScreenState extends State<SearchScreen> {
     // Filtros avançados da FilterScreen
     if (_activeFilters != null) {
       // Categoria da FilterScreen
-      results = results
-          .where((event) => (event.categoria ?? '') == _activeFilters!.category)
-          .toList();
+      if (_activeFilters!.category != 'All') {
+        results = results
+            .where(
+                (event) => (event.categoria ?? '') == _activeFilters!.category)
+            .toList();
+      }
 
       // Preço da FilterScreen
       results = results.where((event) {
@@ -174,10 +196,24 @@ class _SearchScreenState extends State<SearchScreen> {
     if (newFilters != null) {
       setState(() {
         _activeFilters = newFilters;
+        // Ao aplicar filtros avançados, o chip "All" pode não ser o mais preciso
+        // Ou você pode querer que o chip reflita a categoria do filtro avançado.
+        // Se newFilters.category for 'All' e houver outros filtros,
+        // _selectedCategoryChip = 'All' ainda é válido.
+        // Se houver uma categoria específica no filtro, use-a.
         _selectedCategoryChip = newFilters.category;
       });
       _runFilter();
     }
+  }
+
+  // Função para navegar para a tela de detalhes do evento
+  void _navigateToEventDetail(Event event) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EventDetailsPage(event: event),
+      ),
+    );
   }
 
   @override
@@ -187,7 +223,7 @@ class _SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         leading: const BackButton(color: Colors.black),
         title: const Text(
-          'Search',
+          'Buscar Eventos', // Traduzido de 'Search'
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
@@ -203,7 +239,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: 'Find amazing events',
+                      hintText:
+                          'Encontre eventos incríveis', // Traduzido de 'Find amazing events'
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15.0),
@@ -235,13 +272,18 @@ class _SearchScreenState extends State<SearchScreen> {
                 children: _categories
                     .map(
                       (category) => _buildChoiceChip(
-                        label: category,
+                        label: _translatedCategories[
+                            category]!, // Usa o valor traduzido para exibir
+                        actualValue:
+                            category, // Passa o valor original para seleção interna
                         selected: _selectedCategoryChip == category,
                         onSelected: (isSelected) {
                           if (isSelected) {
                             setState(() {
-                              _selectedCategoryChip = category;
-                              _activeFilters = null;
+                              _selectedCategoryChip =
+                                  category; // Atualiza com o valor original
+                              _activeFilters =
+                                  null; // Limpa filtros avançados ao selecionar um chip de categoria
                             });
                             _runFilter();
                           }
@@ -256,14 +298,19 @@ class _SearchScreenState extends State<SearchScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _filteredEvents.isEmpty
-                  ? const Center(child: Text('Nenhum evento encontrado.'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(top: 8),
-                      itemCount: _filteredEvents.length,
-                      itemBuilder: (context, index) {
-                        return SearchResultTile(event: _filteredEvents[index]);
-                      },
-                    ),
+                      ? const Center(child: Text('Nenhum evento encontrado.'))
+                      : ListView.builder(
+                          padding: const EdgeInsets.only(top: 8),
+                          itemCount: _filteredEvents.length,
+                          itemBuilder: (context, index) {
+                            final event = _filteredEvents[index];
+                            return GestureDetector(
+                              onTap: () => _navigateToEventDetail(
+                                  event), // Torna o card clicável
+                              child: SearchResultTile(event: event),
+                            );
+                          },
+                        ),
             ),
           ],
         ),
@@ -272,7 +319,8 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildChoiceChip({
-    required String label,
+    required String label, // Label para exibição
+    required String actualValue, // Valor real da categoria
     required bool selected,
     required Function(bool) onSelected,
   }) {
@@ -286,9 +334,9 @@ class _SearchScreenState extends State<SearchScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: ChoiceChip(
-        label: Text(label),
+        label: Text(label), // Exibe o label traduzido
         avatar: Icon(
-          icons[label],
+          icons[actualValue], // Usa o valor original para o ícone
           color: selected ? Colors.white : const Color(0xFFF26422),
         ),
         selected: selected,

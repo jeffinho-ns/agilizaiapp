@@ -28,13 +28,37 @@ class FilterScreen extends StatefulWidget {
 
 class _FilterScreenState extends State<FilterScreen> {
   // Variáveis de estado
-  String _selectedCategory = 'Sports';
-  String _selectedTime = 'Tomorrow';
+  String _selectedCategory = 'Sports'; // Manter em inglês para lógica interna
+  String _selectedTime = 'Tomorrow'; // Manter em inglês para lógica interna
   RangeValues _currentRangeValues = const RangeValues(20, 120);
   DateTime? _selectedDate; // Guarda a data escolhida no calendário
 
-  final List<String> _categories = ['Design', 'Art', 'Sports', 'Music'];
-  final List<String> _timeOptions = ['Today', 'Tomorrow', 'This week'];
+  final List<String> _categories = [
+    'Design',
+    'Art',
+    'Sports',
+    'Music'
+  ]; // Valores internos
+  final List<String> _timeOptions = [
+    'Today',
+    'Tomorrow',
+    'This week'
+  ]; // Valores internos
+
+  // Mapeamento para traduzir as categorias para exibição
+  final Map<String, String> _translatedCategories = {
+    'Design': 'Design',
+    'Art': 'Arte',
+    'Sports': 'Esportes',
+    'Music': 'Música',
+  };
+
+  // Mapeamento para traduzir as opções de tempo para exibição
+  final Map<String, String> _translatedTimeOptions = {
+    'Today': 'Hoje',
+    'Tomorrow': 'Amanhã',
+    'This week': 'Esta semana',
+  };
 
   // --- LÓGICA DO CALENDÁRIO ---
   Future<void> _openDatePicker() async {
@@ -43,6 +67,8 @@ class _FilterScreenState extends State<FilterScreen> {
       initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      locale:
+          const Locale('pt', 'BR'), // Define o local para português do Brasil
       builder: (context, child) {
         // Personaliza a aparência do DatePicker para combinar com o app
         return Theme(
@@ -66,16 +92,16 @@ class _FilterScreenState extends State<FilterScreen> {
     if (pickedDate != null) {
       setState(() {
         _selectedDate = pickedDate;
-        _selectedTime = ''; // Limpa a seleção de "Today", "Tomorrow", etc.
+        _selectedTime = ''; // Limpa a seleção de "Hoje", "Amanhã", etc.
       });
     }
   }
 
   void _resetFilters() {
     setState(() {
-      _selectedCategory = 'Sports';
-      _selectedTime = 'Tomorrow';
-      _currentRangeValues = const RangeValues(20, 120);
+      _selectedCategory = 'Sports'; // Volta para o padrão
+      _selectedTime = 'Tomorrow'; // Volta para o padrão
+      _currentRangeValues = const RangeValues(20, 120); // Volta para o padrão
       _selectedDate = null; // Reseta a data do calendário
     });
   }
@@ -88,7 +114,9 @@ class _FilterScreenState extends State<FilterScreen> {
     // Converte a seleção de tempo em um intervalo de datas
     if (_selectedDate != null) {
       startDate = _selectedDate;
-      endDate = _selectedDate;
+      // Para o endDate, queremos o final do dia selecionado
+      endDate = DateTime(_selectedDate!.year, _selectedDate!.month,
+          _selectedDate!.day, 23, 59, 59);
     } else {
       switch (_selectedTime) {
         case 'Today':
@@ -109,7 +137,13 @@ class _FilterScreenState extends State<FilterScreen> {
           break;
         case 'This week':
           startDate = DateTime(now.year, now.month, now.day);
-          endDate = now.add(const Duration(days: 6));
+          // Calcula o fim da semana (domingo, se a semana começar no domingo, ou sábado se começar na segunda)
+          // Ajuste conforme a definição de "esta semana" no seu contexto
+          endDate = now.add(Duration(
+              days: DateTime.daysPerWeek -
+                  now.weekday)); // Considerando que a semana termina no dia 7 (domingo)
+          endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59,
+              59); // Garante que é o final do dia
           break;
       }
     }
@@ -127,8 +161,9 @@ class _FilterScreenState extends State<FilterScreen> {
   Widget build(BuildContext context) {
     // Formata o texto da data para exibição
     final String calendarButtonText = _selectedDate == null
-        ? 'Choose from calender'
-        : DateFormat('MMMM d, y').format(_selectedDate!);
+        ? 'Escolher do calendário' // Traduzido
+        : DateFormat('d MMMM, y', 'pt_BR')
+            .format(_selectedDate!); // Formato em português
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -140,7 +175,7 @@ class _FilterScreenState extends State<FilterScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'Filter',
+          'Filtro', // Traduzido de 'Filter'
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -161,12 +196,16 @@ class _FilterScreenState extends State<FilterScreen> {
                 children: _categories
                     .map(
                       (category) => _buildChoiceChip(
-                        label: category,
+                        label: _translatedCategories[
+                            category]!, // Usa o valor traduzido para exibir
+                        actualValue:
+                            category, // Passa o valor original para seleção interna
                         selected: _selectedCategory == category,
                         onSelected: (isSelected) {
                           if (isSelected) {
                             setState(() {
-                              _selectedCategory = category;
+                              _selectedCategory =
+                                  category; // Atualiza com o valor original
                             });
                           }
                         },
@@ -178,7 +217,7 @@ class _FilterScreenState extends State<FilterScreen> {
             const SizedBox(height: 24),
 
             const Text(
-              'Time and Date',
+              'Hora e Data', // Traduzido de 'Time and Date'
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -187,11 +226,14 @@ class _FilterScreenState extends State<FilterScreen> {
               children: _timeOptions
                   .map(
                     (time) => _buildTimeChip(
-                      label: time,
+                      label: _translatedTimeOptions[
+                          time]!, // Usa o valor traduzido para exibir
+                      actualValue:
+                          time, // Passa o valor original para seleção interna
                       selected: _selectedTime == time,
                       onSelected: (_) {
                         setState(() {
-                          _selectedTime = time;
+                          _selectedTime = time; // Atualiza com o valor original
                           _selectedDate = null; // Limpa a seleção do calendário
                         });
                       },
@@ -203,19 +245,20 @@ class _FilterScreenState extends State<FilterScreen> {
             // Botão do Calendário
             _buildPickerRow(
               icon: Icons.calendar_today_outlined,
-              text: calendarButtonText, // Texto dinâmico
+              text: calendarButtonText, // Texto dinâmico e traduzido
               onTap: _openDatePicker, // Chama a função do calendário
             ),
             const SizedBox(height: 24),
 
             const Text(
-              'Location',
+              'Localização', // Traduzido de 'Location'
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             _buildPickerRow(
               icon: Icons.location_on_outlined,
-              text: 'Mirpur 10, Dhaka, Bangladesh',
+              text:
+                  'Mirpur 10, Dhaka, Bangladesh', // Manter se for um placeholder fixo
               onTap: () {
                 print('Abrir seletor de localização clicado');
               },
@@ -225,11 +268,11 @@ class _FilterScreenState extends State<FilterScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Select price range',
+                  'Selecionar faixa de preço', // Traduzido de 'Select price range'
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '\$${_currentRangeValues.start.round()}-\$${_currentRangeValues.end.round()}',
+                  'R\$${_currentRangeValues.start.round()}-R\$${_currentRangeValues.end.round()}', // Traduzido para R$
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -266,7 +309,8 @@ class _FilterScreenState extends State<FilterScreen> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    child: const Text('RESET', style: TextStyle(fontSize: 16)),
+                    child: const Text('REDEFINIR',
+                        style: TextStyle(fontSize: 16)), // Traduzido de 'RESET'
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -281,7 +325,8 @@ class _FilterScreenState extends State<FilterScreen> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    child: const Text('APPLY', style: TextStyle(fontSize: 16)),
+                    child: const Text('APLICAR',
+                        style: TextStyle(fontSize: 16)), // Traduzido de 'APPLY'
                   ),
                 ),
               ],
@@ -295,7 +340,8 @@ class _FilterScreenState extends State<FilterScreen> {
   // --- MÉTODOS AUXILIARES PARA CONSTRUIR A UI ---
 
   Widget _buildChoiceChip({
-    required String label,
+    required String label, // Label para exibição
+    required String actualValue, // Valor real da categoria
     required bool selected,
     required Function(bool) onSelected,
   }) {
@@ -309,9 +355,9 @@ class _FilterScreenState extends State<FilterScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: ChoiceChip(
-        label: Text(label),
+        label: Text(label), // Exibe o label traduzido
         avatar: Icon(
-          icons[label],
+          icons[actualValue], // Usa o valor original para o ícone
           color: selected ? Colors.white : const Color(0xFFF26422),
         ),
         selected: selected,
@@ -334,14 +380,15 @@ class _FilterScreenState extends State<FilterScreen> {
   }
 
   Widget _buildTimeChip({
-    required String label,
+    required String label, // Label para exibição
+    required String actualValue, // Valor real da opção de tempo
     required bool selected,
     required Function(bool) onSelected,
   }) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: ChoiceChip(
-        label: Text(label),
+        label: Text(label), // Exibe o label traduzido
         selected: selected,
         onSelected: onSelected,
         backgroundColor: Colors.grey[200],

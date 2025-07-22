@@ -18,21 +18,22 @@ final List<Bar> allBars = [
     mapImageUrl:
         'https://maps.googleapis.com/maps/api/staticmap?center=-23.55052,-46.633309&zoom=14&size=400x200&markers=color:red%7Clabel:O%7C-23.55052,-46.633309&key=YOUR_Maps_API_KEY', // <<< IMAGEM DE MAPA DA INTERNET (Substitua YOUR_Maps_API_KEY pela sua chave)
     ambianceImagePaths: [
-      'assets/images/ambiente-ohfregues-1.jpeg',
-      'assets/images/ambiente-ohfregues-2.jpeg',
-      'assets/images/ambiente-ohfregues-3.jpeg',
-      'assets/images/ambiente-ohfregues-4.jpeg',
+      'assets/images/ambiente-ohfregues-1.jpg',
+      'assets/images/ambiente-ohfregues-2.jpg',
+      'assets/images/ambiente-ohfregues-3.jpg',
+      'assets/images/ambiente-ohfregues-4.jpg',
     ],
     foodImagePaths: [
-      'assets/images/gastronomia-ohfregues-1.jpeg',
-      'assets/images/gastronomia-ohfregues-2.jpeg',
-      'assets/images/gastronomia-ohfregues-3.jpeg',
+      'assets/images/gastronomia-ohfregues-1.jpg',
+      'assets/images/gastronomia-ohfregues-2.jpg',
+      'assets/images/gastronomia-ohfregues-3.jpg',
+      'assets/images/gastronomia-ohfregues-4.jpg',
     ],
     drinksImagePaths: [
-      'assets/images/bebidas-ohfregues-1.jpeg',
-      'assets/images/bebidas-ohfregues-2.jpeg',
-      'assets/images/bebidas-ohfregues-3.jpeg',
-      'assets/images/bebidas-ohfregues-4.jpeg',
+      'assets/images/bebidas-ohfregues-1.jpg',
+      'assets/images/bebidas-ohfregues-2.jpg',
+      'assets/images/bebidas-ohfregues-3.jpg',
+      'assets/images/bebidas-ohfregues-4.jpg',
     ],
     amenities: [
       Amenity(icon: Icons.wifi, label: 'Wi-Fi'),

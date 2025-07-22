@@ -1,12 +1,154 @@
 // lib/screens/bar/bar_details_screen.dart
 
+import 'package:agilizaiapp/screens/event/event_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/models/bar_model.dart';
+import 'package:agilizaiapp/models/event_model.dart'; // Importe o modelo de Evento
+import 'package:http/http.dart' as http; // Para fazer requisições HTTP
+import 'dart:convert'; // Para jsonDecode
+import 'package:agilizaiapp/widgets/search_result_tile.dart'; // Reutilizando o widget de card de evento
+import 'package:agilizaiapp/screens/event/event_details_screen.dart'; // Para navegar para detalhes do evento
 
-class BarDetailsScreen extends StatelessWidget {
+// Enum para gerenciar as abas
+enum BarDetailTab { about, events, reviews }
+
+class BarDetailsScreen extends StatefulWidget {
   final Bar bar;
 
   const BarDetailsScreen({super.key, required this.bar});
+
+  @override
+  State<BarDetailsScreen> createState() => _BarDetailsScreenState();
+}
+
+class _BarDetailsScreenState extends State<BarDetailsScreen> {
+  BarDetailTab _selectedTab =
+      BarDetailTab.about; // Estado para a aba selecionada
+  List<Event> _barEvents = [];
+  bool _isLoadingEvents = false;
+  String? _eventsErrorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Você pode decidir se quer carregar eventos imediatamente
+    // ou apenas quando a aba de eventos for clicada pela primeira vez.
+    // Se desejar carregar imediatamente, chame _fetchEventsForBar() aqui.
+  }
+
+  // Função para buscar eventos da API baseados no nome da casa
+  Future<void> _fetchEventsForBar() async {
+    if (_isLoadingEvents) return; // Evita múltiplas chamadas
+    setState(() {
+      _isLoadingEvents = true;
+      _eventsErrorMessage = null;
+    });
+
+    try {
+      // ✨ MUDANÇA CRUCIAL AQUI: Adiciona o parâmetro de consulta 'casaDoEvento'
+      final response = await http.get(
+        Uri.parse(
+            'https://vamos-comemorar-api.onrender.com/api/events?casaDoEvento=${Uri.encodeComponent(widget.bar.name)}'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> eventData = jsonDecode(response.body);
+        final List<Event> loadedEvents =
+            eventData.map((json) => Event.fromJson(json)).toList();
+
+        if (mounted) {
+          setState(() {
+            _barEvents = loadedEvents;
+            _isLoadingEvents = false;
+          });
+        }
+      } else {
+        throw Exception(
+            'Falha ao carregar eventos: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      print("Erro ao buscar eventos para ${widget.bar.name}: $e");
+      if (mounted) {
+        setState(() {
+          _eventsErrorMessage = 'Erro ao carregar eventos. Tente novamente.';
+          _isLoadingEvents = false;
+        });
+      }
+    }
+  }
+
+  // Função para navegar para a tela de detalhes do evento
+  void _navigateToEventDetail(Event event) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EventDetailsPage(event: event),
+      ),
+    );
+  }
+
+  // --- ONDE ESTARÁ O CONTEÚDO DINÂMICO ---
+  Widget _buildContentBasedOnTab() {
+    switch (_selectedTab) {
+      case BarDetailTab.about:
+        return Text(
+          widget.bar.about,
+          style: const TextStyle(fontSize: 16, height: 1.5),
+        );
+      case BarDetailTab.events:
+        if (_isLoadingEvents) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (_eventsErrorMessage != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                _eventsErrorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+              ),
+            ),
+          );
+        } else if (_barEvents.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Nenhum evento encontrado para esta casa.', // Traduzido
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            ),
+          );
+        } else {
+          return ListView.builder(
+            shrinkWrap:
+                true, // Importante para ListView dentro de Column/SliverList
+            physics:
+                const NeverScrollableScrollPhysics(), // Desabilita scroll do ListView
+            itemCount: _barEvents.length,
+            itemBuilder: (context, index) {
+              final event = _barEvents[index];
+              return GestureDetector(
+                onTap: () => _navigateToEventDetail(event),
+                child: SearchResultTile(event: event), // Reutilizando o tile
+              );
+            },
+          );
+        }
+      case BarDetailTab.reviews:
+        return const Center(
+            child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text(
+            'Avaliações em breve!', // Traduzido
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+        ));
+      default:
+        return Container();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +162,8 @@ class BarDetailsScreen extends StatelessWidget {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Image.asset(
-                bar.coverImagePath, // Usando a nova propriedade coverImagePath para a capa
+                widget.bar
+                    .coverImagePath, // Usando a nova propriedade coverImagePath para a capa
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
@@ -62,7 +205,7 @@ class BarDetailsScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                bar.name,
+                                widget.bar.name,
                                 style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
@@ -78,7 +221,7 @@ class BarDetailsScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${bar.rating.toStringAsFixed(1)} (${bar.reviewsCount} Avaliações)',
+                                    '${widget.bar.rating.toStringAsFixed(1)} (${widget.bar.reviewsCount} Avaliações)', // Traduzido
                                     style: const TextStyle(
                                       fontSize: 16,
                                       color: Colors.grey,
@@ -93,7 +236,7 @@ class BarDetailsScreen extends StatelessWidget {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.asset(
-                            bar.logoAssetPath,
+                            widget.bar.logoAssetPath,
                             width: 80,
                             height: 80,
                             fit: BoxFit.cover,
@@ -114,75 +257,76 @@ class BarDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    // Tabs (Sobre, Eventos, Reviews)
+                    // Tabs (Sobre, Eventos, Avaliações)
                     _buildTabsSection(),
                     const SizedBox(height: 24),
 
-                    // Seção "Sobre" (conteúdo da imagem que você enviou)
-                    Text(
-                      bar.about,
-                      style: const TextStyle(fontSize: 16, height: 1.5),
-                    ),
+                    // Conteúdo dinâmico baseado na aba selecionada
+                    _buildContentBasedOnTab(),
                     const SizedBox(height: 24),
 
-                    // Seção "Ambientes"
-                    _buildSectionTitle('Ambientes'),
-                    _buildHorizontalImageList(bar.ambianceImagePaths),
-                    const SizedBox(height: 24),
+                    // As seções abaixo só devem aparecer se a aba "Sobre" estiver selecionada
+                    if (_selectedTab == BarDetailTab.about) ...[
+                      // Seção "Ambientes"
+                      _buildSectionTitle('Ambientes'), // Traduzido
+                      _buildHorizontalImageList(widget.bar.ambianceImagePaths),
+                      const SizedBox(height: 24),
 
-                    // Seção "Gastronomia"
-                    _buildSectionTitle('Gastronomia'),
-                    _buildHorizontalImageList(bar.foodImagePaths),
-                    const SizedBox(height: 24),
+                      // Seção "Gastronomia"
+                      _buildSectionTitle('Gastronomia'), // Traduzido
+                      _buildHorizontalImageList(widget.bar.foodImagePaths),
+                      const SizedBox(height: 24),
 
-                    // Seção "Drinks"
-                    _buildSectionTitle('Drinks'),
-                    _buildHorizontalImageList(bar.drinksImagePaths),
-                    const SizedBox(height: 24),
+                      // Seção "Drinks"
+                      _buildSectionTitle('Drinks'), // Traduzido
+                      _buildHorizontalImageList(widget.bar.drinksImagePaths),
+                      const SizedBox(height: 24),
 
-                    // Seção de Localização (Mapa)
-                    _buildSectionTitle('Localização'),
-                    const SizedBox(height: 8),
-                    Text(
-                      bar.address,
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 16),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      // Usar Image.network para o mapa da internet
-                      child: Image.network(
-                        bar.mapImageUrl, // Agora é um URL online
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            height: 200,
-                            width: double.infinity,
-                            color: Colors.grey[200],
-                            child: const Icon(
-                              Icons.broken_image,
-                              color: Colors.grey,
-                            ),
-                          );
-                        },
+                      // Seção de Localização (Mapa)
+                      _buildSectionTitle('Localização'), // Traduzido
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.bar.address,
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 16),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        // Usar Image.network para o mapa da internet
+                        child: Image.network(
+                          widget.bar.mapImageUrl, // Agora é um URL online
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 200,
+                              width: double.infinity,
+                              color: Colors.grey[200],
+                              child: const Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 24),
 
-                    // Seção de Facilidades
-                    _buildSectionTitle('Facilidades'),
-                    const SizedBox(height: 16),
-                    _buildAmenitiesGrid(bar.amenities),
-                    const SizedBox(height: 24),
+                      // Seção de Facilidades
+                      _buildSectionTitle('Facilidades'), // Traduzido
+                      const SizedBox(height: 16),
+                      _buildAmenitiesGrid(widget.bar.amenities),
+                      const SizedBox(height: 24),
 
-                    // Horários (Exemplo - você pode tornar dinâmico com o modelo Bar)
-                    _buildSectionTitle('Horários'),
-                    _buildScheduleRow('Hoje', '14:00 - 04:00'),
-                    _buildScheduleRow('Amanhã', '14:00 - 04:00'),
-                    // ... adicione mais horários dinamicamente se precisar
-                    const SizedBox(height: 24),
+                      // Horários (Exemplo - você pode tornar dinâmico com o modelo Bar)
+                      _buildSectionTitle('Horários'), // Traduzido
+                      _buildScheduleRow('Hoje', '14:00 - 04:00'), // Traduzido
+                      _buildScheduleRow('Amanhã', '14:00 - 04:00'), // Traduzido
+                      // ... adicione mais horários dinamicamente se precisar
+                      const SizedBox(height: 24),
+                    ],
 
                     // Botão de Reservar (similar ao da imagem)
                     SizedBox(
@@ -191,7 +335,9 @@ class BarDetailsScreen extends StatelessWidget {
                         onPressed: () {
                           // TODO: Lógica para reservar
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Reservar no ${bar.name}')),
+                            SnackBar(
+                                content: Text(
+                                    'Reservar no ${widget.bar.name}')), // Traduzido
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -203,7 +349,7 @@ class BarDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         child: const Text(
-                          'Reservar',
+                          'Reservar', // Traduzido
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -233,41 +379,59 @@ class BarDetailsScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildTabItem('Sobre', true),
-        _buildTabItem('Eventos', false),
-        _buildTabItem('Avaliações', false),
+        _buildTabItem('Sobre', _selectedTab == BarDetailTab.about, () {
+          setState(() {
+            _selectedTab = BarDetailTab.about;
+          });
+        }),
+        _buildTabItem('Eventos', _selectedTab == BarDetailTab.events, () {
+          setState(() {
+            _selectedTab = BarDetailTab.events;
+          });
+          _fetchEventsForBar(); // Busca eventos quando a aba "Eventos" é clicada
+        }),
+        _buildTabItem('Avaliações', _selectedTab == BarDetailTab.reviews, () {
+          setState(() {
+            _selectedTab = BarDetailTab.reviews;
+          });
+        }),
       ],
     );
   }
 
-  Widget _buildTabItem(String title, bool isSelected) {
-    return Column(
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? Colors.black : Colors.grey,
-          ),
-        ),
-        if (isSelected)
-          Container(
-            margin: const EdgeInsets.only(top: 8),
-            height: 3,
-            width: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF26422),
-              borderRadius: BorderRadius.circular(2),
+  // Ajustado para receber um onTap
+  Widget _buildTabItem(String title, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? Colors.black : Colors.grey,
             ),
           ),
-      ],
+          if (isSelected)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              height: 3,
+              width: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF26422),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
   Widget _buildHorizontalImageList(List<String> imagePaths) {
     if (imagePaths.isEmpty) {
-      return const Text('Nenhuma imagem disponível nesta categoria.');
+      return const Text(
+          'Nenhuma imagem disponível nesta categoria.'); // Traduzido
     }
     return SizedBox(
       height: 150,
