@@ -158,7 +158,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _dataNascimentoController.text.isNotEmpty
-          ? DateTime.parse(_dataNascimentoController.text)
+          ? DateTime.tryParse(_dataNascimentoController.text) ??
+              DateTime.now() // Usa tryParse e um fallback
           : DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
@@ -166,11 +167,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const Locale('pt', 'BR'), // Define o local para português do Brasil
     );
 
+    // Adição da verificação de nulidade:
     if (pickedDate != null) {
+      // Somente formata e atribui se uma data foi selecionada
       setState(() {
         _dataNascimentoController.text = DateFormat(
           'yyyy-MM-dd',
-        ).format(pickedDate); // Usando dataNascimento
+        ).format(pickedDate);
       });
     }
   }

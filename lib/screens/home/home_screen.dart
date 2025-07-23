@@ -92,7 +92,10 @@ class _HomeScreenState extends State<HomeScreen>
     if (mounted) {
       setState(() {
         _currentUser = results[0] as User?;
-        _allEvents = results[1] as List<Event>;
+        // Corrigindo a atribuição para _allEvents
+        // Assegura que results[1] é tratado como List<Event> ou uma lista vazia
+        _allEvents =
+            (results[1] as List<dynamic>).map((item) => item as Event).toList();
         _popularEvents = _allEvents.take(5).toList();
         _filterEventsByCategory(_selectedCategory);
         _isLoading = false;

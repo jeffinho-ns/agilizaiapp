@@ -1,21 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart'; // Corrigido o pacote
 
-class SelectLocationScreen extends StatelessWidget {
+class SelectLocationScreen extends StatefulWidget {
   const SelectLocationScreen({super.key});
+
+  @override
+  State<SelectLocationScreen> createState() => _SelectLocationScreenState();
+}
+
+class _SelectLocationScreenState extends State<SelectLocationScreen> {
+  GoogleMapController? mapController;
+  LatLng _center = const LatLng(-23.55052, -46.633309);
+  final Set<Marker> _markers = {};
+  final Set<Polyline> _polylines = {};
+
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+    _addInitialMarkers();
+  }
+
+  void _addInitialMarkers() {
+    setState(() {
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('event1'),
+          position: const LatLng(-23.561352, -46.656041),
+          infoWindow: const InfoWindow(
+              title: 'Show no Parque', snippet: 'Um evento incrível!'),
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        ),
+      );
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('event2'),
+          position: const LatLng(-23.543594, -46.666114),
+          infoWindow: const InfoWindow(
+              title: 'Festival de Música', snippet: 'No centro da cidade.'),
+        ),
+      );
+    });
+  }
+
+  Future<void> _addRoute() async {
+    final List<LatLng> routeCoordinates = [
+      const LatLng(-23.561352, -46.656041),
+      const LatLng(-23.543594, -46.666114),
+    ];
+
+    setState(() {
+      _polylines.add(
+        Polyline(
+          polylineId: const PolylineId('test_route'),
+          points: routeCoordinates,
+          color: Colors.blue,
+          width: 5,
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
-        // Usamos Stack para sobrepor widgets
         children: [
-          // Camada 1: O fundo que será o mapa
-          Container(
-            color: Colors.grey[300],
-            child: const Center(child: Text('Aqui ficará o mapa')),
+          GoogleMap(
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: CameraPosition(
+              target: _center,
+              zoom: 12.0,
+            ),
+            markers: _markers,
+            polylines: _polylines,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
           ),
-
-          // Camada 2: Os elementos da UI por cima do mapa
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -24,7 +85,6 @@ class SelectLocationScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // Barra de Busca
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12.0,
@@ -59,14 +119,14 @@ class SelectLocationScreen extends StatelessWidget {
                             Icons.my_location,
                             color: Color(0xFFF26422),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            // TODO: Lógica para mover a câmera para a localização atual do usuário
+                          },
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Lista de Sugestões
                   Container(
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
@@ -81,6 +141,10 @@ class SelectLocationScreen extends StatelessWidget {
                         ),
                         const Divider(),
                         _buildLocationRow(Icons.local_cafe, "Park Stone Cafe"),
+                        TextButton(
+                          onPressed: _addRoute,
+                          child: const Text('Desenhar Rota Exemplo'),
+                        ),
                       ],
                     ),
                   ),
@@ -88,8 +152,6 @@ class SelectLocationScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          // Camada 3: O botão de Adicionar no final da tela
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -123,7 +185,6 @@ class SelectLocationScreen extends StatelessWidget {
     );
   }
 
-  // Widget auxiliar para criar as linhas de sugestão de local
   Widget _buildLocationRow(IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

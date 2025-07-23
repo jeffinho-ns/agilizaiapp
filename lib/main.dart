@@ -4,21 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:agilizaiapp/providers/user_profile_provider.dart';
 import 'package:agilizaiapp/screens/splash/splash_screen.dart';
-import 'package:intl/date_symbol_data_local.dart'; // Import necessário para initializeDateFormatting
+import 'package:intl/date_symbol_data_local.dart';
+// ✨ IMPORTAÇÃO CRUCIAL PARA LOCALIZAÇÃO
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
-  // Mantenha apenas UMA função main e torne-a assíncrona
-  WidgetsFlutterBinding
-      .ensureInitialized(); // Garante que o Flutter Binding esteja inicializado
-  await initializeDateFormatting(
-      'pt_BR', null); // ✨ Inicializa os dados para português do Brasil
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('pt_BR', null);
 
   runApp(
-    // Envolve toda a aplicação com o provedor de perfil
     ChangeNotifierProvider(
-      create: (context) => UserProfileProvider()
-        ..fetchUserProfile(), // Inicia a busca do perfil na criação
-      child: const AgilizaAiApp(), // Sua aplicação principal
+      create: (context) => UserProfileProvider()..fetchUserProfile(),
+      child: const AgilizaAiApp(),
     ),
   );
 }
@@ -34,8 +31,6 @@ class _AgilizaAiAppState extends State<AgilizaAiApp> {
   @override
   void initState() {
     super.initState();
-    // A chamada a fetchUserProfile já foi movida para o 'create' do ChangeNotifierProvider,
-    // então não é mais necessário chamá-la aqui.
   }
 
   @override
@@ -51,6 +46,19 @@ class _AgilizaAiAppState extends State<AgilizaAiApp> {
           foregroundColor: Colors.black,
         ),
       ),
+      // ✨ ADICIONE ESTAS PROPRIEDADES PARA SUPORTE A LOCALIZAÇÃO
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''), // Inglês
+        Locale('pt', 'BR'), // Português do Brasil
+        // Adicione outros locais que seu aplicativo suporta
+      ],
+      locale: const Locale('pt', 'BR'), // Define o local padrão da aplicação
+      // -------------------------------------------------------------
       home: const SplashScreen(),
     );
   }

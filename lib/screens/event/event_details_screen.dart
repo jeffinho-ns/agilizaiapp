@@ -6,7 +6,12 @@ import 'package:agilizaiapp/screens/event/event_booked_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart'; // ✨ IMPORTANTE: Adicione para formatação monetária
+import 'package:intl/intl.dart';
+
+// ✨ CORRIGIDO A IMPORTAÇÃO DO MAPA: use 'Maps_flutter'
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+// ✨ CORRIGIDO A IMPORTAÇÃO DO GEOCODING: sem 'as geocoding' para usar diretamente 'locationFromAddress'
+import 'package:geocoding/geocoding.dart';
 
 class EventDetailsPage extends StatefulWidget {
   final Event event;
@@ -24,29 +29,219 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   static const String apiUrl =
       'https://vamos-comemorar-api.onrender.com/api/reservas';
 
+  GoogleMapController? _mapController;
+  final Set<Marker> _eventMarkers = {};
+  LatLng? _eventLocation;
+  final String googleApiKey =
+      "AIzaSyBSRFCJT3EquspKw4pp1IyExwhL_UbyyjI8"; // Sua chave de API aqui
+
+  final String _mapStyle = '''
+  [
+    {
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#212121"
+        }
+      ]
+    },
+    {
+      "elementType": "labels.icon",
+      "stylers": [
+        {
+          "visibility": "off"
+        }
+      ]
+    },
+    {
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#757575"
+        }
+      ]
+    },
+    {
+      "elementType": "labels.text.stroke",
+      "stylers": [
+        {
+          "color": "#212121"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#757575"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative.country",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#9e9e9e"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative.land_parcel",
+      "stylers": [
+        {
+          "visibility": "off"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative.locality",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#bdbdbd"
+        }
+      ]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#757575"
+        }
+      ]
+    },
+    {
+      "featureType": "poi.park",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#181818"
+        }
+      ]
+    },
+    {
+      "featureType": "poi.park",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#616161"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "geometry.fill",
+      "stylers": [
+        {
+          "color": "#2c2c2c"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#8a8a8a"
+        }
+      ]
+    },
+    {
+      "featureType": "road.arterial",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#373737"
+        }
+      ]
+    },
+    {
+      "featureType": "road.highway",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#3c3c3c"
+        }
+      ]
+    },
+    {
+      "featureType": "road.highway.controlled_access",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#4e4e4e"
+        }
+      ]
+    },
+    {
+      "featureType": "road.local",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#616161"
+        }
+      ]
+    },
+    {
+      "featureType": "transit",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#757575"
+        }
+      ]
+    },
+    {
+      "featureType": "water",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#000000"
+        }
+      ]
+    },
+    {
+      "featureType": "water",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#3d3d3d"
+        }
+      ]
+    }
+  ]
+  ''';
+
   @override
   void initState() {
     super.initState();
     _calculateMesas();
+    _geocodeEventLocation();
+  }
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
   }
 
   void _calculateMesas() {
     _mesas = (_pessoas / 6).ceil();
   }
 
-  // ✨ NOVO: Função para formatar o preço em R$
   String _formatPrice(dynamic price) {
     if (price == null) {
       return 'Grátis';
     }
     try {
-      // Tenta converter para double, se for string, tenta fazer o parse
       final number =
           price is String ? double.tryParse(price) : price.toDouble();
       if (number == null || number == 0) {
         return 'Grátis';
       }
-      // Formatação para Real Brasileiro (R$)
       final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
       return formatter.format(number);
     } catch (e) {
@@ -136,6 +331,70 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     }
   }
 
+  Future<void> _geocodeEventLocation() async {
+    if (widget.event.localDoEvento == null ||
+        widget.event.localDoEvento!.isEmpty) {
+      print('Local do evento vazio, não é possível geocodificar.');
+      return;
+    }
+
+    try {
+      List<Location> locations = await locationFromAddress(
+        // ✨ CORRIGIDO: Removido 'geocoding.'
+        widget.event.localDoEvento!,
+        // localeIdentifier: "pt_BR", // ✨ VERIFICAR: Comentar se causar erro, pois pode não existir em algumas versões do geocoding
+      );
+
+      if (locations.isNotEmpty && mounted) {
+        setState(() {
+          _eventLocation =
+              LatLng(locations.first.latitude, locations.first.longitude);
+          _eventMarkers.add(
+            Marker(
+              markerId: MarkerId(widget.event.id.toString()),
+              position: _eventLocation!,
+              infoWindow: InfoWindow(
+                title: widget.event.nomeDoEvento ?? 'Evento',
+                snippet: widget.event.localDoEvento,
+              ),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueAzure,
+              ),
+            ),
+          );
+          if (_mapController != null) {
+            _mapController!.animateCamera(
+              CameraUpdate.newLatLngZoom(_eventLocation!, 15.0),
+            );
+          }
+        });
+      } else {
+        print(
+            'Nenhuma coordenada encontrada para: ${widget.event.localDoEvento}');
+      }
+    } catch (e) {
+      print('Erro ao geocodificar "${widget.event.localDoEvento}": $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Não foi possível exibir a localização do evento.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+    _mapController?.setMapStyle(_mapStyle);
+    if (_eventLocation != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(_eventLocation!, 15.0),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const bottomBarHeight = 90.0;
@@ -153,7 +412,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   color: Colors.grey[200],
                   child: const Center(
                     child: Text(
-                      'Falha ao carregar imagem do evento', // Traduzido
+                      'Falha ao carregar imagem do evento',
                       style: TextStyle(color: Colors.grey),
                     ),
                   ),
@@ -198,6 +457,60 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                       _buildOrganizerInfo(),
                       const SizedBox(height: 20),
                       _buildDescription(widget.event),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Localização do Evento',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: _eventLocation == null
+                              ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                              : GoogleMap(
+                                  onMapCreated: _onMapCreated,
+                                  initialCameraPosition: CameraPosition(
+                                    target: _eventLocation!,
+                                    zoom: 15.0,
+                                  ),
+                                  markers: _eventMarkers,
+                                  zoomControlsEnabled: true,
+                                  myLocationButtonEnabled: false,
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      if (_eventLocation != null)
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            // TODO: Implementar abertura em aplicativo de mapas externo
+                            // final url = 'http://maps.google.com/maps?q=${_eventLocation!.latitude},${_eventLocation!.longitude}';
+                            // launchUrl(Uri.parse(url));
+                          },
+                          icon:
+                              const Icon(Icons.directions, color: Colors.white),
+                          label: const Text(
+                            'Ver no Google Maps',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF26422),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 20),
+                      _buildReservationForm(),
                     ],
                   ),
                 );
@@ -246,7 +559,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          event.nomeDoEvento ?? 'Nome Indefinido', // Traduzido
+          event.nomeDoEvento ?? 'Nome Indefinido',
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
@@ -256,7 +569,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                event.localDoEvento ?? 'Local Indefinido', // Traduzido
+                event.localDoEvento ?? 'Local Indefinido',
                 style: const TextStyle(fontSize: 14),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -268,11 +581,11 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           children: [
             const Icon(Icons.calendar_today, color: Colors.grey, size: 16),
             const SizedBox(width: 4),
-            Text(event.dataDoEvento ?? 'Sem data'), // Traduzido
+            Text(event.dataDoEvento ?? 'Sem data'),
             const SizedBox(height: 16),
             const Icon(Icons.access_time, color: Colors.grey, size: 16),
             const SizedBox(width: 4),
-            Text(event.horaDoEvento ?? 'Sem hora'), // Traduzido
+            Text(event.horaDoEvento ?? 'Sem hora'),
           ],
         ),
         const SizedBox(height: 8),
@@ -285,7 +598,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           child: Text(
             _formatPrice(
               event.valorDaEntrada,
-            ), // Usando a função _formatPrice para R$
+            ),
             style: const TextStyle(
               color: Color(0xFFF26422),
               fontWeight: FontWeight.bold,
@@ -299,9 +612,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   Widget _buildMembersSection() {
     return Row(
       children: [
-        const Flexible(
-            child: Text(
-                "15.7K+ Membros confirmados:")), // Já estava traduzido, mantido
+        const Flexible(child: Text("15.7K+ Membros confirmados:")),
         const SizedBox(width: 8),
         SizedBox(
           width: 80,
@@ -334,7 +645,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           child: const Text(
-            'VER TODOS / CONVIDAR', // Já estava traduzido, mantido
+            'VER TODOS / CONVIDAR',
             style: TextStyle(
               color: Color(0xFFF26422),
               fontWeight: FontWeight.bold,
@@ -372,10 +683,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         ],
       ),
       title: const Text(
-        'Tamim Ikram', // Nome do organizador, pode ser dinâmico no futuro
+        'Tamim Ikram',
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
-      subtitle: const Text('Organizador do Evento'), // Já estava traduzido
+      subtitle: const Text('Organizador do Evento'),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -400,17 +711,17 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Descrição', // Traduzido
+          'Descrição',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         Text(
-          event.descricao ?? 'Sem descrição disponível.', // Traduzido
+          event.descricao ?? 'Sem descrição disponível.',
           style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
         ),
         const SizedBox(height: 20),
         const Text(
-          'Combo Especial', // Traduzido
+          'Combo Especial',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
@@ -430,7 +741,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   color: Colors.grey[200],
                   child: const Center(
                     child: Text(
-                      'Falha ao carregar imagem do combo', // Traduzido
+                      'Falha ao carregar imagem do combo',
                     ),
                   ),
                 );
@@ -444,35 +755,11 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             color: Colors.grey[200],
             child: const Center(
               child: Text(
-                'Combo não disponível', // Traduzido
+                'Combo não disponível',
                 style: TextStyle(color: Colors.grey),
               ),
             ),
           ),
-        const SizedBox(height: 20),
-        const Text(
-          'Localização', // Traduzido
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 200,
-          child: Image.network(
-            'https://picsum.photos/600/300', // Placeholder de mapa
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: Colors.grey[200],
-                child: const Center(
-                  child: Text(
-                    'Mapa indisponível ou falha de rede', // Traduzido
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
         const SizedBox(height: 20),
         _buildReservationForm(),
       ],
@@ -484,7 +771,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Quantidade de Pessoas', // Traduzido
+          'Quantidade de Pessoas',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         DropdownButton<int>(
@@ -494,8 +781,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
               .map(
                 (e) => DropdownMenuItem(
                   value: e,
-                  child: Text(
-                      '$e Pessoa(s)'), // Traduzido e mantido dinâmico para "pessoa(s)"
+                  child: Text('$e Pessoa(s)'),
                 ),
               )
               .toList(),
@@ -510,10 +796,10 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         ),
         const SizedBox(height: 16),
         const Text(
-          'Mesas Necessárias (1 mesa para 6 pessoas)', // Traduzido
+          'Mesas Necessárias (1 mesa para 6 pessoas)',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        Text('$_mesas mesa(s)'), // Traduzido e mantido dinâmico para "mesa(s)"
+        Text('$_mesas mesa(s)'),
       ],
     );
   }
@@ -572,7 +858,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         ),
                       )
                     : const Text(
-                        'CONFIRMAR RESERVA', // Traduzido
+                        'CONFIRMAR RESERVA',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
               ),

@@ -10,7 +10,7 @@ import 'package:agilizaiapp/screens/splash/splash_screen.dart';
 import 'package:agilizaiapp/screens/profile/edit_profile_screen.dart'; // Tela de Configurações/Editar Perfil já importada
 import 'package:agilizaiapp/screens/profile/profile_screen.dart';
 import 'package:agilizaiapp/screens/my_reservations_screen.dart';
-
+import 'package:agilizaiapp/screens/reservation/birthday_reservation_screen.dart';
 import 'package:agilizaiapp/screens/search/search_screen.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -100,6 +100,19 @@ class AppDrawer extends StatelessWidget {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => const MyReservationsScreen(),
+                    ),
+                  );
+                },
+              ),
+              _buildDrawerItem(
+                icon: Icons.celebration_outlined, // Um ícone de celebração
+                text: 'Meu Aniversário', // Nome do botão
+                onTap: () {
+                  onClose?.call(); // Fecha o drawer
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const BirthdayReservationScreen(), // Navega para a tela
                     ),
                   );
                 },
