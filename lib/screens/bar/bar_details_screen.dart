@@ -3,14 +3,17 @@
 import 'package:agilizaiapp/screens/event/event_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/models/bar_model.dart';
-import 'package:agilizaiapp/models/event_model.dart'; // Importe o modelo de Evento
-import 'package:http/http.dart' as http; // Para fazer requisições HTTP
-import 'dart:convert'; // Para jsonDecode
-import 'package:agilizaiapp/widgets/search_result_tile.dart'; // Reutilizando o widget de card de evento
-import 'package:agilizaiapp/screens/event/event_details_screen.dart'; // Para navegar para detalhes do evento
+import 'package:agilizaiapp/models/event_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:agilizaiapp/widgets/search_result_tile.dart';
+import 'package:agilizaiapp/screens/bar/bar_menu_screen.dart';
+
+// Pacote para remover acentos
+import 'package:diacritic/diacritic.dart';
 
 // Enum para gerenciar as abas
-enum BarDetailTab { about, events, reviews }
+enum BarDetailTab { about, events, reviews, menu }
 
 class BarDetailsScreen extends StatefulWidget {
   final Bar bar;
@@ -22,8 +25,7 @@ class BarDetailsScreen extends StatefulWidget {
 }
 
 class _BarDetailsScreenState extends State<BarDetailsScreen> {
-  BarDetailTab _selectedTab =
-      BarDetailTab.about; // Estado para a aba selecionada
+  BarDetailTab _selectedTab = BarDetailTab.about;
   List<Event> _barEvents = [];
   bool _isLoadingEvents = false;
   String? _eventsErrorMessage;
@@ -31,21 +33,16 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // Você pode decidir se quer carregar eventos imediatamente
-    // ou apenas quando a aba de eventos for clicada pela primeira vez.
-    // Se desejar carregar imediatamente, chame _fetchEventsForBar() aqui.
   }
 
-  // Função para buscar eventos da API baseados no nome da casa
   Future<void> _fetchEventsForBar() async {
-    if (_isLoadingEvents) return; // Evita múltiplas chamadas
+    if (_isLoadingEvents) return;
     setState(() {
       _isLoadingEvents = true;
       _eventsErrorMessage = null;
     });
 
     try {
-      // ✨ MUDANÇA CRUCIAL AQUI: Adiciona o parâmetro de consulta 'casaDoEvento'
       final response = await http.get(
         Uri.parse(
             'https://vamos-comemorar-api.onrender.com/api/events?casaDoEvento=${Uri.encodeComponent(widget.bar.name)}'),
@@ -67,7 +64,6 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
             'Falha ao carregar eventos: ${response.statusCode} ${response.body}');
       }
     } catch (e) {
-      print("Erro ao buscar eventos para ${widget.bar.name}: $e");
       if (mounted) {
         setState(() {
           _eventsErrorMessage = 'Erro ao carregar eventos. Tente novamente.';
@@ -77,7 +73,6 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
     }
   }
 
-  // Função para navegar para a tela de detalhes do evento
   void _navigateToEventDetail(Event event) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -86,7 +81,40 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
     );
   }
 
-  // --- ONDE ESTARÁ O CONTEÚDO DINÂMICO ---
+  void _navigateToBarMenu() {
+    Color menuAppBarColor;
+
+    // Padronização completa para a lógica: minúsculas, sem espaços e sem acentos.
+    final standardizedBarName =
+        removeDiacritics(widget.bar.name.toLowerCase()).replaceAll(' ', '');
+
+    switch (standardizedBarName) {
+      case 'pracinha':
+        menuAppBarColor = const Color(0xFF2DA28E);
+        break;
+      case 'seujustino':
+        menuAppBarColor = const Color(0xFF095D4E);
+        break;
+      case 'highline':
+        menuAppBarColor = const Color(0xFF292929);
+        break;
+      case 'ohfregues':
+        menuAppBarColor = const Color(0xFFC5831A);
+        break;
+      default:
+        menuAppBarColor = Colors.deepPurple;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => BarMenuScreen(
+          barName: widget.bar.name,
+          appBarColor: menuAppBarColor,
+        ),
+      ),
+    );
+  }
+
   Widget _buildContentBasedOnTab() {
     switch (_selectedTab) {
       case BarDetailTab.about:
@@ -113,7 +141,7 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
             child: Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                'Nenhum evento encontrado para esta casa.', // Traduzido
+                'Nenhum evento encontrado para esta casa.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
@@ -121,16 +149,14 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
           );
         } else {
           return ListView.builder(
-            shrinkWrap:
-                true, // Importante para ListView dentro de Column/SliverList
-            physics:
-                const NeverScrollableScrollPhysics(), // Desabilita scroll do ListView
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: _barEvents.length,
             itemBuilder: (context, index) {
               final event = _barEvents[index];
               return GestureDetector(
                 onTap: () => _navigateToEventDetail(event),
-                child: SearchResultTile(event: event), // Reutilizando o tile
+                child: SearchResultTile(event: event),
               );
             },
           );
@@ -140,11 +166,22 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
             child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Text(
-            'Avaliações em breve!', // Traduzido
+            'Avaliações em breve!',
             style: TextStyle(fontSize: 16, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
         ));
+      case BarDetailTab.menu:
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Clique em "Cardápio" para ver os itens!',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        );
       default:
         return Container();
     }
@@ -157,13 +194,12 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 250.0, // Altura da imagem de cabeçalho
+            expandedHeight: 250.0,
             floating: false,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Image.asset(
-                widget.bar
-                    .coverImagePath, // Usando a nova propriedade coverImagePath para a capa
+                widget.bar.coverImagePath,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
@@ -175,7 +211,6 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
                 },
               ),
             ),
-            // Botões de voltar e favoritar na AppBar
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Navigator.of(context).pop(),
@@ -184,7 +219,7 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
               IconButton(
                 icon: const Icon(Icons.favorite_border, color: Colors.white),
                 onPressed: () {
-                  // TODO: Adicionar lógica de favoritar
+                  // Lógica de favoritar
                 },
               ),
             ],
@@ -196,7 +231,6 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Cabeçalho do Bar (Nome, Logo, Avaliação)
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -221,7 +255,7 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${widget.bar.rating.toStringAsFixed(1)} (${widget.bar.reviewsCount} Avaliações)', // Traduzido
+                                    '${widget.bar.rating.toStringAsFixed(1)} (${widget.bar.reviewsCount} Avaliações)',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       color: Colors.grey,
@@ -232,7 +266,6 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
                             ],
                           ),
                         ),
-                        // Logo do Bar
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.asset(
@@ -256,34 +289,21 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-
-                    // Tabs (Sobre, Eventos, Avaliações)
                     _buildTabsSection(),
                     const SizedBox(height: 24),
-
-                    // Conteúdo dinâmico baseado na aba selecionada
                     _buildContentBasedOnTab(),
                     const SizedBox(height: 24),
-
-                    // As seções abaixo só devem aparecer se a aba "Sobre" estiver selecionada
                     if (_selectedTab == BarDetailTab.about) ...[
-                      // Seção "Ambientes"
-                      _buildSectionTitle('Ambientes'), // Traduzido
+                      _buildSectionTitle('Ambientes'),
                       _buildHorizontalImageList(widget.bar.ambianceImagePaths),
                       const SizedBox(height: 24),
-
-                      // Seção "Gastronomia"
-                      _buildSectionTitle('Gastronomia'), // Traduzido
+                      _buildSectionTitle('Gastronomia'),
                       _buildHorizontalImageList(widget.bar.foodImagePaths),
                       const SizedBox(height: 24),
-
-                      // Seção "Drinks"
-                      _buildSectionTitle('Drinks'), // Traduzido
+                      _buildSectionTitle('Drinks'),
                       _buildHorizontalImageList(widget.bar.drinksImagePaths),
                       const SizedBox(height: 24),
-
-                      // Seção de Localização (Mapa)
-                      _buildSectionTitle('Localização'), // Traduzido
+                      _buildSectionTitle('Localização'),
                       const SizedBox(height: 8),
                       Text(
                         widget.bar.address,
@@ -293,9 +313,8 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
                       const SizedBox(height: 16),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        // Usar Image.network para o mapa da internet
                         child: Image.network(
-                          widget.bar.mapImageUrl, // Agora é um URL online
+                          widget.bar.mapImageUrl,
                           height: 200,
                           width: double.infinity,
                           fit: BoxFit.cover,
@@ -313,31 +332,23 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Seção de Facilidades
-                      _buildSectionTitle('Facilidades'), // Traduzido
+                      _buildSectionTitle('Facilidades'),
                       const SizedBox(height: 16),
                       _buildAmenitiesGrid(widget.bar.amenities),
                       const SizedBox(height: 24),
-
-                      // Horários (Exemplo - você pode tornar dinâmico com o modelo Bar)
-                      _buildSectionTitle('Horários'), // Traduzido
-                      _buildScheduleRow('Hoje', '14:00 - 04:00'), // Traduzido
-                      _buildScheduleRow('Amanhã', '14:00 - 04:00'), // Traduzido
-                      // ... adicione mais horários dinamicamente se precisar
+                      _buildSectionTitle('Horários'),
+                      _buildScheduleRow('Hoje', '14:00 - 04:00'),
+                      _buildScheduleRow('Amanhã', '14:00 - 04:00'),
                       const SizedBox(height: 24),
                     ],
-
-                    // Botão de Reservar (similar ao da imagem)
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          // TODO: Lógica para reservar
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                                content: Text(
-                                    'Reservar no ${widget.bar.name}')), // Traduzido
+                                content:
+                                    Text('Reservar no ${widget.bar.name}')),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -349,7 +360,7 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
                           ),
                         ),
                         child: const Text(
-                          'Reservar', // Traduzido
+                          'Reservar',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -367,7 +378,6 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
     );
   }
 
-  // Restante dos widgets auxiliares (_buildSectionTitle, _buildTabsSection, etc.)
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
@@ -387,19 +397,21 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
         _buildTabItem('Eventos', _selectedTab == BarDetailTab.events, () {
           setState(() {
             _selectedTab = BarDetailTab.events;
+            _fetchEventsForBar();
           });
-          _fetchEventsForBar(); // Busca eventos quando a aba "Eventos" é clicada
         }),
         _buildTabItem('Avaliações', _selectedTab == BarDetailTab.reviews, () {
           setState(() {
             _selectedTab = BarDetailTab.reviews;
           });
         }),
+        _buildTabItem('Cardápio', false, () {
+          _navigateToBarMenu();
+        }),
       ],
     );
   }
 
-  // Ajustado para receber um onTap
   Widget _buildTabItem(String title, bool isSelected, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -430,8 +442,7 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
 
   Widget _buildHorizontalImageList(List<String> imagePaths) {
     if (imagePaths.isEmpty) {
-      return const Text(
-          'Nenhuma imagem disponível nesta categoria.'); // Traduzido
+      return const Text('Nenhuma imagem disponível nesta categoria.');
     }
     return SizedBox(
       height: 150,

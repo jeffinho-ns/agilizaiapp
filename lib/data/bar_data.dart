@@ -93,22 +93,22 @@ final List<Bar> allBars = [
     mapImageUrl:
         'https://maps.googleapis.com/maps/api/staticmap?center=-23.554033,-46.687481&zoom=14&size=400x200&markers=color:green%7Clabel:P%7C-23.554033,-46.687481&key=YOUR_Maps_API_KEY', // <<< IMAGEM DE MAPA DA INTERNET
     ambianceImagePaths: [
-      'assets/images/ambiente-pracinha-1.jpeg',
-      'assets/images/ambiente-pracinha-2.jpeg',
-      'assets/images/ambiente-pracinha-3.jpeg',
-      'assets/images/ambiente-pracinha-4.jpeg',
+      'assets/images/ambiente-pracinha-1.jpg',
+      'assets/images/ambiente-pracinha-2.jpg',
+      'assets/images/ambiente-pracinha-3.jpg',
+      'assets/images/ambiente-pracinha-4.jpg',
     ],
     foodImagePaths: [
-      'assets/images/gastronomia-pracinha-1.jpeg',
-      'assets/images/gastronomia-pracinha-2.jpeg',
-      'assets/images/gastronomia-pracinha-3.jpeg',
-      'assets/images/gastronomia-pracinha-4.jpeg',
+      'assets/images/gastronomia-pracinha-1.jpg',
+      'assets/images/gastronomia-pracinha-2.jpg',
+      'assets/images/gastronomia-pracinha-3.jpg',
+      'assets/images/gastronomia-pracinha-4.jpg',
     ],
     drinksImagePaths: [
-      'assets/images/bebida-pracinha-1.jpeg',
-      'assets/images/bebida-pracinha-2.jpeg',
-      'assets/images/bebida-pracinha-3.jpeg',
-      'assets/images/bebida-pracinha-4.jpeg',
+      'assets/images/bebida-pracinha-1.jpg',
+      'assets/images/bebida-pracinha-2.jpg',
+      'assets/images/bebida-pracinha-3.jpg',
+      'assets/images/bebida-pracinha-4.jpg',
     ],
     amenities: [
       Amenity(icon: Icons.pets, label: 'Pet Friendly'),
