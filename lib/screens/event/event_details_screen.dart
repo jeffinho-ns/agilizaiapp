@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:agilizaiapp/services/reservation_service.dart';
 
-// ✨ CORRIGIDO A IMPORTAÇÃO DO MAPA: use 'Maps_flutter'
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 // ✨ CORRIGIDO A IMPORTAÇÃO DO GEOCODING: sem 'as geocoding' para usar diretamente 'locationFromAddress'
 import 'package:geocoding/geocoding.dart';
@@ -34,6 +34,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   LatLng? _eventLocation;
   final String googleApiKey =
       "AIzaSyBSRFCJT3EquspKw4pp1IyExwhL_UbyyjI8"; // Sua chave de API aqui
+
+  final ReservationService _reservationService = ReservationService();
 
   final String _mapStyle = '''
   [
@@ -266,68 +268,50 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   }
 
   Future<void> _confirmReservation() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
-      final user = await _getCurrentUser();
-      if (user == null) {
+      final prefs = await SharedPreferences.getInstance();
+      final userIdString = prefs.getString('userId');
+      if (userIdString == null) {
         throw Exception('Usuário não identificado. Faça login novamente.');
       }
+      final userId = int.parse(userIdString);
 
-      if (widget.event.casaDoEvento == null) {
-        throw Exception('Informação da casa do evento não encontrada.');
-      }
-
-      final reservationData = {
-        'userId': user.id,
-        'eventId': widget.event.id,
-        'quantidade_pessoas': _pessoas,
-        'mesas': '$_mesas Mesa(s) / ${_mesas * 6} cadeiras',
-        'data_da_reserva': DateTime.now().toIso8601String(),
-        'casa_da_reserva': widget.event.casaDoEvento,
+      final payload = {
+        'userId': userId,
+        'tipoReserva': 'NORMAL',
+        'nomeLista': "Reserva para: ${widget.event.nomeDoEvento ?? 'Evento'}",
+        'dataReserva': widget.event.dataDoEvento ??
+            DateTime.now().toIso8601String().substring(0, 10),
+        'eventoId': widget.event.id,
+        'quantidadeConvidados': _pessoas,
+        'brindes': [],
+        'mesas': '$_mesas mesa(s)',
       };
 
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(reservationData),
-      );
+      final resultado = await _reservationService.createReservation(payload);
+      final novaReservaId = resultado['reservaId'];
 
-      if (response.statusCode == 201) {
-        final Reservation newReservation = Reservation.fromJson(
-          jsonDecode(response.body),
-        );
-        if (mounted) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => EventBookedScreen(
-                reservation: newReservation,
-                event: widget.event,
-              ),
+      if (mounted) {
+        // A MUDANÇA ESTÁ AQUI: Passamos apenas o ID, não o objeto inteiro.
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => EventBookedScreen(
+              reservaId: novaReservaId,
             ),
-          );
-        }
-      } else {
-        final responseBody = jsonDecode(response.body);
-        throw Exception('Falha ao confirmar reserva: ${responseBody['error']}');
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+              content: Text('Erro: ${e.toString()}'),
+              backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -761,7 +745,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             ),
           ),
         const SizedBox(height: 20),
-        _buildReservationForm(),
       ],
     );
   }

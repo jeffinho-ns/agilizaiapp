@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'package:agilizaiapp/models/user_model.dart'; // NOVO: Importe seu User model
+import 'package:agilizaiapp/models/user_model.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:agilizaiapp/screens/main_screen.dart';
+import 'package:agilizaiapp/services/auth_service.dart'; // 1. Importe o AuthService
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -21,116 +19,59 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
 
-  // NOVO: Função para salvar o usuário completo no SharedPreferences
-  Future<void> _saveCurrentUser(User user) async {
-    final prefs = await SharedPreferences.getInstance();
-    String userJson = jsonEncode(user.toJson());
-    await prefs.setString('currentUser', userJson);
-  }
+  // 2. Instancie o nosso novo serviço centralizado
+  final AuthService _authService = AuthService();
 
-  // NOVO: Função para buscar o perfil do usuário com o token e salvar
-  Future<bool> _fetchAndSaveUserProfile(String token) async {
-    try {
-      // ATENÇÃO: Verifique se a URL do perfil está correta!
-      final response = await http.get(
-        Uri.parse('https://vamos-comemorar-api.onrender.com/api/users/me'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final userData = jsonDecode(response.body);
-        final user = User.fromJson(userData);
-        await _saveCurrentUser(user);
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      return false;
-    }
-  }
-
+  // 3. Função _handleSignUp agora está limpa e chama o serviço
   Future<void> _handleSignUp() async {
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("As senhas não coincidem!"),
-          backgroundColor: Colors.red,
-        ),
+            content: Text("As senhas não coincidem!"),
+            backgroundColor: Colors.red),
       );
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('https://vamos-comemorar-api.onrender.com/api/users/'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'name': _nameController.text,
-          'email': _emailController.text,
-          'cpf': _cpfController.text,
-          'password': _passwordController.text,
-        }),
+      await _authService.signUp(
+        _nameController.text,
+        _emailController.text,
+        _cpfController.text,
+        _passwordController.text,
       );
 
-      if (response.statusCode == 201) {
-        final responseBody = jsonDecode(response.body);
-        final token = responseBody['token'];
-
-        if (token != null) {
-          const storage = FlutterSecureStorage();
-          await storage.write(key: 'jwt_token', value: token);
-
-          // ALTERADO: Chama a função para buscar e salvar o perfil
-          final profileFetched = await _fetchAndSaveUserProfile(token);
-
-          if (profileFetched && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Usuário cadastrado e logado com sucesso!"),
-                backgroundColor: Colors.green,
-              ),
-            );
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => MainScreen()),
-              (route) => false,
-            );
-          } else {
-            throw Exception(
-              'Não foi possível carregar os dados do usuário após o cadastro.',
-            );
-          }
-        }
-      } else {
-        final responseBody = jsonDecode(response.body);
-        throw Exception(responseBody['error'] ?? 'Não foi possível cadastrar');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Usuário cadastrado e logado com sucesso!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => MainScreen()),
+          (route) => false,
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Erro: ${e.toString()}"),
-            backgroundColor: Colors.red,
-          ),
+              content: Text("Erro: ${e.toString()}"),
+              backgroundColor: Colors.red),
         );
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
+
+  // 4. Lembre-se que as funções _fetchAndSaveUserProfile e _saveCurrentUser
+  // foram removidas daqui, pois sua lógica agora está no AuthService.
 
   @override
   void dispose() {
@@ -144,7 +85,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ... (O resto do seu código da UI permanece o mesmo)
+    // A UI (código do build) continua exatamente a mesma.
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -167,8 +108,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 40),
-
-            // Campos de texto com seus controllers
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
@@ -223,12 +162,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               obscureText: true,
             ),
             const SizedBox(height: 30),
-
-            // Botão de Sign Up
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                // 4. Chama a função _handleSignUp e mostra o loading
                 onPressed: _isLoading ? null : _handleSignUp,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF242A38),
@@ -248,8 +184,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
               ),
             ),
-
-            // O resto da UI continua igual...
             const SizedBox(height: 40),
             const Row(
               children: [

@@ -1,8 +1,7 @@
-// lib/screens/event_participation/event_participation_form_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/models/event_model.dart';
-import 'package:agilizaiapp/services/guest_service.dart';
+import 'package:agilizaiapp/services/reservation_service.dart'; // NOVO: Usando ReservationService
+import 'package:shared_preferences/shared_preferences.dart'; // NOVO: Para pegar o userId
 
 class EventParticipationFormScreen extends StatefulWidget {
   final Event event;
@@ -17,9 +16,8 @@ class EventParticipationFormScreen extends StatefulWidget {
 class _EventParticipationFormScreenState
     extends State<EventParticipationFormScreen> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _documentController =
-      TextEditingController(); // Para documento opcional
-  final GuestService _guestService = GuestService();
+  final TextEditingController _documentController = TextEditingController();
+  final ReservationService _reservationService = ReservationService(); // NOVO
   bool _isLoading = false;
 
   @override
@@ -38,29 +36,40 @@ class _EventParticipationFormScreenState
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      // O endpoint POST /convidados espera um array de nomes.
-      // O documento e a lista serão 'null' e 'Geral' conforme sua API atual.
-      await _guestService.addGuests(
-        widget.event.id,
-        [_nameController.text.trim()], // Passa o nome como um array de um item
-        // Se a API fosse adaptada para receber documento/lista por cliente:
-        // {
-        //   'nome': _nameController.text.trim(),
-        //   'documento': _documentController.text.trim(),
-        //   'lista': 'Pista', // Ou a lista que o cliente escolheria
-        // }
-      );
+      final prefs = await SharedPreferences.getInstance();
+      final userIdString = prefs.getString('userId');
+      if (userIdString == null) {
+        throw Exception('Usuário não logado. Faça login para continuar.');
+      }
+      final userId = int.parse(userIdString);
+
+      // Monta o payload para CRIAR UMA RESERVA
+      final payload = {
+        "userId": userId,
+        "tipoReserva": "NORMAL", // Tipo de reserva para participação simples
+        "nomeLista":
+            "Participação em: ${widget.event.nomeDoEvento ?? 'Evento'}",
+        "dataReserva": widget.event.dataDoEvento ??
+            DateTime.now().toIso8601String().substring(0, 10),
+        "eventoId": widget.event.id,
+        "convidados": [
+          _nameController.text.trim()
+        ], // Lista com apenas o nome do participante
+        "brindes": []
+      };
+
+      // Chama o serviço para criar a reserva
+      await _reservationService.createReservation(payload);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Sua participação foi registrada com sucesso!')),
         );
-        Navigator.of(context).pop(); // Volta para a tela de busca de eventos
+        Navigator.of(context).pop(); // Volta para a tela anterior
       }
     } catch (e) {
       if (mounted) {
@@ -72,9 +81,7 @@ class _EventParticipationFormScreenState
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
