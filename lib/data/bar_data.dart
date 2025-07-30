@@ -15,7 +15,7 @@ const List<Bar> allBars = [
     logoAssetPath:
         'assets/images/logo-justino.png', // Verifique o caminho real do seu asset
     coverImagePath:
-        'assets/images/seujustino_cover.jpg', // <--- Exemplo de imagem de capa
+        'assets/images/capa-justino.png', // <--- Exemplo de imagem de capa
     street: 'Rua Harmonia',
     number: 70,
     address:
@@ -23,19 +23,25 @@ const List<Bar> allBars = [
     rating: 4.5,
     reviewsCount: 1200,
     ambianceImagePaths: [
-      'assets/images/seujustino_amb_1.jpg',
-      'assets/images/seujustino_amb_2.jpg',
+      'assets/images/ambiente-justino-1.jpeg',
+      'assets/images/ambiente-justino-2.jpeg',
+      'assets/images/ambiente-justino-3.jpeg',
+      'assets/images/ambiente-justino-4.jpeg',
     ],
     foodImagePaths: [
-      'assets/images/seujustino_food_1.jpg',
-      'assets/images/seujustino_food_2.jpg',
+      'assets/images/gastronomia-justino-1.jpeg',
+      'assets/images/gastronomia-justino-2.jpeg',
+      'assets/images/gastronomia-justino-3.jpeg',
+      'assets/images/gastronomia-justino-4.jpeg',
     ],
     drinksImagePaths: [
-      'assets/images/seujustino_drink_1.jpg',
-      'assets/images/seujustino_drink_2.jpg',
+      'assets/images/bebida-justino-1.jpeg',
+      'assets/images/bebida-justino-2.jpeg',
+      'assets/images/bebida-justino-3.jpeg',
+      'assets/images/bebida-justino-4.jpeg',
     ],
     mapImageUrl:
-        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=YOUR_Maps_API_KEY', // Substitua pela sua chave
+        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k', // Substitua pela sua chave
     amenities: [
       Amenity(icon: Icons.wifi, label: 'Wi-Fi'),
       Amenity(icon: Icons.accessible, label: 'Acessível'),
@@ -50,26 +56,32 @@ const List<Bar> allBars = [
     slug: 'ohfregues',
     description: 'Um lugar incrível para curtir com os amigos.',
     logoAssetPath: 'assets/images/logo-fregues.png',
-    coverImagePath: 'assets/images/ohfregues_cover.jpg',
+    coverImagePath: 'assets/images/capa-ohfregues.jpg',
     street: 'Rua das Flores',
     number: 123,
     address: 'Rua das Flores, 123 - Centro, São Paulo',
     rating: 4.2,
     reviewsCount: 850,
     ambianceImagePaths: [
-      'assets/images/ohfregues_amb_1.jpg',
-      'assets/images/ohfregues_amb_2.jpg',
+      'assets/images/ambiente-ohfregues-1.jpg',
+      'assets/images/ambiente-ohfregues-2.jpg',
+      'assets/images/ambiente-ohfregues-3.jpg',
+      'assets/images/ambiente-ohfregues-4.jpg',
     ],
     foodImagePaths: [
-      'assets/images/ohfregues_food_1.jpg',
-      'assets/images/ohfregues_food_2.jpg',
+      'assets/images/gastronomia-ohfregues-1.jpg',
+      'assets/images/gastronomia-ohfregues-2.jpg',
+      'assets/images/gastronomia-ohfregues-3.jpg',
+      'assets/images/gastronomia-ohfregues-4.jpg',
     ],
     drinksImagePaths: [
-      'assets/images/ohfregues_drink_1.jpg',
-      'assets/images/ohfregues_drink_2.jpg',
+      'assets/images/bebidas-ohfregues-1.jpg',
+      'assets/images/bebidas-ohfregues-2.jpg',
+      'assets/images/bebidas-ohfregues-3.jpg',
+      'assets/images/bebidas-ohfregues-4.jpg',
     ],
     mapImageUrl:
-        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=YOUR_Maps_API_KEY',
+        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k',
     amenities: [
       Amenity(icon: Icons.music_note, label: 'Samba ao vivo'),
       Amenity(icon: Icons.restaurant, label: 'Feijoada'),
@@ -82,26 +94,32 @@ const List<Bar> allBars = [
     slug: 'highline',
     description: 'Vista panorâmica e drinks exclusivos.',
     logoAssetPath: 'assets/images/logo-highline.png',
-    coverImagePath: 'assets/images/highline_cover.jpg',
+    coverImagePath: 'assets/images/capa-highline.jpeg',
     street: 'Avenida Paulista',
     number: 900,
     address: 'Avenida Paulista, 900 - Bela Vista, São Paulo',
     rating: 4.8,
     reviewsCount: 2100,
     ambianceImagePaths: [
-      'assets/images/highline_amb_1.jpg',
-      'assets/images/highline_amb_2.jpg',
+      'assets/images/ambiente-highline-1.jpeg',
+      'assets/images/ambiente-highline-2.jpeg',
+      'assets/images/ambiente-highline-3.jpeg',
+      'assets/images/ambiente-highline-4.jpeg',
     ],
     foodImagePaths: [
-      'assets/images/highline_food_1.jpg',
-      'assets/images/highline_food_2.jpg',
+      'assets/images/gastronomia-highline-1.jpeg',
+      'assets/images/gastronomia-highline-2.jpeg',
+      'assets/images/gastronomia-highline-3.jpeg',
+      'assets/images/gastronomia-highline-4.jpeg',
     ],
     drinksImagePaths: [
-      'assets/images/highline_drink_1.jpg',
-      'assets/images/highline_drink_2.jpg',
+      'assets/images/bebida-highline-1.jpeg',
+      'assets/images/bebida-highline-2.jpeg',
+      'assets/images/bebida-highline-3.jpeg',
+      'assets/images/bebida-highline-4.jpeg',
     ],
     mapImageUrl:
-        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=YOUR_Maps_API_KEY',
+        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k',
     amenities: [
       Amenity(icon: Icons.pets, label: 'Pet Friendly'),
       Amenity(icon: Icons.local_bar, label: 'Cervejas Artesanais'),
@@ -113,26 +131,32 @@ const List<Bar> allBars = [
     slug: 'pracinha',
     description: 'O melhor do samba e gastronomia em um só lugar.',
     logoAssetPath: 'assets/images/logo-pracinha.png',
-    coverImagePath: 'assets/images/pracinha_cover.jpg',
+    coverImagePath: 'assets/images/capa-pracinha.jpg',
     street: 'Rua Harmonia',
     number: 144,
     address: 'Rua Harmonia, 144 - Vila Madalena, São Paulo',
     rating: 4.6,
     reviewsCount: 1500,
     ambianceImagePaths: [
-      'assets/images/pracinha_amb_1.jpg',
-      'assets/images/pracinha_amb_2.jpg',
+      'assets/images/ambiente-pracinha-1.jpg',
+      'assets/images/ambiente-pracinha-2.jpg',
+      'assets/images/ambiente-pracinha-3.jpg',
+      'assets/images/ambiente-pracinha-4.jpg',
     ],
     foodImagePaths: [
-      'assets/images/pracinha_food_1.jpg',
-      'assets/images/pracinha_food_2.jpg',
+      'assets/images/gastronomia-pracinha-1.jpg',
+      'assets/images/gastronomia-pracinha-2.jpg',
+      'assets/images/gastronomia-pracinha-3.jpg',
+      'assets/images/gastronomia-pracinha-4.jpg',
     ],
     drinksImagePaths: [
-      'assets/images/pracinha_drink_1.jpg',
-      'assets/images/pracinha_drink_2.jpg',
+      'assets/images/bebida-pracinha-1.jpg',
+      'assets/images/bebida-pracinha-2.jpg',
+      'assets/images/bebida-pracinha-3.jpg',
+      'assets/images/bebida-pracinha-4.jpg',
     ],
     mapImageUrl:
-        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=YOUR_Maps_API_KEY',
+        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k',
     amenities: [
       Amenity(icon: Icons.ac_unit, label: 'Ar Condicionado'),
       Amenity(icon: Icons.wifi, label: 'Wi-Fi'),
