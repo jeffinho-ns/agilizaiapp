@@ -1,7 +1,8 @@
+// lib/screens/event/see_all_events_screen.dart
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // Importe o pacote http
-import 'dart:convert'; // Para trabalhar com JSON
-import 'package:agilizaiapp/models/event_model.dart'; // Seu modelo de Evento
+import 'package:agilizaiapp/models/event_model.dart';
+import 'package:agilizaiapp/services/event_service.dart'; // <--- NOVO: Importe o serviço de eventos
 
 class SeeAllEventsScreen extends StatefulWidget {
   const SeeAllEventsScreen({super.key});
@@ -12,28 +13,22 @@ class SeeAllEventsScreen extends StatefulWidget {
 
 class _SeeAllEventsScreenState extends State<SeeAllEventsScreen> {
   late Future<List<Event>> _eventsFuture;
+  final EventService _eventService =
+      EventService(); // <--- NOVO: Instância do serviço
 
   @override
   void initState() {
     super.initState();
-    _eventsFuture = _fetchEvents();
+    _eventsFuture = _eventService
+        .fetchAllEvents(); // <--- CORREÇÃO AQUI: Usando o EventService
   }
 
-  // Função para buscar eventos da API
+  // A função _fetchEvents() não é mais necessária aqui, pois fetchAllEvents do EventService a substitui.
+  /*
   Future<List<Event>> _fetchEvents() async {
-    final response = await http.get(
-      Uri.parse('https://vamos-comemorar-api.onrender.com/api/events/'),
-    );
-
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      // Mapeia a lista de JSONs para uma lista de objetos Event
-      return jsonResponse.map((event) => Event.fromJson(event)).toList();
-    } else {
-      // Se a requisição não for bem-sucedida, lança uma exceção
-      throw Exception('Falha ao carregar eventos da API');
-    }
+    // ... código antigo ...
   }
+  */
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +91,7 @@ class _SeeAllEventsScreenState extends State<SeeAllEventsScreen> {
     if (event.valorDaEntrada != null) {
       final price = double.tryParse(event.valorDaEntrada.toString());
       if (price != null && price > 0) {
-        priceText = 'R\$${price.toStringAsFixed(2)}'; // Formata como moeda
+        priceText = 'R\$${price.toStringAsFixed(2)}';
       }
     }
 
@@ -183,11 +178,22 @@ class _SeeAllEventsScreenState extends State<SeeAllEventsScreen> {
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.bottomRight,
-                    child: Text(
-                      priceText,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFF26422),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF26422).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        priceText,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFF26422),
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ),

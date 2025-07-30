@@ -1,7 +1,8 @@
+// lib/screens/home/home_screen.dart
+
 import 'dart:convert';
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/models/user_model.dart';
-
 import 'package:agilizaiapp/screens/filter/filter_screen.dart';
 import 'package:agilizaiapp/screens/search/search_screen.dart';
 import 'package:agilizaiapp/widgets/event_card.dart';
@@ -9,15 +10,16 @@ import 'package:agilizaiapp/widgets/event_list_tile.dart';
 import 'package:agilizaiapp/screens/event/see_all_events_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http; // AINDA USADO PARA _fetchCurrentUser
 import 'package:agilizaiapp/widgets/app_drawer.dart';
 
 // Importando o modelo do bar, os dados dos bares e a tela de detalhes do bar
-import 'package:agilizaiapp/models/bar_model.dart'; // NOVO
-import 'package:agilizaiapp/data/bar_data.dart'; // NOVO
-import 'package:agilizaiapp/screens/bar/bar_details_screen.dart'; // NOVO
+import 'package:agilizaiapp/models/bar_model.dart';
+import 'package:agilizaiapp/data/bar_data.dart';
+import 'package:agilizaiapp/screens/bar/bar_details_screen.dart';
 
 import 'package:agilizaiapp/widgets/event_preview_sheet.dart';
+import 'package:agilizaiapp/services/event_service.dart'; // <--- NOVO: Importe o serviço de eventos
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,6 +47,9 @@ class _HomeScreenState extends State<HomeScreen>
   static const double _drawerWidthFactor = 0.75;
   double _drawerWidth = 0.0;
   bool _isDrawerOpen = false;
+
+  final EventService _eventService =
+      EventService(); // <--- NOVO: Instância do serviço
 
   @override
   void initState() {
@@ -88,22 +93,36 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _loadInitialData() async {
-    final results = await Future.wait([_fetchCurrentUser(), _fetchEvents()]);
-    if (mounted) {
-      setState(() {
-        _currentUser = results[0] as User?;
-        // Corrigindo a atribuição para _allEvents
-        // Assegura que results[1] é tratado como List<Event> ou uma lista vazia
-        _allEvents =
-            (results[1] as List<dynamic>).map((item) => item as Event).toList();
-        _popularEvents = _allEvents.take(5).toList();
-        _filterEventsByCategory(_selectedCategory);
-        _isLoading = false;
-      });
+    try {
+      // Adicionado try-catch para _loadInitialData para tratamento de erro
+      final results = await Future.wait([
+        _fetchCurrentUser(),
+        _eventService
+            .fetchAllEvents() // <--- CORREÇÃO AQUI: Usando o EventService
+      ]);
+      if (mounted) {
+        setState(() {
+          _currentUser = results[0] as User?;
+          // Já é List<Event> por causa do EventService.fetchAllEvents()
+          _allEvents = results[1] as List<Event>;
+          _popularEvents = _allEvents.take(5).toList();
+          _filterEventsByCategory(_selectedCategory);
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Erro ao carregar dados iniciais na Home: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          // Opcional: Mostrar uma mensagem de erro na tela aqui
+        });
+      }
     }
   }
 
   Future<User?> _fetchCurrentUser() async {
+    // ... (este método permanece o mesmo, pois não usa EventService) ...
     const storage = FlutterSecureStorage();
     final token = await storage.read(key: 'jwt_token');
     if (token == null || token.isEmpty) {
@@ -123,29 +142,22 @@ class _HomeScreenState extends State<HomeScreen>
         return null;
       }
     } catch (e) {
+      print(
+          'Erro ao buscar usuário atual na HomeScreen: $e'); // Log para depuração
       return null;
     }
   }
 
+  // <--- REMOVIDO: A função Future<List<Event>> _fetchEvents() não é mais necessária aqui
+  // pois foi substituída pela chamada ao EventService acima.
+  /*
   Future<List<Event>> _fetchEvents() async {
-    try {
-      final response = await http
-          .get(
-            Uri.parse('https://vamos-comemorar-api.onrender.com/api/events/'),
-          )
-          .timeout(const Duration(seconds: 15));
-      if (response.statusCode == 200) {
-        final List<dynamic> eventData = jsonDecode(response.body);
-        return eventData.map((json) => Event.fromJson(json)).toList();
-      } else {
-        return [];
-      }
-    } catch (e) {
-      return [];
-    }
+    // ... código antigo ...
   }
+  */
 
   void _filterEventsByCategory(String category) {
+    // ... (permanece o mesmo) ...
     setState(() {
       _selectedCategory = category;
       _categorizedEvents = _allEvents
@@ -158,6 +170,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   String _getCategoryDisplayName(String category) {
+    // ... (permanece o mesmo) ...
     switch (category) {
       case 'unico':
         return 'Eventos Únicos';
@@ -170,6 +183,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    // ... (restante do build permanece o mesmo) ...
     return Scaffold(
       backgroundColor: const Color(0xFF2B3245),
       body: Stack(
@@ -271,7 +285,6 @@ class _HomeScreenState extends State<HomeScreen>
                                         itemCount: _popularEvents.length,
                                         itemBuilder: (context, index) {
                                           final event = _popularEvents[index];
-                                          // EventCard já abre EventPreviewSheet no onTap
                                           return EventCard(event: event);
                                         },
                                       ),
@@ -280,11 +293,9 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                   ),
-                  // --- NOVA SEÇÃO DE BARES ---
                   SliverToBoxAdapter(
                     child: Container(
-                      color: const Color(
-                          0xFF242A38), // Fundo branco para a nova seção
+                      color: const Color(0xFF242A38),
                       padding: const EdgeInsets.symmetric(vertical: 20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +303,7 @@ class _HomeScreenState extends State<HomeScreen>
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 16.0),
                             child: Text(
-                              'Conheça Nossos Bares 🍻', // Título da seção
+                              'Conheça Nossos Bares 🍻',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -302,20 +313,18 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                           const SizedBox(height: 16),
                           SizedBox(
-                            height: 100, // Altura para a lista de logos
+                            height: 100,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16.0),
-                              itemCount: allBars
-                                  .length, // Usando a lista de bares do bar_data.dart
+                              itemCount: allBars.length,
                               itemBuilder: (context, index) {
                                 final bar = allBars[index];
                                 return Padding(
                                   padding: const EdgeInsets.only(right: 16.0),
                                   child: InkWell(
                                     onTap: () {
-                                      // Navega para a BarDetailsScreen passando o objeto Bar
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (context) =>
@@ -323,10 +332,9 @@ class _HomeScreenState extends State<HomeScreen>
                                         ),
                                       );
                                     },
-                                    borderRadius: BorderRadius.circular(
-                                        10), // Bordas arredondadas para o InkWell
+                                    borderRadius: BorderRadius.circular(10),
                                     child: Container(
-                                      width: 80, // Largura do botão da logo
+                                      width: 80,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(10),
@@ -343,8 +351,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         borderRadius: BorderRadius.circular(10),
                                         child: Image.asset(
                                           bar.logoAssetPath,
-                                          fit: BoxFit
-                                              .contain, // Ajusta a logo para caber
+                                          fit: BoxFit.contain,
                                           errorBuilder:
                                               (context, error, stackTrace) {
                                             return Container(
@@ -366,12 +373,9 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                   ),
-                  // --- FIM DA NOVA SEÇÃO DE BARES ---
                   SliverToBoxAdapter(
                     child: Container(
-                      // Este container precisa de um padding top menor, pois o anterior já tem vertical
-                      margin: const EdgeInsets.only(
-                          top: 10), // Ajuste a margem superior
+                      margin: const EdgeInsets.only(top: 10),
                       padding: const EdgeInsets.only(top: 20),
                       decoration: const BoxDecoration(
                         color: Colors.white,
@@ -395,7 +399,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text(
-                                      'Escolha por Tipo de Evento ✨', // Traduzido
+                                      'Escolha por Tipo de Evento ✨',
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -412,7 +416,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       },
                                       child: const Text(
                                         'VER TODOS',
-                                      ), // Traduzido
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -474,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         horizontal: 16.0,
                                       ),
                                       child: Text(
-                                        'Nenhum evento na categoria "${_getCategoryDisplayName(_selectedCategory)}".', // Traduzido
+                                        'Nenhum evento na categoria "${_getCategoryDisplayName(_selectedCategory)}".',
                                         style:
                                             const TextStyle(color: Colors.grey),
                                       ),
@@ -489,7 +493,6 @@ class _HomeScreenState extends State<HomeScreen>
                                       itemCount: _categorizedEvents.length,
                                       itemBuilder: (context, index) {
                                         final event = _categorizedEvents[index];
-                                        // O EventListTile já contém o InkWell para abrir o EventPreviewSheet
                                         return Padding(
                                           padding: const EdgeInsets.only(
                                             bottom: 16.0,
@@ -511,7 +514,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // --- WIDGET DO CABEÇALHO (BUILD HEADER) ---
   Widget _buildHeader() {
     final bool hasProfileImage = _currentUser?.fotoPerfil != null &&
         _currentUser!.fotoPerfil!.isNotEmpty;
@@ -548,12 +550,11 @@ class _HomeScreenState extends State<HomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Olá, Bem-vindo(a) 👋', // Traduzido
+                      'Olá, Bem-vindo(a) 👋',
                       style: TextStyle(color: Colors.white70),
                     ),
                     Text(
-                      _currentUser?.name ?? 'Carregando...', // Traduzido
-
+                      _currentUser?.name ?? 'Carregando...',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -567,8 +568,7 @@ class _HomeScreenState extends State<HomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     const Text(
-                      'Localização atual', // Traduzido
-
+                      'Localização atual',
                       style: TextStyle(color: Colors.white70),
                     ),
                     Row(
@@ -583,8 +583,7 @@ class _HomeScreenState extends State<HomeScreen>
                           _currentUser?.cidade != null &&
                                   _currentUser!.cidade!.isNotEmpty
                               ? '${_currentUser!.cidade}, ${_currentUser!.estado ?? ''}'
-                              : 'Não definida', // Traduzido
-
+                              : 'Não definida',
                           style: const TextStyle(color: Colors.white),
                         ),
                       ],
@@ -607,21 +606,15 @@ class _HomeScreenState extends State<HomeScreen>
                       );
                     },
                     decoration: InputDecoration(
-                      hintText: 'Encontre eventos incríveis', // Traduzido
-
+                      hintText: 'Encontre eventos incríveis',
                       hintStyle: TextStyle(color: Colors.grey[400]),
-
                       prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
-
                       filled: true,
-
                       fillColor: Colors.white.withOpacity(0.1),
-
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
-
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),

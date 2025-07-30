@@ -1,24 +1,27 @@
 // lib/models/event_model.dart
 
 class Event {
-  // --- CAMPOS ESSENCIAIS PARA A TELA DE DETALHES ---
-
-  final int id; // Essencial para qualquer operação (reserva, etc.)
-  final String? casaDoEvento; // Essencial para criar a reserva
-  final String? nomeDoEvento; // Usado no cabeçalho
-  final String? localDoEvento; // Usado no cabeçalho
-  final String? dataDoEvento; // Usado no cabeçalho
-  final String? horaDoEvento; // Usado no cabeçalho
+  final int id;
+  final String? casaDoEvento;
+  final String? nomeDoEvento;
+  final String? localDoEvento;
+  final String? dataDoEvento;
+  final String horaDoEvento;
   final String? categoria;
   final String? tipoEvento;
-  final dynamic
-      valorDaEntrada; // Usado no cabeçalho (dynamic para ser flexível)
-  final String? descricao; // Usado na seção de descrição
+  final double? valorDaEntrada; // <-- Alterado para double?
+  final String? descricao;
 
-  // URLs de imagem que já vêm prontas da sua API
   final String? imagemDoEventoUrl;
   final String? imagemDoComboUrl;
-  final int? adicionadoPor;
+
+  final String? criadoEm;
+  final int? mesas;
+  final double? valorDaMesa; // <-- Já é double?, mas o parse precisa ser seguro
+  final String? brinde;
+  final int? numeroDeConvidados;
+  final String? observacao;
+  final int? diaDaSemana;
 
   Event({
     required this.id,
@@ -26,36 +29,55 @@ class Event {
     this.nomeDoEvento,
     this.localDoEvento,
     this.dataDoEvento,
-    this.tipoEvento,
-    this.horaDoEvento,
+    required this.horaDoEvento,
     this.categoria,
+    this.tipoEvento,
     this.valorDaEntrada,
     this.descricao,
     this.imagemDoEventoUrl,
     this.imagemDoComboUrl,
-    this.adicionadoPor,
+    this.criadoEm,
+    this.mesas,
+    this.valorDaMesa,
+    this.brinde,
+    this.numeroDeConvidados,
+    this.observacao,
+    this.diaDaSemana,
   });
 
-  // Factory minimalista e segura para criar um Event a partir de JSON
   factory Event.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para parsear valores numéricos de forma segura
+    double? parseToDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value);
+      return null;
+    }
+
     return Event(
-      // Campos obrigatórios para a tela funcionar
       id: json['id'] as int,
       casaDoEvento: json['casa_do_evento'] as String?,
       nomeDoEvento: json['nome_do_evento'] as String?,
       localDoEvento: json['local_do_evento'] as String?,
       dataDoEvento: json['data_do_evento'] as String?,
-      horaDoEvento: json['hora_do_evento'] as String?,
+      horaDoEvento: json['hora_do_evento'] as String,
       categoria: json['categoria'] as String?,
-      tipoEvento: json['tipo_evento'] as String?,
-      valorDaEntrada: json[
-          'valor_da_entrada'], // Deixado como dynamic para evitar erros de tipo
+      tipoEvento: json['tipoEvento'] as String?,
+      valorDaEntrada:
+          parseToDouble(json['valor_da_entrada']), // <--- APLICA PARSE SEGURO
       descricao: json['descricao'] as String?,
 
-      // URLs que a API já fornece prontas
       imagemDoEventoUrl: json['imagem_do_evento_url'] as String?,
       imagemDoComboUrl: json['imagem_do_combo_url'] as String?,
-      adicionadoPor: json['adicionado_por'] as int?,
+
+      criadoEm: json['criado_em'] as String?,
+      mesas: json['mesas'] as int?,
+      valorDaMesa:
+          parseToDouble(json['valor_da_mesa']), // <--- APLICA PARSE SEGURO
+      brinde: json['brinde'] as String?,
+      numeroDeConvidados: json['numero_de_convidados'] as int?,
+      observacao: json['observacao'] as String?,
+      diaDaSemana: json['dia_da_semana'] as int?,
     );
   }
 }

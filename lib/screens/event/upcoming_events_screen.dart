@@ -1,13 +1,9 @@
 // lib/screens/event/upcoming_events_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/widgets/event_preview_sheet.dart';
-// REMOVA ESTES IMPORTS, pois não são mais necessários sem WishListProvider:
-// import 'package:provider/provider.dart';
-// import 'package:agilizaiapp/providers/wish_list_provider.dart';
+import 'package:agilizaiapp/services/event_service.dart'; // <--- NOVO: Importe o serviço de eventos
 
 class UpcomingEventsScreen extends StatefulWidget {
   const UpcomingEventsScreen({super.key});
@@ -18,6 +14,8 @@ class UpcomingEventsScreen extends StatefulWidget {
 
 class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
   late Future<List<Event>> _upcomingEventsFuture;
+  final EventService _eventService =
+      EventService(); // <--- NOVO: Instância do serviço
 
   @override
   void initState() {
@@ -26,45 +24,36 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
   }
 
   Future<List<Event>> _fetchAndFilterUpcomingEvents() async {
-    final response = await http.get(
-      Uri.parse('https://vamos-comemorar-api.onrender.com/api/events/'),
-    );
+    // Usando EventService para buscar todos os eventos
+    final List<Event> allEvents =
+        await _eventService.fetchAllEvents(); // <--- CORREÇÃO AQUI
 
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      List<Event> allEvents = jsonResponse
-          .map((event) => Event.fromJson(event))
-          .toList();
+    DateTime now = DateTime.now();
+    List<Event> upcomingEvents = allEvents.where((event) {
+      if (event.dataDoEvento == null || event.dataDoEvento!.isEmpty) {
+        return false;
+      }
+      try {
+        DateTime eventDate = DateTime.parse(event.dataDoEvento!);
+        return eventDate.isAfter(DateTime(now.year, now.month, now.day));
+      } catch (e) {
+        print('Erro ao parsear data do evento ${event.nomeDoEvento}: $e');
+        return false;
+      }
+    }).toList();
 
-      DateTime now = DateTime.now();
-      List<Event> upcomingEvents = allEvents.where((event) {
-        if (event.dataDoEvento == null || event.dataDoEvento!.isEmpty) {
-          return false;
-        }
-        try {
-          DateTime eventDate = DateTime.parse(event.dataDoEvento!);
-          return eventDate.isAfter(DateTime(now.year, now.month, now.day));
-        } catch (e) {
-          print('Erro ao parsear data do evento ${event.nomeDoEvento}: $e');
-          return false;
-        }
-      }).toList();
+    upcomingEvents.sort((a, b) {
+      if (a.dataDoEvento == null || b.dataDoEvento == null) return 0;
+      try {
+        DateTime dateA = DateTime.parse(a.dataDoEvento!);
+        DateTime dateB = DateTime.parse(b.dataDoEvento!);
+        return dateA.compareTo(dateB);
+      } catch (e) {
+        return 0;
+      }
+    });
 
-      upcomingEvents.sort((a, b) {
-        if (a.dataDoEvento == null || b.dataDoEvento == null) return 0;
-        try {
-          DateTime dateA = DateTime.parse(a.dataDoEvento!);
-          DateTime dateB = DateTime.parse(b.dataDoEvento!);
-          return dateA.compareTo(dateB);
-        } catch (e) {
-          return 0;
-        }
-      });
-
-      return upcomingEvents;
-    } else {
-      throw Exception('Falha ao carregar eventos da API');
-    }
+    return upcomingEvents;
   }
 
   @override
@@ -120,10 +109,7 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
                       itemCount: snapshot.data!.length,
                       itemBuilder: (context, index) {
                         Event event = snapshot.data![index];
-                        // Não precisamos mais passar o `context` para a interação do WishList
-                        return _buildEventHighlightCard(
-                          event,
-                        ); // Contexto removido
+                        return _buildEventHighlightCard(event);
                       },
                     );
                   }
@@ -136,8 +122,6 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
     );
   }
 
-  // --- ONDE O BOTÃO DE CORAÇÃO FOI REMOVIDO ---
-  // O contexto 'BuildContext context' foi removido dos parâmetros pois não é mais necessário para WishList
   Widget _buildEventHighlightCard(Event event) {
     String priceText = 'Gratuito';
     if (event.valorDaEntrada != null) {
@@ -146,10 +130,6 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
         priceText = 'R\$${price.toStringAsFixed(2)}';
       }
     }
-
-    // REMOVEMOS TODAS AS LINHAS RELACIONADAS AO WISHLISTPROVIDER:
-    // final wishListProvider = Provider.of<WishListProvider>(context);
-    // bool isFavorite = wishListProvider.isInWishList(event);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
@@ -174,7 +154,6 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Stack(
-              // Usamos Stack para posicionar o botão de coração na imagem
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
@@ -200,31 +179,6 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
                     },
                   ),
                 ),
-                // O BLOCO Positioned DO BOTÃO DE CORAÇÃO FOI REMOVIDO DAQUI:
-                /*
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Colors.black.withOpacity(0.4),
-                    child: IconButton(
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : Colors.white,
-                        size: 24,
-                      ),
-                      onPressed: () {
-                        if (isFavorite) {
-                          wishListProvider.removeEvent(event);
-                        } else {
-                          wishListProvider.addEvent(event);
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                */
               ],
             ),
             Padding(

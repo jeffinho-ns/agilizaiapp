@@ -1,11 +1,13 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart'
+    as http; // AINDA USADO PARA _fetchAndGroupEvents, mas vamos remover
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/widgets/event_preview_sheet.dart';
 import 'package:agilizaiapp/widgets/event_timeline_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:agilizaiapp/services/event_service.dart'; // <--- NOVO: Importe o serviço de eventos
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -22,6 +24,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Map<DateTime, List<Event>> _events = {};
 
+  final EventService _eventService =
+      EventService(); // <--- NOVO: Instância do serviço
+
   @override
   void initState() {
     super.initState();
@@ -35,52 +40,45 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
 
     try {
-      final response = await http.get(
-        Uri.parse('https://vamos-comemorar-api.onrender.com/api/events'),
-      );
+      final List<Event> allEvents =
+          await _eventService.fetchAllEvents(); // <--- CORREÇÃO AQUI
+      final Map<DateTime, List<Event>> groupedEvents = {};
 
-      if (response.statusCode == 200) {
-        final List<dynamic> eventData = jsonDecode(response.body);
-        final Map<DateTime, List<Event>> groupedEvents = {};
+      for (var event in allEvents) {
+        // Já é Event, não precisa de fromJson
+        if (event.dataDoEvento != null && event.dataDoEvento!.isNotEmpty) {
+          try {
+            final eventDate = DateTime.parse(event.dataDoEvento!);
+            final dateOnly = DateTime.utc(
+              eventDate.year,
+              eventDate.month,
+              eventDate.day,
+            );
 
-        for (var eventJson in eventData) {
-          final Event event = Event.fromJson(eventJson);
-
-          if (event.dataDoEvento != null && event.dataDoEvento!.isNotEmpty) {
-            try {
-              final eventDate = DateTime.parse(event.dataDoEvento!);
-              final dateOnly = DateTime.utc(
-                eventDate.year,
-                eventDate.month,
-                eventDate.day,
-              );
-
-              if (groupedEvents[dateOnly] == null) {
-                groupedEvents[dateOnly] = [];
-              }
-              groupedEvents[dateOnly]!.add(event);
-            } catch (e) {
-              print(
-                "Formato de data inválido para o evento '${event.nomeDoEvento}': ${event.dataDoEvento}",
-              );
+            if (groupedEvents[dateOnly] == null) {
+              groupedEvents[dateOnly] = [];
             }
+            groupedEvents[dateOnly]!.add(event);
+          } catch (e) {
+            print(
+              "Formato de data inválido para o evento '${event.nomeDoEvento}': ${event.dataDoEvento}",
+            );
           }
         }
+      }
 
-        if (mounted) {
-          setState(() {
-            _events = groupedEvents;
-            _isLoading = false;
-          });
-        }
-      } else {
-        throw Exception('Falha ao carregar eventos da API');
+      if (mounted) {
+        setState(() {
+          _events = groupedEvents;
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      print("Erro ao buscar e agrupar eventos: $e");
+      print("Erro ao buscar e agrupar eventos no CalendarScreen: $e");
       if (mounted) {
         setState(() {
           _isLoading = false;
+          // Opcional: Mostrar mensagem de erro na UI
         });
       }
     }
@@ -102,8 +100,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
           minChildSize: 0.4,
           maxChildSize: 0.9,
           builder: (_, controller) {
-            // Assumindo que EventPreviewSheet aceita 'event' e 'scrollController'
-            // Se não aceitar 'scrollController', você pode removê-lo.
             return EventPreviewSheet(
               event: event,
               scrollController: controller,
@@ -134,7 +130,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Calendário', // Traduzido
+                'Calendário',
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -242,7 +238,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                   child: const Row(
                     children: [
-                      Text('Todos os Eventos'), // Traduzido
+                      Text('Todos os Eventos'),
                       Icon(Icons.arrow_drop_down)
                     ],
                   ),
@@ -252,7 +248,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     /* Navegar para a FilterScreen */
                   },
                   icon: const Icon(Icons.filter_list),
-                  label: const Text('Filtrar'), // Traduzido
+                  label: const Text('Filtrar'),
                   style: TextButton.styleFrom(foregroundColor: Colors.black),
                 ),
               ],
@@ -313,7 +309,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: Column(
               children: [
                 Text(
-                  // Garante que o mês seja em português
                   DateFormat.MMM('pt_BR').format(date).toUpperCase(),
                   style: const TextStyle(
                     color: Color(0xFFF26422),
@@ -332,7 +327,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           const SizedBox(width: 16),
           Text(
-            // Garante que o dia da semana e o mês sejam em português
             DateFormat('EEEE, d MMMM, y', 'pt_BR').format(date).toUpperCase(),
             style: const TextStyle(
               fontWeight: FontWeight.bold,

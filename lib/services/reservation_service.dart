@@ -1,9 +1,10 @@
 // lib/services/reservation_service.dart
 
+import 'package:agilizaiapp/models/reservation_model.dart';
+import 'package:agilizaiapp/models/guest_model.dart'; // Necessário para ReservationModel
+import 'package:agilizaiapp/models/brinde_model.dart'; // Necessário para ReservationModel
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-// =====> A LINHA QUE FALTAVA ESTÁ AQUI <=====
-import 'package:agilizaiapp/models/reservation_model.dart';
 
 class ReservationService {
   final String _baseUrl = 'https://vamos-comemorar-api.onrender.com/api';
@@ -12,94 +13,194 @@ class ReservationService {
 
   Future<Options> _getAuthHeaders() async {
     final token = await _storage.read(key: 'jwt_token');
-    if (token == null) {
-      throw Exception('Usuário não autenticado.');
+    if (token == null || token.isEmpty) {
+      throw Exception('Usuário não autenticado. Token JWT ausente ou vazio.');
     }
-    return Options(headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    });
+    return Options(headers: {'Authorization': 'Bearer $token'});
   }
 
+  // Método para criar reserva (POST /api/reservas)
   Future<Map<String, dynamic>> createReservation(
-      Map<String, dynamic> reservationData) async {
+      Map<String, dynamic> data) async {
     try {
       final response = await _dio.post(
         '$_baseUrl/reservas',
-        data: reservationData,
         options: await _getAuthHeaders(),
+        data: data,
       );
-      return response.data;
+      if (response.statusCode == 201) {
+        return response.data;
+      } else {
+        throw Exception(
+            'Falha ao criar reserva: Status ${response.statusCode}');
+      }
     } on DioException catch (e) {
-      throw Exception('Falha ao criar reserva: ${e.response?.data['message']}');
+      print(
+          'DioError ao criar reserva: ${e.response?.statusCode} - ${e.response?.data}');
+      String errorMessage = 'Falha ao criar reserva.';
+      if (e.response != null &&
+          e.response!.data is Map &&
+          e.response!.data.containsKey('message')) {
+        errorMessage = e.response!.data['message'];
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Erro inesperado ao criar reserva: $e');
+      throw Exception('Erro desconhecido ao criar reserva');
     }
   }
 
-  /// Busca os detalhes completos de uma reserva e JÁ RETORNA O OBJETO PRONTO.
-  Future<Reservation> getReservationDetails(int reservaId) async {
+  // Método para buscar todas as reservas do usuário (GET /api/reservas)
+  Future<List<Reservation>> fetchAllUserReservations() async {
     try {
       final response = await _dio.get(
-        '$_baseUrl/reservas/$reservaId',
+        '$_baseUrl/reservas',
         options: await _getAuthHeaders(),
       );
-      // Agora o Dart sabe o que é 'Reservation' por causa do import que adicionamos.
-      return Reservation.fromJson(response.data);
+      if (response.statusCode == 200) {
+        final List<dynamic> reservationData = response.data;
+        return reservationData
+            .map((json) => Reservation.fromJson(json))
+            .toList();
+      } else {
+        throw Exception(
+            'Falha ao carregar reservas: Status ${response.statusCode}');
+      }
     } on DioException catch (e) {
-      throw Exception(
-          'Falha ao buscar detalhes da reserva: ${e.response?.data['message']}');
+      print(
+          'DioError ao buscar reservas: ${e.response?.statusCode} - ${e.response?.data}');
+      String errorMessage = 'Falha ao carregar reservas.';
+      if (e.response != null &&
+          e.response!.data is Map &&
+          e.response!.data.containsKey('message')) {
+        errorMessage = e.response!.data['message'];
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Erro inesperado ao buscar reservas: $e');
+      throw Exception('Erro desconhecido ao carregar reservas');
     }
   }
 
-  /// Busca todas as reservas criadas por um usuário específico.
-  Future<List<dynamic>> getMyReservations(int userId) async {
+  // Método para buscar detalhes de uma única reserva por ID (GET /api/reservas/:id)
+  Future<Reservation> fetchReservationDetails(int reservationId) async {
     try {
       final response = await _dio.get(
-        '$_baseUrl/users/$userId/reservas',
+        '$_baseUrl/reservas/$reservationId',
         options: await _getAuthHeaders(),
       );
-      return response.data;
+
+      print('Resposta de detalhes da Reserva: Status ${response.statusCode}');
+      // print('Dados de detalhes da Reserva: ${response.data}'); // Descomente para ver o JSON
+
+      if (response.statusCode == 200) {
+        return Reservation.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw Exception(
+            'Falha ao carregar detalhes da reserva: Status ${response.statusCode}');
+      }
     } on DioException catch (e) {
-      throw Exception(
-          'Falha ao buscar minhas reservas: ${e.response?.data['message']}');
+      print(
+          'DioError ao buscar detalhes da reserva: ${e.response?.statusCode} - ${e.response?.data}');
+      String errorMessage = 'Falha ao carregar detalhes da reserva.';
+      if (e.response != null &&
+          e.response!.data is Map &&
+          e.response!.data.containsKey('message')) {
+        errorMessage = e.response!.data['message'];
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Erro inesperado ao buscar detalhes da reserva: $e');
+      throw Exception('Erro desconhecido ao carregar detalhes da reserva');
     }
   }
 
-  /// Busca todas as reservas de um evento específico.
-  Future<List<dynamic>> getReservationsForEvent(int eventId) async {
+  // Método para aprovar reserva (PUT /api/reservas/update-status/:id)
+  Future<void> approveReserve(int id) async {
+    try {
+      final response = await _dio.put(
+        '$_baseUrl/reservas/update-status/$id',
+        options: await _getAuthHeaders(),
+        data: {'status': 'Aprovado'},
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Falha ao aprovar a reserva: Status ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print(
+          'DioError ao aprovar reserva: ${e.response?.statusCode} - ${e.response?.data}');
+      String errorMessage = 'Erro ao aprovar reserva.';
+      if (e.response != null &&
+          e.response!.data is Map &&
+          e.response!.data.containsKey('message')) {
+        errorMessage = e.response!.data['message'];
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Erro inesperado ao aprovar reserva: $e');
+      throw Exception('Erro desconhecido ao aprovar reserva');
+    }
+  }
+
+  // Método para reprovar reserva (PATCH /api/reservas/:id/reject)
+  Future<void> rejectReserve(int id) async {
+    try {
+      final response = await _dio.patch(
+        '$_baseUrl/reservas/${id}/reject',
+        options: await _getAuthHeaders(),
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Falha ao reprovar a reserva: Status ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print(
+          'DioError ao reprovar reserva: ${e.response?.statusCode} - ${e.response?.data}');
+      String errorMessage = 'Erro ao reprovar reserva.';
+      if (e.response != null &&
+          e.response!.data is Map &&
+          e.response!.data.containsKey('message')) {
+        errorMessage = e.response!.data['message'];
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Erro inesperado ao reprovar reserva: $e');
+      throw Exception('Erro desconhecido ao reprovar reserva');
+    }
+  }
+
+  // Método para buscar reservas de um evento específico (GET /api/events/:id/reservas)
+  Future<List<Reservation>> fetchReservationsByEventId(int eventId) async {
     try {
       final response = await _dio.get(
         '$_baseUrl/events/$eventId/reservas',
         options: await _getAuthHeaders(),
       );
-      return response.data['reservas_associadas'];
-    } on DioException catch (e) {
-      throw Exception(
-          'Falha ao buscar as listas do evento: ${e.response?.data['message']}');
-    }
-  }
 
-  Future<void> deleteGuest(int guestId) async {
-    try {
-      await _dio.delete(
-        '$_baseUrl/convidados/$guestId',
-        options: await _getAuthHeaders(),
-      );
+      print('Resposta de Reservas por Evento: Status ${response.statusCode}');
+      // A API retorna um objeto { evento: {}, reservas_associadas: [] }
+      if (response.statusCode == 200) {
+        final List<dynamic> reservasData =
+            response.data['reservas_associadas']; // <<-- PEGA A LISTA DO OBJETO
+        return reservasData.map((json) => Reservation.fromJson(json)).toList();
+      } else {
+        throw Exception(
+            'Falha ao carregar reservas por evento: Status ${response.statusCode}');
+      }
     } on DioException catch (e) {
-      throw Exception(
-          'Falha ao deletar convidado: ${e.response?.data['message']}');
-    }
-  }
-
-  Future<void> updateGuest(int guestId, String newName) async {
-    try {
-      await _dio.put(
-        '$_baseUrl/convidados/$guestId',
-        data: {'nome': newName},
-        options: await _getAuthHeaders(),
-      );
-    } on DioException catch (e) {
-      throw Exception(
-          'Falha ao atualizar convidado: ${e.response?.data['message']}');
+      print(
+          'DioError ao buscar reservas por evento: ${e.response?.statusCode} - ${e.response?.data}');
+      String errorMessage = 'Falha ao carregar reservas por evento.';
+      if (e.response != null &&
+          e.response!.data is Map &&
+          e.response!.data.containsKey('message')) {
+        errorMessage = e.response!.data['message'];
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Erro inesperado ao buscar reservas por evento: $e');
+      throw Exception('Erro desconhecido ao carregar reservas por evento');
     }
   }
 }

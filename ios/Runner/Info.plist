@@ -61,5 +61,11 @@
         <string>UIInterfaceOrientationLandscapeLeft</string>
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
+    <key>NSLocationWhenInUseUsageDescription</key>
+<string>Este aplicativo precisa da sua localização para confirmar sua presença no evento.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>Este aplicativo precisa da sua localização para confirmar sua presença no evento.</string>
+<key>NSLocationAlwaysUsageDescription</key>
+<string>Este aplicativo precisa da sua localização para confirmar sua presença no evento.</string>
 </dict>
 </plist>

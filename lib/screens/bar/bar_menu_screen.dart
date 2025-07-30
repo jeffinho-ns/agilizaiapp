@@ -1,9 +1,13 @@
+// lib/screens/bar/bar_menu_screen.dart
+
 import 'package:diacritic/diacritic.dart';
 import 'package:flutter/material.dart';
+import 'package:agilizaiapp/models/bar_model.dart'; // Importe Bar para acessar o slug
+import 'package:agilizaiapp/data/bar_data.dart'; // Importe os dados dos bares
 import 'item_detail_sheet.dart'; // Importando a nova tela de detalhes
+import 'package:collection/collection.dart'; // <--- NOVO: Importe firstWhereOrNull
 
-// --- MODELOS DE DADOS ---
-
+// --- MODELOS DE DADOS --- (Permanecem como estão)
 class Topping {
   final String name;
   final double price;
@@ -37,8 +41,7 @@ class MenuCategory {
   });
 }
 
-// --- DADOS MOCKADOS (EXEMPLO COMPLETO) ---
-
+// --- DADOS MOCKADOS (EXEMPLO COMPLETO) --- (Permanecem como estão)
 final Map<String, List<MenuCategory>> barMenus = {
   'seujustino': [
     MenuCategory(
@@ -442,12 +445,12 @@ final Map<String, List<MenuCategory>> barMenus = {
 // --- WIDGET DA TELA ---
 
 class BarMenuScreen extends StatefulWidget {
-  final String barName;
+  final int barId; // Alterado para int barId
   final Color appBarColor;
 
   const BarMenuScreen({
     Key? key,
-    required this.barName,
+    required this.barId, // Agora espera barId
     this.appBarColor = Colors.deepPurple,
   }) : super(key: key);
 
@@ -458,13 +461,31 @@ class BarMenuScreen extends StatefulWidget {
 class _BarMenuScreenState extends State<BarMenuScreen> {
   late List<MenuCategory> _currentMenu;
   int _selectedCategoryIndex = 0;
+  String _barName = 'Cardápio'; // Para exibir no AppBar
 
   @override
   void initState() {
     super.initState();
-    final standardizedBarName =
-        removeDiacritics(widget.barName.toLowerCase()).replaceAll(' ', '');
-    _currentMenu = barMenus[standardizedBarName] ?? [];
+    _loadMenu();
+  }
+
+  void _loadMenu() {
+    // Busca o Bar pelo ID na lista allBars
+    // Usando firstWhereOrNull para evitar erros se o barId não for encontrado
+    final Bar? bar = allBars.firstWhereOrNull(
+      (b) => b.id == widget.barId,
+    );
+
+    if (bar != null) {
+      _barName = bar.name; // Usa o nome real do bar
+      // <<-- CORREÇÃO AQUI: bar.slug deve ser usado para buscar no barMenus
+      final standardizedBarName =
+          removeDiacritics(bar.slug.toLowerCase()).replaceAll(' ', '');
+      _currentMenu = barMenus[standardizedBarName] ?? [];
+    } else {
+      _currentMenu = [];
+      _barName = 'Cardápio não encontrado';
+    }
 
     if (_currentMenu.isNotEmpty) {
       _selectedCategoryIndex =
@@ -473,6 +494,8 @@ class _BarMenuScreenState extends State<BarMenuScreen> {
         _selectedCategoryIndex = 0;
       }
     }
+    setState(
+        () {}); // Atualiza o estado para reconstruir a UI com o menu carregado
   }
 
   bool _isColorDark(Color color) {
@@ -484,7 +507,7 @@ class _BarMenuScreenState extends State<BarMenuScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Cardápio do ${widget.barName}',
+          _barName, // Usa o nome do bar encontrado
           style: const TextStyle(color: Colors.white),
         ),
         centerTitle: true,
