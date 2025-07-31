@@ -436,6 +436,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                       ),
                       _buildEventHeader(widget.event),
                       const SizedBox(height: 20),
+                      _buildReservationForm(),
+                      const SizedBox(height: 20),
                       _buildMembersSection(),
                       const Divider(height: 40, thickness: 1),
                       _buildOrganizerInfo(),
@@ -494,7 +496,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                           ),
                         ),
                       const SizedBox(height: 20),
-                      _buildReservationForm(),
                     ],
                   ),
                 );
