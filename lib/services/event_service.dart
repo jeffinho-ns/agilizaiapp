@@ -56,6 +56,59 @@ class EventService {
     }
   }
 
+  /// Busca eventos onde o usuário logado é promoter
+  Future<List<Event>> fetchPromoterEvents() async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/events/promoter',
+        options: await _getAuthHeaders(),
+      );
+
+      print(
+          'Resposta da API de eventos do promoter: Status ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> eventData = response.data;
+        return eventData.map((json) => Event.fromJson(json)).toList();
+      } else {
+        throw Exception(
+            'Falha ao carregar eventos do promoter: Status ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print(
+          'DioError ao buscar eventos do promoter: ${e.response?.statusCode} - ${e.response?.data}');
+      String errorMessage = 'Falha ao carregar eventos do promoter.';
+      if (e.response != null && e.response!.data is Map) {
+        errorMessage = e.response!.data['message'] ?? errorMessage;
+      } else if (e.response != null && e.response!.data is String) {
+        errorMessage = e.response!.data;
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Erro inesperado ao buscar eventos do promoter: $e');
+      throw Exception('Erro desconhecido ao carregar eventos do promoter');
+    }
+  }
+
+  /// Verifica se o usuário logado é promoter de um evento específico
+  Future<bool> isUserPromoterOfEvent(int eventId) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/events/$eventId/promoter-check',
+        options: await _getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return response.data['isPromoter'] ?? false;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('Erro ao verificar se usuário é promoter: $e');
+      return false;
+    }
+  }
+
   /// Busca as regras públicas e ativas para um evento específico.
   Future<List<EventRule>> fetchEventRules(int eventId) async {
     try {
@@ -99,33 +152,23 @@ class EventService {
         },
       );
 
-      print(
-          'Resposta do Self Check-in: Status ${response.statusCode}, Data: ${response.data}');
-
       if (response.statusCode == 200) {
-        return response.data as Map<String, dynamic>; // Sucesso
+        return response.data;
       } else {
-        // Dio já lança DioException para !200, mas esta é uma verificação extra
         throw Exception(
             'Falha no self check-in: Status ${response.statusCode}');
       }
     } on DioException catch (e) {
       print(
           'DioError no self check-in: ${e.response?.statusCode} - ${e.response?.data}');
-      String errorMessage = 'Falha ao realizar check-in por localização.';
-      if (e.response != null) {
-        if (e.response!.data is Map &&
-            e.response!.data.containsKey('message')) {
-          errorMessage = e.response!.data['message'];
-        } else if (e.response!.data is String && e.response!.data.isNotEmpty) {
-          errorMessage = e.response!.data;
-        }
+      String errorMessage = 'Falha no self check-in.';
+      if (e.response != null && e.response!.data is Map) {
+        errorMessage = e.response!.data['message'] ?? errorMessage;
       }
       throw Exception(errorMessage);
     } catch (e) {
       print('Erro inesperado no self check-in: $e');
-      throw Exception('Erro desconhecido ao realizar check-in por localização');
+      throw Exception('Erro desconhecido no self check-in');
     }
   }
-  // =======================================================================
 }
