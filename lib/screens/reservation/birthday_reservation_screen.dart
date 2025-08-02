@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:math';
 import 'package:agilizaiapp/models/bar_model.dart';
-import 'package:agilizaiapp/services/birthday_reservation_service.dart';
+import 'package:agilizaiapp/services/reservation_service.dart';
 
-// Modelos para os novos campos
+// Modelos para as opções
 class DecorationOption {
   final String name;
   final double price;
   final String image;
   final String description;
-
-  DecorationOption({
+  const DecorationOption({
     required this.name,
     required this.price,
     required this.image,
@@ -24,22 +22,7 @@ class BeverageOption {
   final double price;
   final String category;
   final String description;
-
-  BeverageOption({
-    required this.name,
-    required this.price,
-    required this.category,
-    required this.description,
-  });
-}
-
-class FoodOption {
-  final String name;
-  final double price;
-  final String category;
-  final String description;
-
-  FoodOption({
+  const BeverageOption({
     required this.name,
     required this.price,
     required this.category,
@@ -52,8 +35,7 @@ class GiftOption {
   final double price;
   final String category;
   final String image;
-
-  GiftOption({
+  const GiftOption({
     required this.name,
     required this.price,
     required this.category,
@@ -61,188 +43,129 @@ class GiftOption {
   });
 }
 
-// ✨ CORREÇÃO: Certifique-se de que estas importações NÃO estejam ativas se você não usa o mapa diretamente nesta tela
-// O erro anterior era devido a 'Maps_flutter' no lugar de 'Maps_flutter'
-// Para esta tela, como ela não usa o mapa diretamente, é melhor deixá-las COMENTADAS
-// ou REMOVIDAS para evitar erros e manter o código limpo.
-// import 'package:Maps_flutter/Maps_flutter.dart';
-// import 'package:geocoding/geocoding.dart';
+class FoodOption {
+  final String name;
+  final double price;
+  final String category;
+  final String description;
+  const FoodOption({
+    required this.name,
+    required this.price,
+    required this.category,
+    required this.description,
+  });
+}
 
 class BirthdayReservationScreen extends StatefulWidget {
   final Bar? selectedBar;
   const BirthdayReservationScreen({super.key, this.selectedBar});
-
   @override
   State<BirthdayReservationScreen> createState() =>
       _BirthdayReservationScreenState();
 }
 
 class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
-  final _aniversarianteNomeController = TextEditingController();
-  final _documentoController = TextEditingController();
-  final _whatsappController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _painelTemaController = TextEditingController();
-  final _painelFraseController = TextEditingController();
-
-  final DraggableScrollableController _draggableSheetController =
-      DraggableScrollableController();
-
-  final BirthdayReservationService _birthdayService =
-      BirthdayReservationService();
-
-  int _quantidadeConvidados = 1;
-  String? _selectedBar;
+  late final ReservationService _reservationService;
+  final TextEditingController _aniversarianteNomeController =
+      TextEditingController();
+  final TextEditingController _documentoController = TextEditingController();
+  final TextEditingController _whatsappController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _painelTemaController = TextEditingController();
+  final TextEditingController _painelFraseController = TextEditingController();
   DateTime? _selectedBirthdayDate;
-
-  // Decoração
+  String? _selectedBar;
+  int _quantidadeConvidados = 1;
+  List<DecorationOption> _decorationOptions = [
+    DecorationOption(
+        name: 'Clássica',
+        price: 200.0,
+        image: 'assets/images/kit-1.jpg',
+        description: 'Decoração tradicional com balões e painel.'),
+    DecorationOption(
+        name: 'Tropical',
+        price: 250.0,
+        image: 'assets/images/kit-2.jpg',
+        description: 'Tema tropical com folhagens e flores.'),
+    DecorationOption(
+        name: 'Boteco',
+        price: 220.0,
+        image: 'assets/images/kit-3.jpg',
+        description: 'Decoração estilo boteco com elementos rústicos.'),
+    DecorationOption(
+        name: 'Neon',
+        price: 270.0,
+        image: 'assets/images/kit-4.jpg',
+        description: 'Decoração com luzes neon e cores vibrantes.'),
+    DecorationOption(
+        name: 'Infantil',
+        price: 210.0,
+        image: 'assets/images/kit-5.jpg',
+        description: 'Tema infantil com personagens e cores alegres.'),
+    DecorationOption(
+        name: 'Minimalista',
+        price: 180.0,
+        image: 'assets/images/kit-6.jpg',
+        description: 'Decoração clean e elegante.'),
+  ];
   DecorationOption? _selectedDecoration;
-  String? _selectedPainelOption; // 'estoque' ou 'personalizado'
+  String? _selectedPainelOption;
   String? _selectedPainelImage;
-
-  // Bebidas e comidas
-  Map<String, int> _selectedBeverages = {};
-  Map<String, int> _selectedFoods = {};
-
-  // Presentes
-  List<GiftOption> _selectedGifts = [];
-
-  // Lista de bares
-  final List<String> _bars = [
-    'Justino',
-    'Pracinha',
-    'Oh Fregês',
-    'Higline',
-    'Reserva Rooftop'
+  List<String> _painelEstoqueImages = [
+    'assets/images/painel-1.jpg',
+    'assets/images/painel-2.jpg',
+    'assets/images/painel-3.jpg',
+    'assets/images/painel-4.jpg',
+    'assets/images/painel-5.jpg',
+    'assets/images/painel-6.jpg',
+    'assets/images/painel-7.jpg',
+    'assets/images/painel-8.jpg',
+    'assets/images/painel-9.jpg',
+    'assets/images/painel-10.jpg',
   ];
-
-  // Opções de decoração com preços
-  final List<DecorationOption> _decorationOptions = [
-    DecorationOption(
-      name: 'Opção 1',
-      price: 150.0,
-      image: 'assets/images/kit-1.jpg',
-      description: 'Painel e um balão simples',
-    ),
-    DecorationOption(
-      name: 'Opção 2',
-      price: 180.0,
-      image: 'assets/images/kit-2.jpg',
-      description: 'Painel um balão e duas bandejas',
-    ),
-    DecorationOption(
-      name: 'Opção 3',
-      price: 220.0,
-      image: 'assets/images/kit-3.jpg',
-      description: 'Painel três bandejas e arco de balões',
-    ),
-    DecorationOption(
-      name: 'Opção 4',
-      price: 550.0,
-      image: 'assets/images/kit-4.jpg',
-      description: 'Painel três bandejas, arco de balões e bolo',
-    ),
-    DecorationOption(
-      name: 'Opção 5',
-      price: 650.0,
-      image: 'assets/images/kit-5.jpg',
-      description: 'Painel três bandejas, arco de balões + Combo Gin142',
-    ),
-    DecorationOption(
-      name: 'Opção 6',
-      price: 800.0,
-      image: 'assets/images/kit-6.jpg',
-      description: 'Painel três bandejas, arco de balões, bolo + Combo Gin142',
-    ),
-  ];
-
-  // Opções de bebidas
-  final List<BeverageOption> _beverageOptions = [
-    // Cervejas
+  List<BeverageOption> _beverageOptions = [
     BeverageOption(
-        name: 'Balde Budweiser (5 und)',
-        price: 45.0,
-        category: 'Cervejas',
-        description: '5 cervejas Budweiser'),
+        name: 'Cerveja',
+        price: 12.0,
+        category: 'Bebida',
+        description: 'Long neck ou lata.'),
     BeverageOption(
-        name: 'Balde Corona (5 und)',
-        price: 50.0,
-        category: 'Cervejas',
-        description: '5 cervejas Corona'),
+        name: 'Refrigerante',
+        price: 8.0,
+        category: 'Bebida',
+        description: 'Lata 350ml.'),
     BeverageOption(
-        name: 'Balde Heineken (5 und)',
-        price: 55.0,
-        category: 'Cervejas',
-        description: '5 cervejas Heineken'),
-    BeverageOption(
-        name: 'Balde Stella Artois (5 und)',
-        price: 60.0,
-        category: 'Cervejas',
-        description: '5 cervejas Stella'),
-
-    // Drinks
-    BeverageOption(
-        name: 'Caipirinha',
-        price: 18.0,
-        category: 'Drinks',
-        description: 'Caipirinha tradicional'),
-    BeverageOption(
-        name: 'Mojito',
-        price: 22.0,
-        category: 'Drinks',
-        description: 'Mojito com hortelã'),
-    BeverageOption(
-        name: 'Margarita',
-        price: 25.0,
-        category: 'Drinks',
-        description: 'Margarita clássica'),
-    BeverageOption(
-        name: 'Negroni',
-        price: 28.0,
-        category: 'Drinks',
-        description: 'Negroni italiano'),
+        name: 'Água',
+        price: 5.0,
+        category: 'Bebida',
+        description: 'Garrafa 500ml.'),
     BeverageOption(
         name: 'Gin Tônica',
+        price: 25.0,
+        category: 'Drink',
+        description: 'Drink especial da casa.'),
+    BeverageOption(
+        name: 'Caipirinha',
         price: 20.0,
-        category: 'Drinks',
-        description: 'Gin com tônica'),
+        category: 'Drink',
+        description: 'Caipirinha de limão ou frutas.'),
     BeverageOption(
-        name: 'Whisky Cola',
-        price: 18.0,
-        category: 'Drinks',
-        description: 'Whisky com Coca-Cola'),
-
-    // Outros
-    BeverageOption(
-        name: 'Água (500ml)',
-        price: 5.0,
-        category: 'Outros',
-        description: 'Água mineral'),
-    BeverageOption(
-        name: 'Refrigerante (350ml)',
-        price: 8.0,
-        category: 'Outros',
-        description: 'Coca-Cola, Sprite, Fanta'),
-    BeverageOption(
-        name: 'Suco Natural',
-        price: 12.0,
-        category: 'Outros',
-        description: 'Suco de laranja ou limão'),
-    BeverageOption(
-        name: 'Combo Gin 142 (5 Red Bull)',
-        price: 120.0,
-        category: 'Outros',
-        description: 'Gin 142 com 5 Red Bull'),
-    BeverageOption(
-        name: 'Garrafa Licor Rufus Caramel',
-        price: 85.0,
-        category: 'Outros',
-        description: 'Licor Rufus Caramel 750ml'),
+        name: 'Whisky',
+        price: 30.0,
+        category: 'Bebida',
+        description: 'Dose de whisky importado.'),
   ];
-
-  // Opções de comida
+  Map<String, int> _selectedBeverages = {};
+  Map<String, int> _selectedFoods = {};
+  List<GiftOption> _selectedGifts = [];
+  List<String> _barOptions = [
+    'Seu Justino',
+    'Oh Fregues',
+    'HighLine',
+    'Pracinha do Seu Justino'
+  ];
+  final ScrollController _draggableSheetController = ScrollController();
   final List<FoodOption> _foodOptions = [
-    // Porções
     FoodOption(
         name: 'Batata Frita',
         price: 25.0,
@@ -283,8 +206,6 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
         price: 7.0,
         category: 'Porções',
         description: 'Esfiha de carne (1 und)'),
-
-    // Sanduíches
     FoodOption(
         name: 'X-Burger',
         price: 35.0,
@@ -306,10 +227,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
         category: 'Sanduíches',
         description: 'Sanduíche natural de frango'),
   ];
-
-  // Opções de presentes
   final List<GiftOption> _giftOptions = [
-    // Produtos do bar
     GiftOption(
         name: 'Kit Whisky',
         price: 150.0,
@@ -335,91 +253,14 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
         price: 60.0,
         category: 'Bebidas',
         image: 'assets/images/prod-5.png'),
-
-    // Produtos promocionais
-    GiftOption(
-        name: 'Caneca Personalizada',
-        price: 25.0,
-        category: 'Promocional',
-        image: 'assets/images/prod-6.png'),
-    GiftOption(
-        name: 'Camiseta do Bar',
-        price: 35.0,
-        category: 'Promocional',
-        image: 'assets/images/prod-7.png'),
-    GiftOption(
-        name: 'Porta Retrato',
-        price: 20.0,
-        category: 'Promocional',
-        image: 'assets/images/prod-8.png'),
-    GiftOption(
-        name: 'Garrafa Térmica',
-        price: 45.0,
-        category: 'Promocional',
-        image: 'assets/images/prod-9.png'),
-    GiftOption(
-        name: 'Kit Copos',
-        price: 30.0,
-        category: 'Promocional',
-        image: 'assets/images/prod-10.png'),
-    GiftOption(
-        name: 'Boné do Bar',
-        price: 25.0,
-        category: 'Promocional',
-        image: 'assets/images/prod-11.png'),
-
-    // Produtos do cardápio
-    GiftOption(
-        name: 'Vale Comida (R\$ 50)',
-        price: 50.0,
-        category: 'Vale',
-        image: 'assets/images/prod-12.png'),
-    GiftOption(
-        name: 'Vale Bebida (R\$ 30)',
-        price: 30.0,
-        category: 'Vale',
-        image: 'assets/images/prod-13.png'),
-    GiftOption(
-        name: 'Vale Combo (R\$ 80)',
-        price: 80.0,
-        category: 'Vale',
-        image: 'assets/images/prod-14.png'),
   ];
-
-  // Opções de Painel do Estoque (com imagens mockadas)
-  final List<String> _painelEstoqueImages = [
-    'assets/images/painel-1.jpg',
-    'assets/images/painel-2.jpg',
-    'assets/images/painel-3.jpg',
-    'assets/images/painel-4.jpg',
-    'assets/images/painel-5.jpg',
-    'assets/images/painel-6.jpg',
-    'assets/images/painel-7.jpg',
-    'assets/images/painel-8.jpg',
-    'assets/images/painel-9.jpg',
-    'assets/images/painel-10.jpg',
-  ];
-
-  // Lista de posições e tamanhos para os confetes para o efeito de paralaxe
-  final List<Map<String, double>> _confetti = List.generate(
-    20, // Número de confetes
-    (index) => {
-      'left': Random().nextDouble() * 400,
-      'top': Random().nextDouble() * 1000,
-      'size': Random().nextDouble() * (25 - 10) + 10,
-      'rotation': Random().nextDouble() * 360,
-      'colorR': Random().nextDouble() * 255,
-      'colorG': Random().nextDouble() * 255,
-      'colorB': Random().nextDouble() * 255,
-    },
-  );
-
   @override
   void initState() {
     super.initState();
     _draggableSheetController.addListener(() {
       setState(() {});
     });
+    _reservationService = ReservationService();
   }
 
   @override
@@ -440,8 +281,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
       initialDate:
           _selectedBirthdayDate ?? DateTime.now().add(const Duration(days: 5)),
       firstDate: DateTime.now(),
-      lastDate:
-          DateTime.now().add(const Duration(days: 365 * 2)), // Próximos 2 anos
+      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
       locale: const Locale('pt', 'BR'),
       builder: (context, child) {
         return Theme(
@@ -476,29 +316,10 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
   }
 
   void _showConfirmationSummary() {
-    // Validação já foi feita no botão, aqui apenas mostra o resumo
-
-    // Calcular valor total
-    double totalValue = 0.0;
-    if (_selectedDecoration != null) {
-      totalValue += _selectedDecoration!.price;
-    }
-
-    // Adicionar valor das bebidas
-    for (var entry in _selectedBeverages.entries) {
-      final beverage = _beverageOptions.firstWhere((b) => b.name == entry.key);
-      totalValue += beverage.price * entry.value;
-    }
-
-    // Adicionar valor das comidas
-    for (var entry in _selectedFoods.entries) {
-      final food = _foodOptions.firstWhere((f) => f.name == entry.key);
-      totalValue += food.price * entry.value;
-    }
-
+    final screenContext = context;
     showDialog(
-      context: context,
-      builder: (BuildContext context) {
+      context: screenContext,
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           backgroundColor: const Color(0xFF2B3245),
           title: const Text('Confirmar Reserva de Aniversário',
@@ -635,30 +456,48 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                     border: Border.all(color: const Color(0xFFF26422)),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        '💰 VALOR TOTAL PARA A COMANDA',
+                        '💰 VALOR TOTAL DA RESERVA',
                         style: TextStyle(
-                          color: Color(0xFFF26422),
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
-                        'R\$ ${totalValue.toStringAsFixed(2)}',
+                        'R\$ ' +
+                            (() {
+                              double total = 0.0;
+                              if (_selectedDecoration != null) {
+                                total += _selectedDecoration!.price;
+                              }
+                              for (var entry in _selectedBeverages.entries) {
+                                final beverage = _beverageOptions
+                                    .firstWhere((b) => b.name == entry.key);
+                                total += beverage.price * entry.value;
+                              }
+                              for (var entry in _selectedFoods.entries) {
+                                final food = _foodOptions
+                                    .firstWhere((f) => f.name == entry.key);
+                                total += food.price * entry.value;
+                              }
+                              return total.toStringAsFixed(2);
+                            })(),
                         style: const TextStyle(
                           color: Color(0xFFF26422),
                           fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                          fontSize: 24,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       const Text(
-                        '💡 Lembre-se: Decoração, bebidas e comidas são opcionais e seus valores serão adicionados à sua comanda no bar.',
+                        'Este valor será adicionado à sua comanda no bar selecionado.',
                         style: TextStyle(
                           color: Colors.white70,
-                          fontSize: 11,
+                          fontSize: 12,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -671,18 +510,16 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
               },
               child: const Text('Cancelar',
                   style: TextStyle(color: Colors.white70)),
             ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.of(context).pop();
-
-                // Mostrar loading
+                Navigator.of(dialogContext).pop();
                 showDialog(
-                  context: context,
+                  context: screenContext,
                   barrierDismissible: false,
                   builder: (BuildContext context) {
                     return const Center(
@@ -690,117 +527,67 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                     );
                   },
                 );
-
                 try {
-                  // Preparar dados das bebidas
-                  List<Map<String, dynamic>> bebidasDetalhes = [];
-                  for (var entry in _selectedBeverages.entries) {
-                    final beverage =
-                        _beverageOptions.firstWhere((b) => b.name == entry.key);
-                    bebidasDetalhes.add({
-                      'nome': beverage.name,
-                      'preco': beverage.price,
-                      'categoria': beverage.category,
-                      'descricao': beverage.description,
-                      'quantidade': entry.value,
-                    });
-                  }
-
-                  // Preparar dados das comidas
-                  List<Map<String, dynamic>> comidasDetalhes = [];
-                  for (var entry in _selectedFoods.entries) {
-                    final food =
-                        _foodOptions.firstWhere((f) => f.name == entry.key);
-                    comidasDetalhes.add({
-                      'nome': food.name,
-                      'preco': food.price,
-                      'categoria': food.category,
-                      'descricao': food.description,
-                      'quantidade': entry.value,
-                    });
-                  }
-
-                  // Preparar dados dos presentes
-                  List<Map<String, dynamic>> presentesDetalhes = _selectedGifts
-                      .map((gift) => {
-                            'nome': gift.name,
-                            'preco': gift.price,
-                            'categoria': gift.category,
-                            'imagem': gift.image,
-                          })
-                      .toList();
-
-                  // Calcular valor total
-                  double totalValue = 0.0;
-                  if (_selectedDecoration != null) {
-                    totalValue += _selectedDecoration!.price;
-                  }
-                  for (var entry in _selectedBeverages.entries) {
-                    final beverage =
-                        _beverageOptions.firstWhere((b) => b.name == entry.key);
-                    totalValue += beverage.price * entry.value;
-                  }
-                  for (var entry in _selectedFoods.entries) {
-                    final food =
-                        _foodOptions.firstWhere((f) => f.name == entry.key);
-                    totalValue += food.price * entry.value;
-                  }
-
-                  // Enviar dados para o banco
-                  final result =
-                      await _birthdayService.createBirthdayReservation(
-                    aniversarianteNome: _aniversarianteNomeController.text,
-                    documento: _documentoController.text,
-                    whatsapp: _whatsappController.text,
-                    email: _emailController.text,
-                    dataAniversario: _selectedBirthdayDate!,
-                    barSelecionado: _selectedBar!,
-                    quantidadeConvidados: _quantidadeConvidados,
-
-                    // Dados de decoração
-                    decoOpcao: _selectedDecoration?.name,
-                    decoPreco: _selectedDecoration?.price,
-                    decoDescricao: _selectedDecoration?.description,
-
-                    // Dados do painel
-                    painelTipo: _selectedPainelOption,
-                    painelImagem: _selectedPainelImage,
-                    painelTema: _painelTemaController.text.isNotEmpty
+                  // =================================================================
+                  // INÍCIO DO BLOCO DE CÓDIGO CORRIGIDO
+                  // Mapeia para a estrutura da tabela `birthday_reservations`
+                  // =================================================================
+                  final Map<String, dynamic> reservationData = {
+                    'user_id':
+                        'ID_DO_USUARIO_AQUI', // Substitua pelo ID real do usuário
+                    'aniversariante_nome': _aniversarianteNomeController.text,
+                    'data_aniversario':
+                        _selectedBirthdayDate?.toIso8601String(),
+                    'quantidade_convidados': _quantidadeConvidados,
+                    // Note que 'id_casa_evento' precisa ser obtido a partir do nome do bar
+                    'id_casa_evento': 'ID_DO_EVENTO_AQUI',
+                    'decoracao_tipo': _selectedDecoration?.name,
+                    'painel_personalizado':
+                        _selectedPainelOption == 'personalizado' ? 1 : 0,
+                    'painel_estoque_imagem_url': _selectedPainelImage,
+                    'painel_tema': _painelTemaController.text.isNotEmpty
                         ? _painelTemaController.text
                         : null,
-                    painelFrase: _painelFraseController.text.isNotEmpty
+                    'painel_frase': _painelFraseController.text.isNotEmpty
                         ? _painelFraseController.text
                         : null,
+                    // Mapeamento para a contagem de bebidas
+                    'bebida_balde_budweiser':
+                        _selectedBeverages.containsKey('Balde de Budweiser')
+                            ? _selectedBeverages['Balde de Budweiser']
+                            : 0,
+                    'bebida_balde_corona':
+                        _selectedBeverages.containsKey('Balde de Corona')
+                            ? _selectedBeverages['Balde de Corona']
+                            : 0,
+                    'bebida_balde_heineken':
+                        _selectedBeverages.containsKey('Balde de Heineken')
+                            ? _selectedBeverages['Balde de Heineken']
+                            : 0,
+                    'bebida_combo_gin_142':
+                        _selectedBeverages.containsKey('Gin Tônica')
+                            ? _selectedBeverages['Gin Tônica']
+                            : 0, // Exemplo de mapeamento
+                    // A tabela não tem campo para Licor, você pode adicionar no backend se necessário
+                    // 'bebida_licor_rufus': _selectedBeverages.containsKey('Licor Rufus') ? _selectedBeverages['Licor Rufus'] : 0,
 
-                    // Dados de bebidas
-                    bebidasSelecionadas: _selectedBeverages.isNotEmpty
-                        ? _selectedBeverages
-                        : null,
-                    bebidasDetalhes:
-                        bebidasDetalhes.isNotEmpty ? bebidasDetalhes : null,
+                    // Adicione aqui outros campos conforme a estrutura da sua tabela
+                  };
 
-                    // Dados de comidas
-                    comidasSelecionadas:
-                        _selectedFoods.isNotEmpty ? _selectedFoods : null,
-                    comidasDetalhes:
-                        comidasDetalhes.isNotEmpty ? comidasDetalhes : null,
+                  // A lógica para `brindes_regras` e `convidados` deve ser tratada no backend,
+                  // após a criação da reserva principal.
 
-                    // Dados de presentes
-                    presentesSelecionados:
-                        presentesDetalhes.isNotEmpty ? presentesDetalhes : null,
+                  final result = await _reservationService
+                      .createBirthdayReservation(reservationData);
+                  // =================================================================
+                  // FIM DO BLOCO DE CÓDIGO CORRIGIDO
+                  // =================================================================
 
-                    // Valor total
-                    valorTotal: totalValue,
-                  );
-
-                  // Fechar loading
-                  if (mounted) {
-                    Navigator.pop(context);
+                  if (screenContext.mounted) {
+                    Navigator.pop(screenContext);
                   }
-
-                  // Mostrar sucesso
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                  if (screenContext.mounted) {
+                    ScaffoldMessenger.of(screenContext).showSnackBar(
                       SnackBar(
                         content: Text(
                             'Reserva de aniversário criada com sucesso! ID: ${result['id']}'),
@@ -809,23 +596,18 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                       ),
                     );
                   }
-
-                  // Navegar para a tela de detalhes da reserva se disponível
-                  if (mounted && result['id'] != null) {
-                    Navigator.of(context).pushReplacementNamed(
+                  if (screenContext.mounted && result['id'] != null) {
+                    Navigator.of(screenContext).pushReplacementNamed(
                       '/reservation-details',
                       arguments: {'reservationId': result['id']},
                     );
                   }
                 } catch (e) {
-                  // Fechar loading
-                  if (mounted) {
-                    Navigator.pop(context);
+                  if (screenContext.mounted) {
+                    Navigator.pop(screenContext);
                   }
-
-                  // Mostrar erro
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                  if (screenContext.mounted) {
+                    ScaffoldMessenger.of(screenContext).showSnackBar(
                       SnackBar(
                         content: Text('Erro ao criar reserva: ${e.toString()}'),
                         backgroundColor: Colors.red,
@@ -849,284 +631,144 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const bottomBarHeight = 90.0;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final appBarHeight =
-        AppBar().preferredSize.height; // Altura padrão da AppBar
-    final statusBarHeight =
-        MediaQuery.of(context).padding.top; // Altura da status bar
-    final totalOffsetFromTop = appBarHeight + statusBarHeight;
-
-    final headerHeight = screenHeight * 0.4; // Ajuste conforme necessário
-
-    final double initialSheetSize =
-        (screenHeight - totalOffsetFromTop - headerHeight + 40) / screenHeight;
-
     return Scaffold(
       backgroundColor: const Color(0xFF242A38),
       body: Stack(
         children: [
           Positioned(
-            top: _draggableSheetController.isAttached
-                ? -_draggableSheetController.pixels * 0.5
-                : 0,
+            top: 0,
             left: 0,
             right: 0,
-            height: headerHeight +
-                (_draggableSheetController.isAttached
-                    ? _draggableSheetController.pixels
-                    : 0),
-            child: OverflowBox(
-              maxHeight: double.infinity,
-              alignment: Alignment.topCenter,
-              child: Image.asset(
-                'assets/images/niver.jpeg',
-                fit: BoxFit.cover,
-                width: MediaQuery.of(context).size.width,
-                height: headerHeight * 1.5,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[800],
-                    child: const Center(
-                      child: Text(
-                        'Falha ao carregar banner',
-                        style: TextStyle(color: Colors.white70),
+            child: SizedBox(
+              height: 180,
+              child: Stack(
+                children: [
+                  Image.asset(
+                    'assets/images/niver.jpeg',
+                    width: double.infinity,
+                    height: 180,
+                    fit: BoxFit.cover,
+                  ),
+                  Container(
+                    width: double.infinity,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.4),
+                          Colors.transparent,
+                        ],
                       ),
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
           ),
-          ..._confetti.map((confetti) {
-            return Positioned(
-              left: confetti['left'],
-              top: confetti['top']! -
-                  (_draggableSheetController.isAttached
-                      ? _draggableSheetController.pixels * 0.7
-                      : 0),
-              child: Transform.rotate(
-                angle: confetti['rotation']! * (pi / 180),
-                child: Container(
-                  width: confetti['size'],
-                  height: confetti['size'],
-                  decoration: BoxDecoration(
-                    color: Color.fromRGBO(
-                      confetti['colorR']!.toInt(),
-                      confetti['colorG']!.toInt(),
-                      confetti['colorB']!.toInt(),
-                      1,
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-          Padding(
-            padding: const EdgeInsets.only(bottom: bottomBarHeight),
-            child: DraggableScrollableSheet(
-              initialChildSize: initialSheetSize,
-              minChildSize: initialSheetSize,
-              maxChildSize: 0.95,
-              controller: _draggableSheetController,
-              builder: (context, scrollController) {
-                return Container(
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF2B3245),
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(32),
-                    ),
-                  ),
-                  child: ListView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(24.0),
+          DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.7,
+            maxChildSize: 0.98,
+            builder: (context, scrollController) {
+              return SingleChildScrollView(
+                controller: scrollController,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 5,
-                          margin: const EdgeInsets.only(bottom: 20),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[700],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        'Bem-vindo(a) ao seu espaço para a festa perfeita!',
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                      ),
-                      const SizedBox(height: 20),
                       _buildDarkTextField(
                         controller: _aniversarianteNomeController,
-                        labelText: 'Nome do(a) Aniversariante*',
-                        icon: Icons.cake,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira o nome do(a) aniversariante.';
-                          }
-                          return null;
-                        },
+                        labelText: 'Nome do aniversariante',
+                        icon: Icons.person,
+                        validator: (value) => null,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 15),
                       _buildDarkTextField(
                         controller: _documentoController,
-                        labelText: 'Documento RG/CPF*',
+                        labelText: 'Documento',
                         icon: Icons.badge,
-                        keyboardType: TextInputType.text,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira o documento.';
-                          }
-                          return null;
-                        },
+                        validator: (value) => null,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 15),
                       _buildDarkTextField(
                         controller: _whatsappController,
-                        labelText: 'WhatsApp*',
+                        labelText: 'WhatsApp',
                         icon: Icons.phone,
                         keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira o WhatsApp.';
-                          }
-                          return null;
-                        },
+                        validator: (value) => null,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 15),
                       _buildDarkTextField(
                         controller: _emailController,
-                        labelText: 'E-mail*',
+                        labelText: 'E-mail',
                         icon: Icons.email,
                         keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira o e-mail.';
-                          }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                              .hasMatch(value)) {
-                            return 'Por favor, insira um e-mail válido.';
-                          }
-                          return null;
-                        },
+                        validator: (value) => null,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 15),
                       _buildDarkDateField(
-                        context: context,
                         controller: TextEditingController(
-                          text: _selectedBirthdayDate == null
-                              ? ''
-                              : DateFormat('dd/MM/yyyy')
-                                  .format(_selectedBirthdayDate!),
+                          text: _selectedBirthdayDate != null
+                              ? DateFormat('dd/MM/yyyy')
+                                  .format(_selectedBirthdayDate!)
+                              : '',
                         ),
-                        labelText: 'Data do Aniversário*',
+                        labelText: 'Data do aniversário',
                         onTap: () => _selectBirthdayDate(context),
-                        validator: (value) {
-                          if (_selectedBirthdayDate == null) {
-                            return 'Por favor, selecione a data do aniversário.';
-                          }
-                          return null;
-                        },
+                        validator: (value) => null,
                       ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Qual bar vai comemorar seu aniversário?*',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                      ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 15),
                       DropdownButtonFormField<String>(
                         value: _selectedBar,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: const InputDecoration(
+                          labelText: 'Bar',
+                          prefixIcon: Icon(Icons.store, color: Colors.white70),
                           filled: true,
-                          fillColor: const Color(0xFF333A4D),
-                          labelStyle: const TextStyle(color: Colors.white70),
+                          fillColor: Color(0xFF333A4D),
+                          labelStyle: TextStyle(color: Colors.white70),
+                          border: OutlineInputBorder(),
                         ),
-                        dropdownColor: const Color(0xFF2B3245),
+                        dropdownColor: const Color(0xFF333A4D),
                         style: const TextStyle(color: Colors.white),
-                        iconEnabledColor: Colors.white,
-                        hint: const Text('Selecione um bar*',
-                            style: TextStyle(color: Colors.white70)),
-                        items: _bars.map((bar) {
-                          return DropdownMenuItem(
-                            value: bar,
-                            child: Text(
-                              bar,
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                          );
-                        }).toList(),
+                        items: _barOptions
+                            .map((bar) => DropdownMenuItem(
+                                  value: bar,
+                                  child: Text(bar),
+                                ))
+                            .toList(),
                         onChanged: (value) {
                           setState(() {
                             _selectedBar = value;
                           });
                         },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, selecione um bar.';
-                          }
-                          return null;
-                        },
                       ),
-                      const SizedBox(height: 30),
-                      Text(
-                        'Quantidade de convidados*',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<int>(
-                        value: _quantidadeConvidados,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 16),
-                          filled: true,
-                          fillColor: const Color(0xFF333A4D),
-                          labelStyle: const TextStyle(color: Colors.white70),
-                        ),
-                        dropdownColor: const Color(0xFF2B3245),
-                        style: const TextStyle(color: Colors.white),
-                        iconEnabledColor: Colors.white,
-                        items: List.generate(50, (index) => index + 1).map((e) {
-                          return DropdownMenuItem(
-                            value: e,
-                            child: Text(
-                              '$e Convidados',
-                              style: const TextStyle(color: Colors.white70),
+                      const SizedBox(height: 15),
+                      Row(
+                        children: [
+                          const Text('Convidados:',
+                              style: TextStyle(color: Colors.white70)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Slider(
+                              value: _quantidadeConvidados.toDouble(),
+                              min: 1,
+                              max: 50,
+                              divisions: 49,
+                              label: _quantidadeConvidados.toString(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _quantidadeConvidados = value.toInt();
+                                });
+                              },
                             ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() {
-                              _quantidadeConvidados = value;
-                            });
-                          }
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Por favor, selecione a quantidade de convidados.';
-                          }
-                          return null;
-                        },
+                          ),
+                          Text('$_quantidadeConvidados',
+                              style: const TextStyle(color: Colors.white)),
+                        ],
                       ),
                       const SizedBox(height: 30),
                       Text(
@@ -1243,7 +885,6 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                           );
                         },
                       ),
-                      const SizedBox(height: 30),
                       const SizedBox(height: 30),
                       Text(
                         'Seu Painel Personalizado ou do Estoque?',
@@ -1389,18 +1030,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                           controller: _painelTemaController,
                           labelText: 'Tema do Painel Personalizado',
                           icon: Icons.palette,
-                          validator: (value) {
-                            // Só validar se painel personalizado foi selecionado
-                            if (_selectedPainelOption == 'personalizado') {
-                              if (value == null || value.isEmpty) {
-                                return 'Por favor, insira o tema do painel.';
-                              }
-                              if (!_isPersonalizedPanelAllowed()) {
-                                return 'Data do aniversário muito próxima para painel personalizado.';
-                              }
-                            }
-                            return null;
-                          },
+                          validator: (value) => null,
                         ),
                         const SizedBox(height: 15),
                         _buildDarkTextField(
@@ -1408,14 +1038,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                           labelText: 'Frase para o Painel Personalizado',
                           icon: Icons.text_fields,
                           maxLines: 3,
-                          validator: (value) {
-                            // Só validar se painel personalizado foi selecionado
-                            if (_selectedPainelOption == 'personalizado' &&
-                                (value == null || value.isEmpty)) {
-                              return 'Por favor, insira uma frase para o painel.';
-                            }
-                            return null;
-                          },
+                          validator: (value) => null,
                         ),
                       ],
                       const SizedBox(height: 30),
@@ -1514,29 +1137,23 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              '💡 Regras dos Brindes:',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12),
-                            ),
+                            const Text('💡 Regras dos Brindes:',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12)),
                             const SizedBox(height: 8),
+                            const Text('• 10 convidados ou mais: VIP',
+                                style: TextStyle(
+                                    color: Colors.white70, fontSize: 12)),
                             const Text(
-                              '• 10 convidados ou mais: VIP',
-                              style: TextStyle(
-                                  color: Colors.white70, fontSize: 12),
-                            ),
+                                '• Acima de 20 pessoas: 2 VIPs + Drink da casa',
+                                style: TextStyle(
+                                    color: Colors.white70, fontSize: 12)),
                             const Text(
-                              '• Acima de 20 pessoas: 2 VIPs + Drink da casa',
-                              style: TextStyle(
-                                  color: Colors.white70, fontSize: 12),
-                            ),
-                            const Text(
-                              '• Acima de 30 pessoas: 2 VIPs + garrafa de Rufus Caramel',
-                              style: TextStyle(
-                                  color: Colors.white70, fontSize: 12),
-                            ),
+                                '• Acima de 30 pessoas: 2 VIPs + garrafa de Rufus Caramel',
+                                style: TextStyle(
+                                    color: Colors.white70, fontSize: 12)),
                           ],
                         ),
                       ),
@@ -1673,74 +1290,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            // Validar apenas os campos obrigatórios
-                            bool isValid = true;
-                            String errorMessage = '';
-
-                            // Verificar campos obrigatórios
-                            if (_aniversarianteNomeController.text.isEmpty) {
-                              errorMessage =
-                                  'Nome do aniversariante é obrigatório';
-                              isValid = false;
-                            } else if (_documentoController.text.isEmpty) {
-                              errorMessage = 'Documento é obrigatório';
-                              isValid = false;
-                            } else if (_whatsappController.text.isEmpty) {
-                              errorMessage = 'WhatsApp é obrigatório';
-                              isValid = false;
-                            } else if (_emailController.text.isEmpty) {
-                              errorMessage = 'E-mail é obrigatório';
-                              isValid = false;
-                            } else if (_selectedBirthdayDate == null) {
-                              errorMessage =
-                                  'Data do aniversário é obrigatória';
-                              isValid = false;
-                            } else if (_selectedBar == null ||
-                                _selectedBar!.isEmpty) {
-                              errorMessage = 'Seleção do bar é obrigatória';
-                              isValid = false;
-                            } else if (_quantidadeConvidados <= 0) {
-                              errorMessage =
-                                  'Quantidade de convidados é obrigatória';
-                              isValid = false;
-                            }
-
-                            // Validar e-mail se foi preenchido
-                            if (_emailController.text.isNotEmpty) {
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                  .hasMatch(_emailController.text)) {
-                                errorMessage = 'E-mail inválido';
-                                isValid = false;
-                              }
-                            }
-
-                            // Validar painel personalizado se foi selecionado
-                            if (_selectedPainelOption == 'personalizado') {
-                              if (_painelTemaController.text.isEmpty) {
-                                errorMessage =
-                                    'Tema do painel personalizado é obrigatório';
-                                isValid = false;
-                              } else if (_painelFraseController.text.isEmpty) {
-                                errorMessage =
-                                    'Frase do painel personalizado é obrigatória';
-                                isValid = false;
-                              } else if (!_isPersonalizedPanelAllowed()) {
-                                errorMessage =
-                                    'Data do aniversário muito próxima para painel personalizado';
-                                isValid = false;
-                              }
-                            }
-
-                            if (isValid) {
-                              _showConfirmationSummary();
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(errorMessage),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
+                            _showConfirmationSummary();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFF26422),
@@ -1761,9 +1311,9 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                       ),
                     ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
           Positioned(
             top: 0,
@@ -1831,7 +1381,6 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
   }
 
   Widget _buildDarkDateField({
-    required BuildContext context,
     required TextEditingController controller,
     required String labelText,
     required VoidCallback onTap,
@@ -1875,7 +1424,6 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
     final name = item.name;
     final price = item.price;
     final quantity = selectedItems[name] ?? 0;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1928,25 +1476,6 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
   }
 
   Widget _buildTotalValueSection() {
-    double totalValue = 0.0;
-
-    // Adicionar valor da decoração
-    if (_selectedDecoration != null) {
-      totalValue += _selectedDecoration!.price;
-    }
-
-    // Adicionar valor das bebidas
-    for (var entry in _selectedBeverages.entries) {
-      final beverage = _beverageOptions.firstWhere((b) => b.name == entry.key);
-      totalValue += beverage.price * entry.value;
-    }
-
-    // Adicionar valor das comidas
-    for (var entry in _selectedFoods.entries) {
-      final food = _foodOptions.firstWhere((f) => f.name == entry.key);
-      totalValue += food.price * entry.value;
-    }
-
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1966,7 +1495,24 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            'R\$ ${totalValue.toStringAsFixed(2)}',
+            'R\$ ' +
+                (() {
+                  double total = 0.0;
+                  if (_selectedDecoration != null) {
+                    total += _selectedDecoration!.price;
+                  }
+                  for (var entry in _selectedBeverages.entries) {
+                    final beverage =
+                        _beverageOptions.firstWhere((b) => b.name == entry.key);
+                    total += beverage.price * entry.value;
+                  }
+                  for (var entry in _selectedFoods.entries) {
+                    final food =
+                        _foodOptions.firstWhere((f) => f.name == entry.key);
+                    total += food.price * entry.value;
+                  }
+                  return total.toStringAsFixed(2);
+                })(),
             style: const TextStyle(
               color: Color(0xFFF26422),
               fontWeight: FontWeight.bold,

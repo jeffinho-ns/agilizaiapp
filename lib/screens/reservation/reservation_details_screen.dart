@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/models/reservation_model.dart';
 import 'package:agilizaiapp/models/guest_model.dart';
+import 'package:agilizaiapp/models/brinde_model.dart'; // Importar BrindeRule
 import 'package:agilizaiapp/services/reservation_service.dart';
 import 'package:agilizaiapp/services/event_service.dart';
 import 'package:geolocator/geolocator.dart';
@@ -50,14 +51,12 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'Serviços de localização desativados. Ative-os para confirmar sua presença.'),
-              backgroundColor: Colors.red),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Serviços de localização desativados. Ative-os para confirmar sua presença.'),
+            backgroundColor: Colors.red),
+      );
       return null;
     }
 
@@ -65,27 +64,23 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text(
-                    'Permissão de localização negada. Conceda-a nas configurações do app.'),
-                backgroundColor: Colors.red),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Permissão de localização negada. Conceda-a nas configurações do app.'),
+              backgroundColor: Colors.red),
+        );
         return null;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'Permissão de localização permanentemente negada. Você precisa alterá-la nas configurações do dispositivo.'),
-              backgroundColor: Colors.red),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Permissão de localização permanentemente negada. Você precisa alterá-la nas configurações do dispositivo.'),
+            backgroundColor: Colors.red),
+      );
       return null;
     }
 
@@ -96,32 +91,26 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
   // Lógica para o self check-in do convidado
   Future<void> _selfCheckIn(Guest guest) async {
     if (guest.id == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('ID do convidado inválido.'),
-              backgroundColor: Colors.red),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('ID do convidado inválido.'),
+            backgroundColor: Colors.red),
+      );
       return;
     }
 
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(child: CircularProgressIndicator());
-        },
-      );
-    }
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
 
     try {
       final position = await _getCurrentLocation();
       if (position == null) {
-        if (mounted) {
-          Navigator.pop(context);
-        }
+        Navigator.pop(context);
         return;
       }
 
@@ -131,24 +120,19 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
         position.longitude,
       );
 
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(response['message']),
-              backgroundColor: Colors.green),
-        );
-      }
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(response['message']), backgroundColor: Colors.green),
+      );
       _fetchReservationDetails(); // Recarregar detalhes para atualizar o status na UI
     } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Erro no check-in: ${e.toString()}'),
-              backgroundColor: Colors.red),
-        );
-      }
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Erro no check-in: ${e.toString()}'),
+            backgroundColor: Colors.red),
+      );
       print('Erro ao tentar self check-in: $e');
     }
   }
@@ -156,13 +140,11 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
   // Método para compartilhar o link da reserva
   void _shareReservationLink(String? uniqueCode) async {
     if (uniqueCode == null || uniqueCode.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Código de convite não disponível.'),
-              backgroundColor: Colors.orange),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Código de convite não disponível.'),
+            backgroundColor: Colors.orange),
+      );
       return;
     }
     final String shareLink = '$_baseUrl?code=$uniqueCode';
@@ -172,13 +154,11 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
         subject: 'Seu Convite para o Evento!',
       );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Erro ao compartilhar: ${e.toString()}'),
-              backgroundColor: Colors.red),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Erro ao compartilhar: ${e.toString()}'),
+            backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -350,15 +330,12 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
                                       Uri.parse(shareLink))) {
                                     await launchUrl(Uri.parse(shareLink));
                                   } else {
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                'Não foi possível abrir o link.'),
-                                            backgroundColor: Colors.red),
-                                      );
-                                    }
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Não foi possível abrir o link.'),
+                                          backgroundColor: Colors.red),
+                                    );
                                   }
                                 },
                                 child: Text(

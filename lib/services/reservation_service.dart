@@ -20,6 +20,22 @@ class ReservationService {
   }
 
   // Método para criar reserva (POST /api/reservas)
+  Future<Map<String, dynamic>> createBirthdayReservation(
+      Map<String, dynamic> data) async {
+    try {
+      // CORRIGIDO: Agora usamos o URL completo, combinando o _baseUrl com a rota
+      final response = await _dio.post('$_baseUrl/birthday-reservations',
+          options:
+              await _getAuthHeaders(), // Adicionado para garantir a autenticação
+          data: data);
+      return response.data;
+    } on DioException catch (e) {
+      print(
+          'DioError ao criar reserva de aniversário: ${e.response?.statusCode} - ${e.response?.data}');
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>> createReservation(
       Map<String, dynamic> data) async {
     try {
@@ -28,12 +44,8 @@ class ReservationService {
         options: await _getAuthHeaders(),
         data: data,
       );
-      if (response.statusCode == 201) {
-        return response.data;
-      } else {
-        throw Exception(
-            'Falha ao criar reserva: Status ${response.statusCode}');
-      }
+      print('Resposta de criação de reserva: Status ${response.statusCode}');
+      return response.data;
     } on DioException catch (e) {
       print(
           'DioError ao criar reserva: ${e.response?.statusCode} - ${e.response?.data}');
