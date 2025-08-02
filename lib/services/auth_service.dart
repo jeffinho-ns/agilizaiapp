@@ -79,12 +79,18 @@ class AuthService {
   // --- MÉTODOS DE CADASTRO E LOGOUT ---
 
   /// Cadastra um novo usuário e já o loga.
-  Future<User> signUp(
-      String name, String email, String cpf, String password) async {
+  Future<User> signUp(String name, String email, String cpf, String password,
+      String telefone) async {
     try {
       final response = await _dio.post(
         '$_baseUrl/api/users/',
-        data: {'name': name, 'email': email, 'cpf': cpf, 'password': password},
+        data: {
+          'name': name,
+          'email': email,
+          'cpf': cpf,
+          'password': password,
+          'telefone': telefone
+        },
       );
 
       if (response.statusCode == 201 && response.data['token'] != null) {

@@ -65,7 +65,29 @@
 <string>Este aplicativo precisa da sua localização para confirmar sua presença no evento.</string>
 <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 <string>Este aplicativo precisa da sua localização para confirmar sua presença no evento.</string>
-<key>NSLocationAlwaysUsageDescription</key>
-<string>Este aplicativo precisa da sua localização para confirmar sua presença no evento.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Este aplicativo precisa da sua localização para confirmar sua presença no evento.</string>
+	
+	<!-- Configurações para desenvolvimento de 7 dias -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UISupportsDocumentBrowser</key>
+	<true/>
+	
+	<!-- Configurações de background -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	
+	<!-- Configurações de desenvolvimento -->
+	<key>CFBundleAllowMixedLocalizations</key>
+	<true/>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
 </dict>
 </plist>

@@ -6,11 +6,11 @@ import 'package:agilizaiapp/screens/home/home_screen.dart';
 import 'package:agilizaiapp/screens/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:agilizaiapp/l10n/app_localizations.dart';
+// import 'package:agilizaiapp/l10n/app_localizations.dart'; // Não utilizado
 import 'package:agilizaiapp/screens/event/event_details_screen.dart';
 import 'package:agilizaiapp/screens/main_screen.dart';
 import 'package:agilizaiapp/screens/profile/profile_screen.dart';
-import 'package:agilizaiapp/screens/guests/promoter_event_selection_screen.dart';
+// import 'package:agilizaiapp/screens/guests/promoter_event_selection_screen.dart'; // Não utilizado
 import 'package:agilizaiapp/screens/guests/guest_list_management_screen.dart';
 import 'package:agilizaiapp/screens/my_reservations_screen.dart';
 import 'package:agilizaiapp/screens/reservation/reservation_details_screen.dart';
@@ -89,7 +89,7 @@ class AgilizaAiApp extends StatelessWidget {
         '/signin': (context) => const SignInScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/reset-password': (context) => const ResetPasswordScreen(),
-        '/verification': (context) => const VerificationScreen(),
+        // '/verification': (context) => const VerificationScreen(), // Removido pois agora requer parâmetros
         '/main': (context) => MainScreen(),
         '/home': (context) => const HomeScreen(),
         '/profile': (context) => const ProfileScreen(),
@@ -196,6 +196,25 @@ class AgilizaAiApp extends StatelessWidget {
                 body: Center(
                     child: Text(
                         'Erro: ID da Reserva não fornecido para tela de reserva confirmada.')),
+              ),
+            );
+
+          case '/verification':
+            final args = settings.arguments as Map<String, dynamic>?;
+            final telefone = args?['telefone'] as String?;
+            final userData = args?['userData'] as Map<String, String>?;
+            if (telefone != null && userData != null) {
+              return MaterialPageRoute(
+                builder: (context) => VerificationScreen(
+                  telefone: telefone,
+                  userData: userData,
+                ),
+              );
+            }
+            return MaterialPageRoute(
+              builder: (context) => const Scaffold(
+                body: Center(
+                    child: Text('Erro: Dados de verificação não fornecidos.')),
               ),
             );
 
