@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';
 import 'package:agilizaiapp/models/bar_model.dart';
+import 'package:agilizaiapp/services/reservation_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Modelos para os novos campos
 class DecorationOption {
@@ -87,6 +89,10 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
 
   final DraggableScrollableController _draggableSheetController =
       DraggableScrollableController();
+
+  // Serviços
+  final ReservationService _reservationService = ReservationService();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   int _quantidadeConvidados = 1;
   String? _selectedBar;
@@ -656,14 +662,8 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                   style: TextStyle(color: Colors.white70)),
             ),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Lógica para enviar a reserva para a API
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text(
-                          'Reserva de aniversário confirmada! Link para convidados será gerado.')),
-                );
+              onPressed: () async {
+                await _submitBirthdayReservation();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF26422),
@@ -675,6 +675,150 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
         );
       },
     );
+  }
+
+  // Função para enviar a reserva de aniversário para a API
+  Future<void> _submitBirthdayReservation() async {
+    try {
+      // Fechar o diálogo de confirmação
+      Navigator.of(context).pop();
+
+      // Mostrar loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            backgroundColor: Color(0xFF2B3245),
+            content: Row(
+              children: [
+                CircularProgressIndicator(color: Color(0xFFF26422)),
+                SizedBox(width: 20),
+                Text(
+                  'Enviando reserva...',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      // Obter o ID do usuário logado
+      final userId = await _storage.read(key: 'user_id');
+      if (userId == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      // Preparar dados da decoração
+      String? decoracaoTipo;
+      if (_selectedDecoration != null) {
+        switch (_selectedDecoration!.name) {
+          case 'Opção 1':
+            decoracaoTipo = 'painel_balao_simples';
+            break;
+          case 'Opção 2':
+            decoracaoTipo = 'painel_balao_bandeja_2';
+            break;
+          case 'Opção 3':
+            decoracaoTipo = 'painel_bandeja_3_arco';
+            break;
+          case 'Opção 4':
+            decoracaoTipo = 'painel_bandeja_3_arco_bolo';
+            break;
+          case 'Opção 5':
+            decoracaoTipo = 'painel_tres_bandejas_arco_baloes_combo_gin';
+            break;
+          case 'Opção 6':
+            decoracaoTipo = 'painel_tres_bandejas_arco_baloes_bolo_combo_gin';
+            break;
+        }
+      }
+
+      // Preparar dados das bebidas
+      Map<String, int> bebidas = {};
+      for (var entry in _selectedBeverages.entries) {
+        if (entry.value > 0) {
+          bebidas[entry.key] = entry.value;
+        }
+      }
+
+      // Preparar dados das comidas
+      Map<String, int> comidas = {};
+      for (var entry in _selectedFoods.entries) {
+        if (entry.value > 0) {
+          comidas[entry.key] = entry.value;
+        }
+      }
+
+      // Preparar dados dos presentes
+      List<Map<String, dynamic>> presentes = _selectedGifts
+          .map((gift) => {
+                'nome': gift.name,
+                'preco': gift.price,
+                'categoria': gift.category,
+                'imagem': gift.image,
+              })
+          .toList();
+
+      // Preparar payload para a API
+      final payload = {
+        'user_id': int.parse(userId),
+        'aniversariante_nome': _aniversarianteNomeController.text,
+        'documento': _documentoController.text,
+        'whatsapp': _whatsappController.text,
+        'email': _emailController.text,
+        'data_aniversario': _selectedBirthdayDate != null
+            ? DateFormat('yyyy-MM-dd').format(_selectedBirthdayDate!)
+            : null,
+        'quantidade_convidados': _quantidadeConvidados,
+        'bar_selecionado': _selectedBar,
+        'decoracao_tipo': decoracaoTipo,
+        'painel_personalizado': _selectedPainelOption == 'personalizado',
+        'painel_tema': _painelTemaController.text.isNotEmpty
+            ? _painelTemaController.text
+            : null,
+        'painel_frase': _painelFraseController.text.isNotEmpty
+            ? _painelFraseController.text
+            : null,
+        'painel_estoque_imagem_url': _selectedPainelImage,
+        'bebidas': bebidas,
+        'comidas': comidas,
+        'presentes': presentes,
+        'tipo_reserva': 'aniversario',
+        'status': 'pendente',
+      };
+
+      // Enviar para a API
+      final result =
+          await _reservationService.createBirthdayReservation(payload);
+
+      // Fechar loading
+      Navigator.of(context).pop();
+
+      // Mostrar sucesso
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Reserva de aniversário criada com sucesso! ID: ${result['reservaId']}'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Navegar de volta
+      Navigator.of(context).pop();
+    } catch (e) {
+      // Fechar loading
+      Navigator.of(context).pop();
+
+      // Mostrar erro
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao criar reserva: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override

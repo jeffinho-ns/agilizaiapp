@@ -203,4 +203,40 @@ class ReservationService {
       throw Exception('Erro desconhecido ao carregar reservas por evento');
     }
   }
+
+  // Método para criar reserva de aniversário (POST /api/birthday-reservations)
+  Future<Map<String, dynamic>> createBirthdayReservation(
+      Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl/birthday-reservations',
+        options: await _getAuthHeaders(),
+        data: data,
+      );
+
+      print(
+          'Resposta da API de reserva de aniversário: Status ${response.statusCode}');
+      print('Dados enviados: $data');
+
+      if (response.statusCode == 201) {
+        return response.data;
+      } else {
+        throw Exception(
+            'Falha ao criar reserva de aniversário: Status ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print(
+          'DioError ao criar reserva de aniversário: ${e.response?.statusCode} - ${e.response?.data}');
+      String errorMessage = 'Falha ao criar reserva de aniversário.';
+      if (e.response != null &&
+          e.response!.data is Map &&
+          e.response!.data.containsKey('message')) {
+        errorMessage = e.response!.data['message'];
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Erro inesperado ao criar reserva de aniversário: $e');
+      throw Exception('Erro desconhecido ao criar reserva de aniversário');
+    }
+  }
 }
