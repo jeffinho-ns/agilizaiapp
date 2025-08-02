@@ -56,7 +56,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (_telefoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text("Por favor, digite seu telefone (WhatsApp)"),
+            content: Text("Por favor, digite seu WhatsApp"),
             backgroundColor: Colors.red),
       );
       return;
@@ -199,7 +199,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             TextField(
               controller: _telefoneController,
               decoration: InputDecoration(
-                labelText: 'Digite seu telefone',
+                labelText: 'Digite seu telefone (WhatsApp)',
                 hintText: '(11) 99999-9999',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
