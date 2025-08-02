@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:agilizaiapp/models/bar_model.dart';
 import 'package:agilizaiapp/services/reservation_service.dart';
+import 'package:agilizaiapp/models/birthday_reservation_model.dart';
 
 // Modelos para as opções
 class DecorationOption {
@@ -528,60 +529,59 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                   },
                 );
                 try {
-                  // =================================================================
-                  // INÍCIO DO BLOCO DE CÓDIGO CORRIGIDO
-                  // Mapeia para a estrutura da tabela `birthday_reservations`
-                  // =================================================================
-                  final Map<String, dynamic> reservationData = {
-                    'user_id':
-                        'ID_DO_USUARIO_AQUI', // Substitua pelo ID real do usuário
-                    'aniversariante_nome': _aniversarianteNomeController.text,
-                    'data_aniversario':
-                        _selectedBirthdayDate?.toIso8601String(),
-                    'quantidade_convidados': _quantidadeConvidados,
-                    // Note que 'id_casa_evento' precisa ser obtido a partir do nome do bar
-                    'id_casa_evento': 'ID_DO_EVENTO_AQUI',
-                    'decoracao_tipo': _selectedDecoration?.name,
-                    'painel_personalizado':
-                        _selectedPainelOption == 'personalizado' ? 1 : 0,
-                    'painel_estoque_imagem_url': _selectedPainelImage,
-                    'painel_tema': _painelTemaController.text.isNotEmpty
+                  // Exemplo de como obter o ID do usuário
+                  final int loggedInUserId =
+                      1; // Substitua com a sua lógica real
+
+                  if (_selectedBar == null ||
+                      _selectedBirthdayDate == null ||
+                      _selectedDecoration == null) {
+                    // Tratar caso em que dados obrigatórios estão ausentes
+                    return;
+                  }
+
+                  final reservationData = BirthdayReservationModel(
+                    userId: loggedInUserId,
+                    aniversarianteNome: _aniversarianteNomeController.text,
+                    dataAniversario: _selectedBirthdayDate!,
+                    quantidadeConvidados: _quantidadeConvidados,
+                    barSelecionado: _selectedBar,
+                    decoracaoTipo: _selectedDecoration!.name,
+                    painelPersonalizado:
+                        _selectedPainelOption == 'personalizado',
+                    painelTema: _selectedPainelOption == 'personalizado'
                         ? _painelTemaController.text
                         : null,
-                    'painel_frase': _painelFraseController.text.isNotEmpty
+                    painelFrase: _selectedPainelOption == 'personalizado'
                         ? _painelFraseController.text
                         : null,
-                    // Mapeamento para a contagem de bebidas
-                    'bebida_balde_budweiser':
+                    painelEstoqueImagemUrl: _selectedPainelOption == 'estoque'
+                        ? _selectedPainelImage
+                        : null,
+                    bebidaBaldeBudweiser:
                         _selectedBeverages.containsKey('Balde de Budweiser')
-                            ? _selectedBeverages['Balde de Budweiser']
+                            ? _selectedBeverages['Balde de Budweiser']!
                             : 0,
-                    'bebida_balde_corona':
+                    bebidaBaldeCorona:
                         _selectedBeverages.containsKey('Balde de Corona')
-                            ? _selectedBeverages['Balde de Corona']
+                            ? _selectedBeverages['Balde de Corona']!
                             : 0,
-                    'bebida_balde_heineken':
+                    bebidaBaldeHeineken:
                         _selectedBeverages.containsKey('Balde de Heineken')
-                            ? _selectedBeverages['Balde de Heineken']
+                            ? _selectedBeverages['Balde de Heineken']!
                             : 0,
-                    'bebida_combo_gin_142':
+                    bebidaComboGin142:
                         _selectedBeverages.containsKey('Gin Tônica')
-                            ? _selectedBeverages['Gin Tônica']
-                            : 0, // Exemplo de mapeamento
-                    // A tabela não tem campo para Licor, você pode adicionar no backend se necessário
-                    // 'bebida_licor_rufus': _selectedBeverages.containsKey('Licor Rufus') ? _selectedBeverages['Licor Rufus'] : 0,
-
-                    // Adicione aqui outros campos conforme a estrutura da sua tabela
-                  };
-
-                  // A lógica para `brindes_regras` e `convidados` deve ser tratada no backend,
-                  // após a criação da reserva principal.
+                            ? _selectedBeverages['Gin Tônica']!
+                            : 0,
+                    bebidaLicorRufus:
+                        _selectedBeverages.containsKey('Licor Rufus')
+                            ? _selectedBeverages['Licor Rufus']!
+                            : 0,
+                  );
 
                   final result = await _reservationService
-                      .createBirthdayReservation(reservationData);
-                  // =================================================================
-                  // FIM DO BLOCO DE CÓDIGO CORRIGIDO
-                  // =================================================================
+                      .createBirthdayReservation(reservationData.toJson());
 
                   if (screenContext.mounted) {
                     Navigator.pop(screenContext);
