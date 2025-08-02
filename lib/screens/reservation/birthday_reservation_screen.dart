@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';
 import 'package:agilizaiapp/models/bar_model.dart';
-import 'package:agilizaiapp/services/reservation_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:agilizaiapp/services/birthday_reservation_service.dart';
 
 // Modelos para os novos campos
 class DecorationOption {
@@ -85,14 +84,12 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
   final _emailController = TextEditingController();
   final _painelTemaController = TextEditingController();
   final _painelFraseController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
 
   final DraggableScrollableController _draggableSheetController =
       DraggableScrollableController();
 
-  // Serviços
-  final ReservationService _reservationService = ReservationService();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final BirthdayReservationService _birthdayService =
+      BirthdayReservationService();
 
   int _quantidadeConvidados = 1;
   String? _selectedBar;
@@ -317,85 +314,90 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
         name: 'Kit Whisky',
         price: 150.0,
         category: 'Bebidas',
-        image: 'assets/images/gift-whisky.jpg'),
+        image: 'assets/images/prod-1.png'),
+    GiftOption(
+        name: 'Kit Whisky',
+        price: 150.0,
+        category: 'Bebidas',
+        image: 'assets/images/prod-2.png'),
     GiftOption(
         name: 'Kit Gin',
         price: 120.0,
         category: 'Bebidas',
-        image: 'assets/images/gift-gin.jpg'),
+        image: 'assets/images/prod-3.png'),
     GiftOption(
         name: 'Kit Vodka',
         price: 80.0,
         category: 'Bebidas',
-        image: 'assets/images/gift-vodka.jpg'),
+        image: 'assets/images/prod-4.png'),
     GiftOption(
         name: 'Kit Cervejas Especiais',
         price: 60.0,
         category: 'Bebidas',
-        image: 'assets/images/gift-beer.jpg'),
+        image: 'assets/images/prod-5.png'),
 
     // Produtos promocionais
     GiftOption(
         name: 'Caneca Personalizada',
         price: 25.0,
         category: 'Promocional',
-        image: 'assets/images/gift-mug.jpg'),
+        image: 'assets/images/prod-6.png'),
     GiftOption(
         name: 'Camiseta do Bar',
         price: 35.0,
         category: 'Promocional',
-        image: 'assets/images/gift-shirt.jpg'),
+        image: 'assets/images/prod-7.png'),
     GiftOption(
         name: 'Porta Retrato',
         price: 20.0,
         category: 'Promocional',
-        image: 'assets/images/gift-frame.jpg'),
+        image: 'assets/images/prod-8.png'),
     GiftOption(
         name: 'Garrafa Térmica',
         price: 45.0,
         category: 'Promocional',
-        image: 'assets/images/gift-bottle.jpg'),
+        image: 'assets/images/prod-9.png'),
     GiftOption(
         name: 'Kit Copos',
         price: 30.0,
         category: 'Promocional',
-        image: 'assets/images/gift-glasses.jpg'),
+        image: 'assets/images/prod-10.png'),
     GiftOption(
         name: 'Boné do Bar',
         price: 25.0,
         category: 'Promocional',
-        image: 'assets/images/gift-cap.jpg'),
+        image: 'assets/images/prod-11.png'),
 
     // Produtos do cardápio
     GiftOption(
         name: 'Vale Comida (R\$ 50)',
         price: 50.0,
         category: 'Vale',
-        image: 'assets/images/gift-food.jpg'),
+        image: 'assets/images/prod-12.png'),
     GiftOption(
         name: 'Vale Bebida (R\$ 30)',
         price: 30.0,
         category: 'Vale',
-        image: 'assets/images/gift-drink.jpg'),
+        image: 'assets/images/prod-13.png'),
     GiftOption(
         name: 'Vale Combo (R\$ 80)',
         price: 80.0,
         category: 'Vale',
-        image: 'assets/images/gift-combo.jpg'),
+        image: 'assets/images/prod-14.png'),
   ];
 
   // Opções de Painel do Estoque (com imagens mockadas)
   final List<String> _painelEstoqueImages = [
-    'assets/images/painel-estoque-1.jpg',
-    'assets/images/painel-estoque-2.jpg',
-    'assets/images/painel-estoque-3.jpg',
-    'assets/images/painel-estoque-4.jpg',
-    'assets/images/painel-estoque-5.jpg',
-    'assets/images/painel-estoque-6.jpg',
-    'assets/images/painel-estoque-7.jpg',
-    'assets/images/painel-estoque-8.jpg',
-    'assets/images/painel-estoque-9.jpg',
-    'assets/images/painel-estoque-10.jpg',
+    'assets/images/painel-1.jpg',
+    'assets/images/painel-2.jpg',
+    'assets/images/painel-3.jpg',
+    'assets/images/painel-4.jpg',
+    'assets/images/painel-5.jpg',
+    'assets/images/painel-6.jpg',
+    'assets/images/painel-7.jpg',
+    'assets/images/painel-8.jpg',
+    'assets/images/painel-9.jpg',
+    'assets/images/painel-10.jpg',
   ];
 
   // Lista de posições e tamanhos para os confetes para o efeito de paralaxe
@@ -474,14 +476,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
   }
 
   void _showConfirmationSummary() {
-    if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Por favor, preencha todos os campos obrigatórios e corrija os erros de validação.')),
-      );
-      return;
-    }
+    // Validação já foi feita no botão, aqui apenas mostra o resumo
 
     // Calcular valor total
     double totalValue = 0.0;
@@ -543,22 +538,33 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                 Text('Convidados: $_quantidadeConvidados pessoas',
                     style: const TextStyle(color: Colors.white70)),
                 const SizedBox(height: 12),
-                if (_selectedDecoration != null) ...[
-                  const Text('🎨 DECORAÇÃO',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14)),
-                  const SizedBox(height: 8),
+                const SizedBox(height: 12),
+                const Text('🎨 DECORAÇÃO',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14)),
+                const SizedBox(height: 8),
+                if (_selectedDecoration != null)
                   Text(
                       '${_selectedDecoration!.name} - R\$ ${_selectedDecoration!.price.toStringAsFixed(2)}',
-                      style: const TextStyle(color: Colors.white70)),
-                  const SizedBox(height: 8),
-                ],
-                if (_selectedPainelOption == 'estoque' &&
-                    _selectedPainelImage != null) ...[
+                      style: const TextStyle(color: Colors.white70))
+                else
+                  Text('Nenhuma decoração selecionada',
+                      style: const TextStyle(color: Colors.grey)),
+                const SizedBox(height: 8),
+                const Text('🖼️ PAINEL',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14)),
+                const SizedBox(height: 8),
+                if (_selectedPainelOption == 'estoque') ...[
                   const Text('Painel de Estoque: Selecionado',
                       style: TextStyle(color: Colors.white70)),
+                  if (_selectedPainelImage != null)
+                    Text('Imagem: ${_selectedPainelImage!.split('/').last}',
+                        style: const TextStyle(color: Colors.white70)),
                 ] else if (_selectedPainelOption == 'personalizado') ...[
                   const Text('Painel Personalizado: Sim',
                       style: TextStyle(color: Colors.white70)),
@@ -566,51 +572,60 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                       style: const TextStyle(color: Colors.white70)),
                   Text('Frase: ${_painelFraseController.text}',
                       style: const TextStyle(color: Colors.white70)),
+                ] else ...[
+                  const Text('Nenhum painel selecionado',
+                      style: TextStyle(color: Colors.grey)),
                 ],
-                if (_selectedBeverages.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  const Text('🥂 BEBIDAS',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14)),
-                  const SizedBox(height: 8),
+                const SizedBox(height: 12),
+                const Text('🥂 BEBIDAS',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14)),
+                const SizedBox(height: 8),
+                if (_selectedBeverages.isNotEmpty)
                   ..._selectedBeverages.entries.map((entry) {
                     final beverage =
                         _beverageOptions.firstWhere((b) => b.name == entry.key);
                     return Text(
                         '${entry.key}: ${entry.value}x - R\$ ${(beverage.price * entry.value).toStringAsFixed(2)}',
                         style: const TextStyle(color: Colors.white70));
-                  }),
-                ],
-                if (_selectedFoods.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  const Text('🍽️ COMIDAS',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14)),
-                  const SizedBox(height: 8),
+                  })
+                else
+                  const Text('Nenhuma bebida selecionada',
+                      style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 12),
+                const Text('🍽️ COMIDAS',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14)),
+                const SizedBox(height: 8),
+                if (_selectedFoods.isNotEmpty)
                   ..._selectedFoods.entries.map((entry) {
                     final food =
                         _foodOptions.firstWhere((f) => f.name == entry.key);
                     return Text(
                         '${entry.key}: ${entry.value}x - R\$ ${(food.price * entry.value).toStringAsFixed(2)}',
                         style: const TextStyle(color: Colors.white70));
-                  }),
-                ],
-                if (_selectedGifts.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  const Text('🎁 PRESENTES ESCOLHIDOS',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14)),
-                  const SizedBox(height: 8),
+                  })
+                else
+                  const Text('Nenhuma comida selecionada',
+                      style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 12),
+                const Text('🎁 PRESENTES ESCOLHIDOS',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14)),
+                const SizedBox(height: 8),
+                if (_selectedGifts.isNotEmpty)
                   ..._selectedGifts.map((gift) => Text(
                       '${gift.name} - R\$ ${gift.price.toStringAsFixed(2)}',
-                      style: const TextStyle(color: Colors.white70))),
-                ],
+                      style: const TextStyle(color: Colors.white70)))
+                else
+                  const Text('Nenhum presente selecionado',
+                      style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -663,7 +678,162 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                await _submitBirthdayReservation();
+                Navigator.of(context).pop();
+
+                // Mostrar loading
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  },
+                );
+
+                try {
+                  // Preparar dados das bebidas
+                  List<Map<String, dynamic>> bebidasDetalhes = [];
+                  for (var entry in _selectedBeverages.entries) {
+                    final beverage =
+                        _beverageOptions.firstWhere((b) => b.name == entry.key);
+                    bebidasDetalhes.add({
+                      'nome': beverage.name,
+                      'preco': beverage.price,
+                      'categoria': beverage.category,
+                      'descricao': beverage.description,
+                      'quantidade': entry.value,
+                    });
+                  }
+
+                  // Preparar dados das comidas
+                  List<Map<String, dynamic>> comidasDetalhes = [];
+                  for (var entry in _selectedFoods.entries) {
+                    final food =
+                        _foodOptions.firstWhere((f) => f.name == entry.key);
+                    comidasDetalhes.add({
+                      'nome': food.name,
+                      'preco': food.price,
+                      'categoria': food.category,
+                      'descricao': food.description,
+                      'quantidade': entry.value,
+                    });
+                  }
+
+                  // Preparar dados dos presentes
+                  List<Map<String, dynamic>> presentesDetalhes = _selectedGifts
+                      .map((gift) => {
+                            'nome': gift.name,
+                            'preco': gift.price,
+                            'categoria': gift.category,
+                            'imagem': gift.image,
+                          })
+                      .toList();
+
+                  // Calcular valor total
+                  double totalValue = 0.0;
+                  if (_selectedDecoration != null) {
+                    totalValue += _selectedDecoration!.price;
+                  }
+                  for (var entry in _selectedBeverages.entries) {
+                    final beverage =
+                        _beverageOptions.firstWhere((b) => b.name == entry.key);
+                    totalValue += beverage.price * entry.value;
+                  }
+                  for (var entry in _selectedFoods.entries) {
+                    final food =
+                        _foodOptions.firstWhere((f) => f.name == entry.key);
+                    totalValue += food.price * entry.value;
+                  }
+
+                  // Enviar dados para o banco
+                  final result =
+                      await _birthdayService.createBirthdayReservation(
+                    aniversarianteNome: _aniversarianteNomeController.text,
+                    documento: _documentoController.text,
+                    whatsapp: _whatsappController.text,
+                    email: _emailController.text,
+                    dataAniversario: _selectedBirthdayDate!,
+                    barSelecionado: _selectedBar!,
+                    quantidadeConvidados: _quantidadeConvidados,
+
+                    // Dados de decoração
+                    decoOpcao: _selectedDecoration?.name,
+                    decoPreco: _selectedDecoration?.price,
+                    decoDescricao: _selectedDecoration?.description,
+
+                    // Dados do painel
+                    painelTipo: _selectedPainelOption,
+                    painelImagem: _selectedPainelImage,
+                    painelTema: _painelTemaController.text.isNotEmpty
+                        ? _painelTemaController.text
+                        : null,
+                    painelFrase: _painelFraseController.text.isNotEmpty
+                        ? _painelFraseController.text
+                        : null,
+
+                    // Dados de bebidas
+                    bebidasSelecionadas: _selectedBeverages.isNotEmpty
+                        ? _selectedBeverages
+                        : null,
+                    bebidasDetalhes:
+                        bebidasDetalhes.isNotEmpty ? bebidasDetalhes : null,
+
+                    // Dados de comidas
+                    comidasSelecionadas:
+                        _selectedFoods.isNotEmpty ? _selectedFoods : null,
+                    comidasDetalhes:
+                        comidasDetalhes.isNotEmpty ? comidasDetalhes : null,
+
+                    // Dados de presentes
+                    presentesSelecionados:
+                        presentesDetalhes.isNotEmpty ? presentesDetalhes : null,
+
+                    // Valor total
+                    valorTotal: totalValue,
+                  );
+
+                  // Fechar loading
+                  if (mounted) {
+                    Navigator.pop(context);
+                  }
+
+                  // Mostrar sucesso
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            'Reserva de aniversário criada com sucesso! ID: ${result['id']}'),
+                        backgroundColor: Colors.green,
+                        duration: const Duration(seconds: 5),
+                      ),
+                    );
+                  }
+
+                  // Navegar para a tela de detalhes da reserva se disponível
+                  if (mounted && result['id'] != null) {
+                    Navigator.of(context).pushReplacementNamed(
+                      '/reservation-details',
+                      arguments: {'reservationId': result['id']},
+                    );
+                  }
+                } catch (e) {
+                  // Fechar loading
+                  if (mounted) {
+                    Navigator.pop(context);
+                  }
+
+                  // Mostrar erro
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Erro ao criar reserva: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 5),
+                      ),
+                    );
+                  }
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF26422),
@@ -675,150 +845,6 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
         );
       },
     );
-  }
-
-  // Função para enviar a reserva de aniversário para a API
-  Future<void> _submitBirthdayReservation() async {
-    try {
-      // Fechar o diálogo de confirmação
-      Navigator.of(context).pop();
-
-      // Mostrar loading
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const AlertDialog(
-            backgroundColor: Color(0xFF2B3245),
-            content: Row(
-              children: [
-                CircularProgressIndicator(color: Color(0xFFF26422)),
-                SizedBox(width: 20),
-                Text(
-                  'Enviando reserva...',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
-          );
-        },
-      );
-
-      // Obter o ID do usuário logado
-      final userId = await _storage.read(key: 'user_id');
-      if (userId == null) {
-        throw Exception('Usuário não autenticado');
-      }
-
-      // Preparar dados da decoração
-      String? decoracaoTipo;
-      if (_selectedDecoration != null) {
-        switch (_selectedDecoration!.name) {
-          case 'Opção 1':
-            decoracaoTipo = 'painel_balao_simples';
-            break;
-          case 'Opção 2':
-            decoracaoTipo = 'painel_balao_bandeja_2';
-            break;
-          case 'Opção 3':
-            decoracaoTipo = 'painel_bandeja_3_arco';
-            break;
-          case 'Opção 4':
-            decoracaoTipo = 'painel_bandeja_3_arco_bolo';
-            break;
-          case 'Opção 5':
-            decoracaoTipo = 'painel_tres_bandejas_arco_baloes_combo_gin';
-            break;
-          case 'Opção 6':
-            decoracaoTipo = 'painel_tres_bandejas_arco_baloes_bolo_combo_gin';
-            break;
-        }
-      }
-
-      // Preparar dados das bebidas
-      Map<String, int> bebidas = {};
-      for (var entry in _selectedBeverages.entries) {
-        if (entry.value > 0) {
-          bebidas[entry.key] = entry.value;
-        }
-      }
-
-      // Preparar dados das comidas
-      Map<String, int> comidas = {};
-      for (var entry in _selectedFoods.entries) {
-        if (entry.value > 0) {
-          comidas[entry.key] = entry.value;
-        }
-      }
-
-      // Preparar dados dos presentes
-      List<Map<String, dynamic>> presentes = _selectedGifts
-          .map((gift) => {
-                'nome': gift.name,
-                'preco': gift.price,
-                'categoria': gift.category,
-                'imagem': gift.image,
-              })
-          .toList();
-
-      // Preparar payload para a API
-      final payload = {
-        'user_id': int.parse(userId),
-        'aniversariante_nome': _aniversarianteNomeController.text,
-        'documento': _documentoController.text,
-        'whatsapp': _whatsappController.text,
-        'email': _emailController.text,
-        'data_aniversario': _selectedBirthdayDate != null
-            ? DateFormat('yyyy-MM-dd').format(_selectedBirthdayDate!)
-            : null,
-        'quantidade_convidados': _quantidadeConvidados,
-        'bar_selecionado': _selectedBar,
-        'decoracao_tipo': decoracaoTipo,
-        'painel_personalizado': _selectedPainelOption == 'personalizado',
-        'painel_tema': _painelTemaController.text.isNotEmpty
-            ? _painelTemaController.text
-            : null,
-        'painel_frase': _painelFraseController.text.isNotEmpty
-            ? _painelFraseController.text
-            : null,
-        'painel_estoque_imagem_url': _selectedPainelImage,
-        'bebidas': bebidas,
-        'comidas': comidas,
-        'presentes': presentes,
-        'tipo_reserva': 'aniversario',
-        'status': 'pendente',
-      };
-
-      // Enviar para a API
-      final result =
-          await _reservationService.createBirthdayReservation(payload);
-
-      // Fechar loading
-      Navigator.of(context).pop();
-
-      // Mostrar sucesso
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Reserva de aniversário criada com sucesso! ID: ${result['reservaId']}'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // Navegar de volta
-      Navigator.of(context).pop();
-    } catch (e) {
-      // Fechar loading
-      Navigator.of(context).pop();
-
-      // Mostrar erro
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao criar reserva: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   @override
@@ -1364,13 +1390,14 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                           labelText: 'Tema do Painel Personalizado',
                           icon: Icons.palette,
                           validator: (value) {
-                            if (_selectedPainelOption == 'personalizado' &&
-                                (value == null || value.isEmpty)) {
-                              return 'Por favor, insira o tema do painel.';
-                            }
-                            if (_selectedPainelOption == 'personalizado' &&
-                                !_isPersonalizedPanelAllowed()) {
-                              return 'Data do aniversário muito próxima para painel personalizado.';
+                            // Só validar se painel personalizado foi selecionado
+                            if (_selectedPainelOption == 'personalizado') {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor, insira o tema do painel.';
+                              }
+                              if (!_isPersonalizedPanelAllowed()) {
+                                return 'Data do aniversário muito próxima para painel personalizado.';
+                              }
                             }
                             return null;
                           },
@@ -1382,6 +1409,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                           icon: Icons.text_fields,
                           maxLines: 3,
                           validator: (value) {
+                            // Só validar se painel personalizado foi selecionado
                             if (_selectedPainelOption == 'personalizado' &&
                                 (value == null || value.isEmpty)) {
                               return 'Por favor, insira uma frase para o painel.';
@@ -1645,14 +1673,72 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            if (_formKey.currentState != null &&
-                                _formKey.currentState!.validate()) {
+                            // Validar apenas os campos obrigatórios
+                            bool isValid = true;
+                            String errorMessage = '';
+
+                            // Verificar campos obrigatórios
+                            if (_aniversarianteNomeController.text.isEmpty) {
+                              errorMessage =
+                                  'Nome do aniversariante é obrigatório';
+                              isValid = false;
+                            } else if (_documentoController.text.isEmpty) {
+                              errorMessage = 'Documento é obrigatório';
+                              isValid = false;
+                            } else if (_whatsappController.text.isEmpty) {
+                              errorMessage = 'WhatsApp é obrigatório';
+                              isValid = false;
+                            } else if (_emailController.text.isEmpty) {
+                              errorMessage = 'E-mail é obrigatório';
+                              isValid = false;
+                            } else if (_selectedBirthdayDate == null) {
+                              errorMessage =
+                                  'Data do aniversário é obrigatória';
+                              isValid = false;
+                            } else if (_selectedBar == null ||
+                                _selectedBar!.isEmpty) {
+                              errorMessage = 'Seleção do bar é obrigatória';
+                              isValid = false;
+                            } else if (_quantidadeConvidados <= 0) {
+                              errorMessage =
+                                  'Quantidade de convidados é obrigatória';
+                              isValid = false;
+                            }
+
+                            // Validar e-mail se foi preenchido
+                            if (_emailController.text.isNotEmpty) {
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                  .hasMatch(_emailController.text)) {
+                                errorMessage = 'E-mail inválido';
+                                isValid = false;
+                              }
+                            }
+
+                            // Validar painel personalizado se foi selecionado
+                            if (_selectedPainelOption == 'personalizado') {
+                              if (_painelTemaController.text.isEmpty) {
+                                errorMessage =
+                                    'Tema do painel personalizado é obrigatório';
+                                isValid = false;
+                              } else if (_painelFraseController.text.isEmpty) {
+                                errorMessage =
+                                    'Frase do painel personalizado é obrigatória';
+                                isValid = false;
+                              } else if (!_isPersonalizedPanelAllowed()) {
+                                errorMessage =
+                                    'Data do aniversário muito próxima para painel personalizado';
+                                isValid = false;
+                              }
+                            }
+
+                            if (isValid) {
                               _showConfirmationSummary();
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Por favor, preencha todos os campos obrigatórios e corrija os erros.')),
+                                SnackBar(
+                                  content: Text(errorMessage),
+                                  backgroundColor: Colors.red,
+                                ),
                               );
                             }
                           },
