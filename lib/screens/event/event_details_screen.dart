@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:agilizaiapp/services/reservation_service.dart';
+import 'package:agilizaiapp/services/bar_service.dart';
+import 'package:agilizaiapp/models/bar_model.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 // ✨ CORRIGIDO A IMPORTAÇÃO DO GEOCODING: sem 'as geocoding' para usar diretamente 'locationFromAddress'
@@ -322,11 +324,66 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       return;
     }
 
+    print('Iniciando geocodificação para: ${widget.event.localDoEvento}');
+
     try {
+      // Primeiro, tentar buscar o bar na API
+      final barService = BarService();
+      print('Buscando bares da API...');
+      final bars = await barService.fetchAllBars();
+      print('Bares encontrados: ${bars.length}');
+
+      // Procurar por um bar que corresponda ao local do evento
+      Bar? matchingBar;
+      try {
+        print(
+            'Procurando bar que corresponda a: ${widget.event.localDoEvento}');
+        print('Bares disponíveis: ${bars.map((b) => b.name).join(', ')}');
+
+        matchingBar = bars.firstWhere(
+          (bar) =>
+              bar.name
+                  .toLowerCase()
+                  .contains(widget.event.localDoEvento!.toLowerCase()) ||
+              widget.event.localDoEvento!
+                  .toLowerCase()
+                  .contains(bar.name.toLowerCase()),
+        );
+        print('Bar encontrado: ${matchingBar.name}');
+      } catch (e) {
+        print('Nenhum bar encontrado, usando geocodificação');
+        matchingBar = null;
+      }
+
+      if (matchingBar != null && matchingBar.hasCoordinates && mounted) {
+        setState(() {
+          _eventLocation =
+              LatLng(matchingBar!.latitude!, matchingBar.longitude!);
+          _eventMarkers.add(
+            Marker(
+              markerId: MarkerId(widget.event.id.toString()),
+              position: _eventLocation!,
+              infoWindow: InfoWindow(
+                title: widget.event.nomeDoEvento ?? 'Evento',
+                snippet: '${widget.event.localDoEvento} - ${matchingBar.name}',
+              ),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueAzure,
+              ),
+            ),
+          );
+          if (_mapController != null) {
+            _mapController!.animateCamera(
+              CameraUpdate.newLatLngZoom(_eventLocation!, 15.0),
+            );
+          }
+        });
+        return;
+      }
+
+      // Se não encontrar o bar ou não tiver coordenadas, usar geocodificação
       List<Location> locations = await locationFromAddress(
-        // ✨ CORRIGIDO: Removido 'geocoding.'
         widget.event.localDoEvento!,
-        // localeIdentifier: "pt_BR", // ✨ VERIFICAR: Comentar se causar erro, pois pode não existir em algumas versões do geocoding
       );
 
       if (locations.isNotEmpty && mounted) {

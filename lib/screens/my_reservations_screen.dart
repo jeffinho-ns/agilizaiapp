@@ -2,57 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/models/reservation_model.dart';
+import 'package:agilizaiapp/models/birthday_reservation_model.dart'; // Usar modelo real
 import 'package:agilizaiapp/services/reservation_service.dart';
 import 'package:agilizaiapp/screens/reservation/reservation_details_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// Modelo para reservas de aniversário
-class BirthdayReservation {
-  final String id;
-  final String aniversarianteNome;
-  final String documento;
-  final String whatsapp;
-  final String email;
-  final String bar;
-  final DateTime dataAniversario;
-  final int quantidadeConvidados;
-  final String? decorationName;
-  final double? decorationPrice;
-  final String? painelOption;
-  final String? painelTema;
-  final String? painelFrase;
-  final Map<String, int> bebidas;
-  final Map<String, int> comidas;
-  final List<String> presentes;
-  final double valorTotal;
-  final String status;
-  final String linkConvidados;
-  final DateTime dataCriacao;
-
-  BirthdayReservation({
-    required this.id,
-    required this.aniversarianteNome,
-    required this.documento,
-    required this.whatsapp,
-    required this.email,
-    required this.bar,
-    required this.dataAniversario,
-    required this.quantidadeConvidados,
-    this.decorationName,
-    this.decorationPrice,
-    this.painelOption,
-    this.painelTema,
-    this.painelFrase,
-    required this.bebidas,
-    required this.comidas,
-    required this.presentes,
-    required this.valorTotal,
-    required this.status,
-    required this.linkConvidados,
-    required this.dataCriacao,
-  });
-}
 
 class MyReservationsScreen extends StatefulWidget {
   const MyReservationsScreen({super.key});
@@ -64,35 +18,11 @@ class MyReservationsScreen extends StatefulWidget {
 class _MyReservationsScreenState extends State<MyReservationsScreen>
     with SingleTickerProviderStateMixin {
   late Future<List<Reservation>> _reservationsFuture;
+  late Future<List<BirthdayReservationModel>>
+      _birthdayReservationsFuture; // Future para dados reais
   final ReservationService _reservationService = ReservationService();
   String? _currentUserName;
   late TabController _tabController;
-
-  // Lista mockada de reservas de aniversário (substitua por dados reais da API)
-  final List<BirthdayReservation> _birthdayReservations = [
-    BirthdayReservation(
-      id: '1',
-      aniversarianteNome: 'João Silva',
-      documento: '123.456.789-00',
-      whatsapp: '(11) 99999-9999',
-      email: 'joao@email.com',
-      bar: 'Justino',
-      dataAniversario: DateTime.now().add(const Duration(days: 15)),
-      quantidadeConvidados: 25,
-      decorationName: 'Opção 3',
-      decorationPrice: 220.0,
-      painelOption: 'personalizado',
-      painelTema: 'Super Heróis',
-      painelFrase: 'Feliz Aniversário João!',
-      bebidas: {'Balde Budweiser (5 und)': 2, 'Caipirinha': 5},
-      comidas: {'Batata Frita': 1, 'X-Burger': 2},
-      presentes: ['Kit Whisky', 'Caneca Personalizada', 'Vale Comida (R\$ 50)'],
-      valorTotal: 350.0,
-      status: 'ATIVA',
-      linkConvidados: 'https://agilizaiapp.com/convite/abc123',
-      dataCriacao: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-  ];
 
   @override
   void initState() {
@@ -100,6 +30,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
     _tabController = TabController(length: 2, vsync: this);
     _loadCurrentUserData();
     _fetchReservations();
+    _fetchBirthdayReservations(); // Buscar reservas de aniversário reais
   }
 
   @override
@@ -127,6 +58,18 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
     });
   }
 
+  void _fetchBirthdayReservations() {
+    setState(() {
+      _birthdayReservationsFuture =
+          _reservationService.fetchAllBirthdayReservations();
+    });
+    _birthdayReservationsFuture.then((reservas) {
+      print('Reservas de aniversário carregadas: ${reservas.length}');
+    }).catchError((error) {
+      print('Erro ao carregar reservas de aniversário: $error');
+    });
+  }
+
   void _shareInviteLink(String link) {
     // TODO: Implementar compartilhamento real
     ScaffoldMessenger.of(context).showSnackBar(
@@ -142,7 +85,90 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
     );
   }
 
-  void _showBirthdayReservationDetails(BirthdayReservation reservation) {
+  // Função para calcular o valor total da reserva
+  double _calculateTotalValue(BirthdayReservationModel reservation) {
+    double total = 0.0;
+
+    // Preços das decorações (baseado nos nomes)
+    if (reservation.decoracaoTipo != null) {
+      if (reservation.decoracaoTipo!.contains('Pequena')) {
+        total += 150.0;
+      } else if (reservation.decoracaoTipo!.contains('Media')) {
+        total += 200.0;
+      } else if (reservation.decoracaoTipo!.contains('Grande')) {
+        total += 250.0;
+      }
+    }
+
+    // Preços dos itens do bar (bebidas)
+    final bebidaPrices = [
+      25.0,
+      30.0,
+      35.0,
+      40.0,
+      45.0,
+      50.0,
+      55.0,
+      60.0,
+      65.0,
+      70.0
+    ];
+    total += reservation.itemBarBebida1 * bebidaPrices[0];
+    total += reservation.itemBarBebida2 * bebidaPrices[1];
+    total += reservation.itemBarBebida3 * bebidaPrices[2];
+    total += reservation.itemBarBebida4 * bebidaPrices[3];
+    total += reservation.itemBarBebida5 * bebidaPrices[4];
+    total += reservation.itemBarBebida6 * bebidaPrices[5];
+    total += reservation.itemBarBebida7 * bebidaPrices[6];
+    total += reservation.itemBarBebida8 * bebidaPrices[7];
+    total += reservation.itemBarBebida9 * bebidaPrices[8];
+    total += reservation.itemBarBebida10 * bebidaPrices[9];
+
+    // Preços dos itens do bar (comidas)
+    final comidaPrices = [
+      20.0,
+      25.0,
+      30.0,
+      35.0,
+      40.0,
+      45.0,
+      50.0,
+      55.0,
+      60.0,
+      65.0
+    ];
+    total += reservation.itemBarComida1 * comidaPrices[0];
+    total += reservation.itemBarComida2 * comidaPrices[1];
+    total += reservation.itemBarComida3 * comidaPrices[2];
+    total += reservation.itemBarComida4 * comidaPrices[3];
+    total += reservation.itemBarComida5 * comidaPrices[4];
+    total += reservation.itemBarComida6 * comidaPrices[5];
+    total += reservation.itemBarComida7 * comidaPrices[6];
+    total += reservation.itemBarComida8 * comidaPrices[7];
+    total += reservation.itemBarComida9 * comidaPrices[8];
+    total += reservation.itemBarComida10 * comidaPrices[9];
+
+    return total;
+  }
+
+  // Função para obter nome do bar baseado no ID
+  String _getBarName(dynamic barId) {
+    if (barId == null) return 'Bar não especificado';
+
+    final barIdStr = barId.toString();
+    switch (barIdStr) {
+      case '1':
+        return 'Seu Justino';
+      case '7':
+        return 'HighLine';
+      default:
+        return 'Bar não especificado';
+    }
+  }
+
+  void _showBirthdayReservationDetails(BirthdayReservationModel reservation) {
+    final valorTotal = _calculateTotalValue(reservation);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -164,12 +190,15 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                 const SizedBox(height: 8),
                 Text('Nome: ${reservation.aniversarianteNome}',
                     style: const TextStyle(color: Colors.white70)),
-                Text('Documento: ${reservation.documento}',
-                    style: const TextStyle(color: Colors.white70)),
-                Text('WhatsApp: ${reservation.whatsapp}',
-                    style: const TextStyle(color: Colors.white70)),
-                Text('E-mail: ${reservation.email}',
-                    style: const TextStyle(color: Colors.white70)),
+                if (reservation.documento != null)
+                  Text('Documento: ${reservation.documento}',
+                      style: const TextStyle(color: Colors.white70)),
+                if (reservation.whatsapp != null)
+                  Text('WhatsApp: ${reservation.whatsapp}',
+                      style: const TextStyle(color: Colors.white70)),
+                if (reservation.email != null)
+                  Text('E-mail: ${reservation.email}',
+                      style: const TextStyle(color: Colors.white70)),
                 const SizedBox(height: 12),
                 const Text('🎉 DETALHES DA FESTA',
                     style: TextStyle(
@@ -177,7 +206,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                         fontWeight: FontWeight.bold,
                         fontSize: 14)),
                 const SizedBox(height: 8),
-                Text('Bar: ${reservation.bar}',
+                Text('Bar: ${_getBarName(reservation.barSelecionado)}',
                     style: const TextStyle(color: Colors.white70)),
                 Text(
                     'Data: ${DateFormat('dd/MM/yyyy').format(reservation.dataAniversario)}',
@@ -185,49 +214,151 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                 Text('Convidados: ${reservation.quantidadeConvidados} pessoas',
                     style: const TextStyle(color: Colors.white70)),
                 const SizedBox(height: 12),
-                if (reservation.decorationName != null) ...[
+                if (reservation.decoracaoTipo != null &&
+                    reservation.decoracaoTipo!.isNotEmpty) ...[
                   const Text('🎨 DECORAÇÃO',
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 14)),
                   const SizedBox(height: 8),
-                  Text(
-                      '${reservation.decorationName} - R\$ ${reservation.decorationPrice!.toStringAsFixed(2)}',
+                  Text('${reservation.decoracaoTipo}',
                       style: const TextStyle(color: Colors.white70)),
                   const SizedBox(height: 8),
                 ],
-                if (reservation.painelOption == 'personalizado') ...[
-                  Text('Painel Personalizado: ${reservation.painelTema}',
-                      style: const TextStyle(color: Colors.white70)),
-                  Text('Frase: ${reservation.painelFrase}',
-                      style: const TextStyle(color: Colors.white70)),
-                ],
-                if (reservation.bebidas.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  const Text('🥂 BEBIDAS',
+                if (reservation.painelPersonalizado) ...[
+                  const Text('🎭 PAINEL PERSONALIZADO',
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 14)),
                   const SizedBox(height: 8),
-                  ...reservation.bebidas.entries.map((entry) => Text(
-                      '${entry.key}: ${entry.value}x',
-                      style: const TextStyle(color: Colors.white70))),
-                ],
-                if (reservation.comidas.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  const Text('🍽️ COMIDAS',
+                  if (reservation.painelTema != null)
+                    Text('Tema: ${reservation.painelTema}',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.painelFrase != null)
+                    Text('Frase: ${reservation.painelFrase}',
+                        style: const TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 8),
+                ] else if (reservation.painelEstoqueImagemUrl != null) ...[
+                  const Text('🎭 PAINEL EM ESTOQUE',
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 14)),
                   const SizedBox(height: 8),
-                  ...reservation.comidas.entries.map((entry) => Text(
-                      '${entry.key}: ${entry.value}x',
-                      style: const TextStyle(color: Colors.white70))),
+                  Text('Painel: ${reservation.painelEstoqueImagemUrl}',
+                      style: const TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 8),
                 ],
-                if (reservation.presentes.isNotEmpty) ...[
+
+                // Bebidas selecionadas
+                if ([
+                  reservation.itemBarBebida1,
+                  reservation.itemBarBebida2,
+                  reservation.itemBarBebida3,
+                  reservation.itemBarBebida4,
+                  reservation.itemBarBebida5,
+                  reservation.itemBarBebida6,
+                  reservation.itemBarBebida7,
+                  reservation.itemBarBebida8,
+                  reservation.itemBarBebida9,
+                  reservation.itemBarBebida10
+                ].any((qty) => qty > 0)) ...[
+                  const SizedBox(height: 12),
+                  const Text('🥂 BEBIDAS SELECIONADAS',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14)),
+                  const SizedBox(height: 8),
+                  if (reservation.itemBarBebida1 > 0)
+                    Text('Item-bar-Bebida - 1: ${reservation.itemBarBebida1}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarBebida2 > 0)
+                    Text('Item-bar-Bebida - 2: ${reservation.itemBarBebida2}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarBebida3 > 0)
+                    Text('Item-bar-Bebida - 3: ${reservation.itemBarBebida3}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarBebida4 > 0)
+                    Text('Item-bar-Bebida - 4: ${reservation.itemBarBebida4}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarBebida5 > 0)
+                    Text('Item-bar-Bebida - 5: ${reservation.itemBarBebida5}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarBebida6 > 0)
+                    Text('Item-bar-Bebida - 6: ${reservation.itemBarBebida6}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarBebida7 > 0)
+                    Text('Item-bar-Bebida - 7: ${reservation.itemBarBebida7}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarBebida8 > 0)
+                    Text('Item-bar-Bebida - 8: ${reservation.itemBarBebida8}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarBebida9 > 0)
+                    Text('Item-bar-Bebida - 9: ${reservation.itemBarBebida9}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarBebida10 > 0)
+                    Text(
+                        'Item-bar-Bebida - 10: ${reservation.itemBarBebida10}x',
+                        style: const TextStyle(color: Colors.white70)),
+                ],
+
+                // Comidas selecionadas
+                if ([
+                  reservation.itemBarComida1,
+                  reservation.itemBarComida2,
+                  reservation.itemBarComida3,
+                  reservation.itemBarComida4,
+                  reservation.itemBarComida5,
+                  reservation.itemBarComida6,
+                  reservation.itemBarComida7,
+                  reservation.itemBarComida8,
+                  reservation.itemBarComida9,
+                  reservation.itemBarComida10
+                ].any((qty) => qty > 0)) ...[
+                  const SizedBox(height: 12),
+                  const Text('🍽️ COMIDAS SELECIONADAS',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14)),
+                  const SizedBox(height: 8),
+                  if (reservation.itemBarComida1 > 0)
+                    Text('Item-bar-Comida - 1: ${reservation.itemBarComida1}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarComida2 > 0)
+                    Text('Item-bar-Comida - 2: ${reservation.itemBarComida2}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarComida3 > 0)
+                    Text('Item-bar-Comida - 3: ${reservation.itemBarComida3}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarComida4 > 0)
+                    Text('Item-bar-Comida - 4: ${reservation.itemBarComida4}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarComida5 > 0)
+                    Text('Item-bar-Comida - 5: ${reservation.itemBarComida5}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarComida6 > 0)
+                    Text('Item-bar-Comida - 6: ${reservation.itemBarComida6}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarComida7 > 0)
+                    Text('Item-bar-Comida - 7: ${reservation.itemBarComida7}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarComida8 > 0)
+                    Text('Item-bar-Comida - 8: ${reservation.itemBarComida8}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarComida9 > 0)
+                    Text('Item-bar-Comida - 9: ${reservation.itemBarComida9}x',
+                        style: const TextStyle(color: Colors.white70)),
+                  if (reservation.itemBarComida10 > 0)
+                    Text(
+                        'Item-bar-Comida - 10: ${reservation.itemBarComida10}x',
+                        style: const TextStyle(color: Colors.white70)),
+                ],
+
+                if (reservation.listaPresentes.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   const Text('🎁 PRESENTES ESCOLHIDOS',
                       style: TextStyle(
@@ -235,7 +366,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                           fontWeight: FontWeight.bold,
                           fontSize: 14)),
                   const SizedBox(height: 8),
-                  ...reservation.presentes.map((presente) => Text(presente,
+                  ...reservation.listaPresentes.map((presente) => Text(presente,
                       style: const TextStyle(color: Colors.white70))),
                 ],
                 const SizedBox(height: 16),
@@ -258,7 +389,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'R\$ ${reservation.valorTotal.toStringAsFixed(2)}',
+                        'R\$ ${valorTotal.toStringAsFixed(2)}',
                         style: const TextStyle(
                           color: Color(0xFFF26422),
                           fontWeight: FontWeight.bold,
@@ -280,7 +411,8 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _shareInviteLink(reservation.linkConvidados);
+                _shareInviteLink(
+                    'https://agilizaiapp.com/convite/${reservation.id}');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF26422),
@@ -494,47 +626,41 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
           ),
 
           // Tab 2: Reservas de Aniversário
-          _birthdayReservations.isEmpty
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.cake,
-                        size: 64,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Nenhuma reserva de aniversário encontrada',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Crie sua primeira reserva de aniversário!',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
+          FutureBuilder<List<BirthdayReservationModel>>(
+            future: _birthdayReservationsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(
+                    child: Text(
+                        'Erro ao carregar reservas de aniversário: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.red)));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'Nenhuma reserva de aniversário encontrada',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
                   ),
-                )
-              : ListView.builder(
+                );
+              } else {
+                final reservations = snapshot.data!;
+                return ListView.builder(
                   padding: const EdgeInsets.all(16.0),
-                  itemCount: _birthdayReservations.length,
+                  itemCount: reservations.length,
                   itemBuilder: (context, index) {
-                    final reservation = _birthdayReservations[index];
+                    final reservation = reservations[index];
 
                     Color statusColor = Colors.grey;
-                    if (reservation.status == 'ATIVA') {
+                    final status = reservation.status ?? 'pendente';
+                    if (status == 'ATIVA' || status == 'pendente') {
                       statusColor = Colors.green[700]!;
-                    } else if (reservation.status == 'CANCELADA') {
+                    } else if (status == 'CANCELADA') {
                       statusColor = Colors.red[700]!;
-                    } else if (reservation.status == 'CONCLUIDA') {
+                    } else if (status == 'CONCLUIDA') {
                       statusColor = Colors.blue[700]!;
                     }
 
@@ -585,7 +711,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          'Bar: ${reservation.bar}',
+                                          'Bar: ${_getBarName(reservation.barSelecionado)}',
                                           style: const TextStyle(
                                               fontSize: 14, color: Colors.grey),
                                           overflow: TextOverflow.ellipsis,
@@ -602,7 +728,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      reservation.status,
+                                      reservation.status ?? 'pendente',
                                       style: TextStyle(
                                         color: statusColor,
                                         fontWeight: FontWeight.bold,
@@ -652,7 +778,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'Valor: R\$ ${reservation.valorTotal.toStringAsFixed(2)}',
+                                      'Valor: R\$ ${_calculateTotalValue(reservation).toStringAsFixed(2)}',
                                       style: const TextStyle(
                                           fontSize: 15, color: Colors.black87),
                                       overflow: TextOverflow.ellipsis,
@@ -666,7 +792,7 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       onPressed: () => _shareInviteLink(
-                                          reservation.linkConvidados),
+                                          'https://agilizaiapp.com/convite/${reservation.id}'),
                                       icon: const Icon(Icons.share, size: 16),
                                       label: const Text('Compartilhar Link'),
                                       style: OutlinedButton.styleFrom(
@@ -701,7 +827,10 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                       ),
                     );
                   },
-                ),
+                );
+              }
+            },
+          ),
         ],
       ),
     );

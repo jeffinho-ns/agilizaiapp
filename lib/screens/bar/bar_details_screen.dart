@@ -1,6 +1,8 @@
 // lib/screens/bar/bar_details_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:agilizaiapp/models/bar_model.dart';
 import 'package:agilizaiapp/models/event_model.dart'; // Importe Event para o botão de evento
 import 'package:agilizaiapp/data/bar_data.dart'; // Para allBars
@@ -176,25 +178,90 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
                   const SizedBox(height: 20),
 
                   _buildSectionTitle('Localização'),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      widget.bar.mapImageUrl ??
-                          'https://via.placeholder.com/600x300?text=Mapa', // Usando mapImageUrl
+                  if (widget.bar.hasCoordinates) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        height: 200,
+                        child: GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(
+                                widget.bar.latitude!, widget.bar.longitude!),
+                            zoom: 15.0,
+                          ),
+                          markers: {
+                            Marker(
+                              markerId: MarkerId(widget.bar.id.toString()),
+                              position: LatLng(
+                                  widget.bar.latitude!, widget.bar.longitude!),
+                              infoWindow: InfoWindow(
+                                title: widget.bar.name,
+                                snippet: widget.bar.fullAddress,
+                              ),
+                              icon: BitmapDescriptor.defaultMarkerWithHue(
+                                  BitmapDescriptor.hueRed),
+                            ),
+                          },
+                          zoomControlsEnabled: false,
+                          myLocationEnabled: false,
+                          myLocationButtonEnabled: false,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _openDirections(),
+                            icon: const Icon(Icons.directions),
+                            label: const Text('Traçar Rota'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFF26422),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _callBar(),
+                            icon: const Icon(Icons.phone),
+                            label: const Text('Ligar'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    Container(
                       width: double.infinity,
                       height: 200,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: double.infinity,
-                          height: 200,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.broken_image,
-                              size: 80, color: Colors.grey),
-                        );
-                      },
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.location_off,
+                                size: 60, color: Colors.grey),
+                            SizedBox(height: 8),
+                            Text(
+                              'Localização não disponível',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                   const SizedBox(height: 20),
 
                   _buildSectionTitle('Comodidades'),
@@ -368,5 +435,36 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
         );
       },
     );
+  }
+
+  // Método para abrir direções no Google Maps
+  Future<void> _openDirections() async {
+    if (!widget.bar.hasCoordinates) return;
+
+    final url =
+        'https://www.google.com/maps/dir/?api=1&destination=${widget.bar.latitude},${widget.bar.longitude}';
+
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível abrir o mapa')),
+      );
+    }
+  }
+
+  // Método para ligar para o bar
+  Future<void> _callBar() async {
+    // Aqui você pode usar o email como telefone ou adicionar um campo telefone no modelo
+    final phoneNumber = widget.bar.address ?? '11999999999'; // Placeholder
+    final url = 'tel:$phoneNumber';
+
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível fazer a ligação')),
+      );
+    }
   }
 }

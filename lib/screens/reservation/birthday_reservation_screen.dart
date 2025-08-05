@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:agilizaiapp/models/bar_model.dart';
 import 'package:agilizaiapp/services/reservation_service.dart';
 import 'package:agilizaiapp/models/birthday_reservation_model.dart';
+import 'package:agilizaiapp/screens/location/select_location_screen.dart';
 
 // Modelos para as opções
 class DecorationOption {
@@ -77,41 +78,184 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
   DateTime? _selectedBirthdayDate;
   String? _selectedBar;
   int _quantidadeConvidados = 1;
+
+  // Função para mostrar popup de confirmação de aviso
+  void _showWarningPopup(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2B3245),
+          title: Row(
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: Color(0xFFF26422),
+                size: 28,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'ENTENDI',
+                style: TextStyle(
+                  color: Color(0xFFF26422),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        );
+      },
+    );
+  }
+
+  // Widget para construir avisos clicáveis
+  Widget _buildWarningWidget(
+      String displayText, String popupTitle, String popupMessage) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15.0),
+      child: GestureDetector(
+        onTap: () => _showWarningPopup(popupTitle, popupMessage),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.red.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.red.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.red,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  displayText,
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.touch_app,
+                color: Colors.red,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Widget para construir avisos informativos clicáveis
+  Widget _buildInfoWidget(
+      String displayText, String popupTitle, String popupMessage) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15.0),
+      child: GestureDetector(
+        onTap: () => _showWarningPopup(popupTitle, popupMessage),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF26422).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFF26422).withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.info_outline,
+                color: Color(0xFFF26422),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  displayText,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.touch_app,
+                color: Color(0xFFF26422),
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Decorações com os novos nomes
   List<DecorationOption> _decorationOptions = [
     DecorationOption(
-        name: 'Clássica',
+        name: 'Decoração Pequena 1',
         price: 200.0,
         image: 'assets/images/kit-1.jpg',
-        description: 'Decoração tradicional com balões e painel.'),
+        description: 'Decoração pequena estilo 1.'),
     DecorationOption(
-        name: 'Tropical',
-        price: 250.0,
-        image: 'assets/images/kit-2.jpg',
-        description: 'Tema tropical com folhagens e flores.'),
-    DecorationOption(
-        name: 'Boteco',
+        name: 'Decoração Pequena 2',
         price: 220.0,
-        image: 'assets/images/kit-3.jpg',
-        description: 'Decoração estilo boteco com elementos rústicos.'),
+        image: 'assets/images/kit-2.jpg',
+        description: 'Decoração pequena estilo 2.'),
     DecorationOption(
-        name: 'Neon',
+        name: 'Decoração Media 3',
+        price: 250.0,
+        image: 'assets/images/kit-3.jpg',
+        description: 'Decoração média estilo 3.'),
+    DecorationOption(
+        name: 'Decoração Media 4',
         price: 270.0,
         image: 'assets/images/kit-4.jpg',
-        description: 'Decoração com luzes neon e cores vibrantes.'),
+        description: 'Decoração média estilo 4.'),
     DecorationOption(
-        name: 'Infantil',
-        price: 210.0,
+        name: 'Decoração Grande 5',
+        price: 300.0,
         image: 'assets/images/kit-5.jpg',
-        description: 'Tema infantil com personagens e cores alegres.'),
+        description: 'Decoração grande estilo 5.'),
     DecorationOption(
-        name: 'Minimalista',
-        price: 180.0,
+        name: 'Decoração Grande 6',
+        price: 320.0,
         image: 'assets/images/kit-6.jpg',
-        description: 'Decoração clean e elegante.'),
+        description: 'Decoração grande estilo 6.'),
   ];
   DecorationOption? _selectedDecoration;
   String? _selectedPainelOption;
   String? _selectedPainelImage;
+
+  // Painéis do estoque com os novos nomes
   List<String> _painelEstoqueImages = [
     'assets/images/painel-1.jpg',
     'assets/images/painel-2.jpg',
@@ -124,37 +268,59 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
     'assets/images/painel-9.jpg',
     'assets/images/painel-10.jpg',
   ];
+
+  // Bebidas do bar com os novos nomes
   List<BeverageOption> _beverageOptions = [
     BeverageOption(
-        name: 'Cerveja',
+        name: 'Item-bar-Bebida - 1',
         price: 12.0,
         category: 'Bebida',
-        description: 'Long neck ou lata.'),
+        description: 'Bebida do bar item 1.'),
     BeverageOption(
-        name: 'Refrigerante',
-        price: 8.0,
+        name: 'Item-bar-Bebida - 2',
+        price: 15.0,
         category: 'Bebida',
-        description: 'Lata 350ml.'),
+        description: 'Bebida do bar item 2.'),
     BeverageOption(
-        name: 'Água',
-        price: 5.0,
+        name: 'Item-bar-Bebida - 3',
+        price: 18.0,
         category: 'Bebida',
-        description: 'Garrafa 500ml.'),
+        description: 'Bebida do bar item 3.'),
     BeverageOption(
-        name: 'Gin Tônica',
-        price: 25.0,
-        category: 'Drink',
-        description: 'Drink especial da casa.'),
-    BeverageOption(
-        name: 'Caipirinha',
+        name: 'Item-bar-Bebida - 4',
         price: 20.0,
-        category: 'Drink',
-        description: 'Caipirinha de limão ou frutas.'),
+        category: 'Bebida',
+        description: 'Bebida do bar item 4.'),
     BeverageOption(
-        name: 'Whisky',
+        name: 'Item-bar-Bebida - 5',
+        price: 22.0,
+        category: 'Bebida',
+        description: 'Bebida do bar item 5.'),
+    BeverageOption(
+        name: 'Item-bar-Bebida - 6',
+        price: 25.0,
+        category: 'Bebida',
+        description: 'Bebida do bar item 6.'),
+    BeverageOption(
+        name: 'Item-bar-Bebida - 7',
+        price: 28.0,
+        category: 'Bebida',
+        description: 'Bebida do bar item 7.'),
+    BeverageOption(
+        name: 'Item-bar-Bebida - 8',
         price: 30.0,
         category: 'Bebida',
-        description: 'Dose de whisky importado.'),
+        description: 'Bebida do bar item 8.'),
+    BeverageOption(
+        name: 'Item-bar-Bebida - 9',
+        price: 35.0,
+        category: 'Bebida',
+        description: 'Bebida do bar item 9.'),
+    BeverageOption(
+        name: 'Item-bar-Bebida - 10',
+        price: 40.0,
+        category: 'Bebida',
+        description: 'Bebida do bar item 10.'),
   ];
   Map<String, int> _selectedBeverages = {};
   Map<String, int> _selectedFoods = {};
@@ -166,93 +332,162 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
     'Pracinha do Seu Justino'
   ];
   final ScrollController _draggableSheetController = ScrollController();
+
+  // Comidas do bar com os novos nomes
   final List<FoodOption> _foodOptions = [
     FoodOption(
-        name: 'Batata Frita',
+        name: 'Item-bar-Comida - 1',
         price: 25.0,
-        category: 'Porções',
-        description: 'Batata frita crocante'),
+        category: 'Comida',
+        description: 'Comida do bar item 1'),
     FoodOption(
-        name: 'Batata Rústica',
+        name: 'Item-bar-Comida - 2',
         price: 28.0,
-        category: 'Porções',
-        description: 'Batata rústica temperada'),
+        category: 'Comida',
+        description: 'Comida do bar item 2'),
     FoodOption(
-        name: 'Onion Rings',
-        price: 22.0,
-        category: 'Porções',
-        description: 'Anéis de cebola empanados'),
-    FoodOption(
-        name: 'Nuggets de Frango',
+        name: 'Item-bar-Comida - 3',
         price: 30.0,
-        category: 'Porções',
-        description: 'Nuggets de frango (10 und)'),
+        category: 'Comida',
+        description: 'Comida do bar item 3'),
     FoodOption(
-        name: 'Camarão Empanado',
-        price: 45.0,
-        category: 'Porções',
-        description: 'Camarão empanado (8 und)'),
+        name: 'Item-bar-Comida - 4',
+        price: 32.0,
+        category: 'Comida',
+        description: 'Comida do bar item 4'),
     FoodOption(
-        name: 'Coxinha de Frango',
-        price: 8.0,
-        category: 'Porções',
-        description: 'Coxinha de frango (1 und)'),
-    FoodOption(
-        name: 'Pastel de Queijo',
-        price: 6.0,
-        category: 'Porções',
-        description: 'Pastel de queijo (1 und)'),
-    FoodOption(
-        name: 'Esfiha de Carne',
-        price: 7.0,
-        category: 'Porções',
-        description: 'Esfiha de carne (1 und)'),
-    FoodOption(
-        name: 'X-Burger',
+        name: 'Item-bar-Comida - 5',
         price: 35.0,
-        category: 'Sanduíches',
-        description: 'Hambúrguer com queijo e salada'),
+        category: 'Comida',
+        description: 'Comida do bar item 5'),
     FoodOption(
-        name: 'X-Bacon',
+        name: 'Item-bar-Comida - 6',
+        price: 38.0,
+        category: 'Comida',
+        description: 'Comida do bar item 6'),
+    FoodOption(
+        name: 'Item-bar-Comida - 7',
         price: 40.0,
-        category: 'Sanduíches',
-        description: 'Hambúrguer com bacon e queijo'),
+        category: 'Comida',
+        description: 'Comida do bar item 7'),
     FoodOption(
-        name: 'X-Tudo',
+        name: 'Item-bar-Comida - 8',
+        price: 42.0,
+        category: 'Comida',
+        description: 'Comida do bar item 8'),
+    FoodOption(
+        name: 'Item-bar-Comida - 9',
         price: 45.0,
-        category: 'Sanduíches',
-        description: 'Hambúrguer completo'),
+        category: 'Comida',
+        description: 'Comida do bar item 9'),
     FoodOption(
-        name: 'Sanduíche Natural',
-        price: 20.0,
-        category: 'Sanduíches',
-        description: 'Sanduíche natural de frango'),
+        name: 'Item-bar-Comida - 10',
+        price: 48.0,
+        category: 'Comida',
+        description: 'Comida do bar item 10'),
   ];
+
+  // Lista de presentes com os novos nomes
   final List<GiftOption> _giftOptions = [
     GiftOption(
-        name: 'Kit Whisky',
-        price: 150.0,
-        category: 'Bebidas',
+        name: 'Lista-Presente - 1',
+        price: 50.0,
+        category: 'Presente',
         image: 'assets/images/prod-1.png'),
     GiftOption(
-        name: 'Kit Whisky',
-        price: 150.0,
-        category: 'Bebidas',
+        name: 'Lista-Presente - 2',
+        price: 60.0,
+        category: 'Presente',
         image: 'assets/images/prod-2.png'),
     GiftOption(
-        name: 'Kit Gin',
-        price: 120.0,
-        category: 'Bebidas',
+        name: 'Lista-Presente - 3',
+        price: 70.0,
+        category: 'Presente',
         image: 'assets/images/prod-3.png'),
     GiftOption(
-        name: 'Kit Vodka',
+        name: 'Lista-Presente - 4',
         price: 80.0,
-        category: 'Bebidas',
+        category: 'Presente',
         image: 'assets/images/prod-4.png'),
     GiftOption(
-        name: 'Kit Cervejas Especiais',
-        price: 60.0,
-        category: 'Bebidas',
+        name: 'Lista-Presente - 5',
+        price: 90.0,
+        category: 'Presente',
+        image: 'assets/images/prod-5.png'),
+    GiftOption(
+        name: 'Lista-Presente - 6',
+        price: 100.0,
+        category: 'Presente',
+        image: 'assets/images/prod-6.png'),
+    GiftOption(
+        name: 'Lista-Presente - 7',
+        price: 110.0,
+        category: 'Presente',
+        image: 'assets/images/prod-7.png'),
+    GiftOption(
+        name: 'Lista-Presente - 8',
+        price: 120.0,
+        category: 'Presente',
+        image: 'assets/images/prod-8.png'),
+    GiftOption(
+        name: 'Lista-Presente - 9',
+        price: 130.0,
+        category: 'Presente',
+        image: 'assets/images/prod-9.png'),
+    GiftOption(
+        name: 'Lista-Presente - 10',
+        price: 140.0,
+        category: 'Presente',
+        image: 'assets/images/prod-10.png'),
+    GiftOption(
+        name: 'Lista-Presente - 11',
+        price: 150.0,
+        category: 'Presente',
+        image: 'assets/images/prod-11.png'),
+    GiftOption(
+        name: 'Lista-Presente - 12',
+        price: 160.0,
+        category: 'Presente',
+        image: 'assets/images/prod-12.png'),
+    GiftOption(
+        name: 'Lista-Presente - 13',
+        price: 170.0,
+        category: 'Presente',
+        image: 'assets/images/prod-13.png'),
+    GiftOption(
+        name: 'Lista-Presente - 14',
+        price: 180.0,
+        category: 'Presente',
+        image: 'assets/images/prod-14.png'),
+    GiftOption(
+        name: 'Lista-Presente - 15',
+        price: 190.0,
+        category: 'Presente',
+        image: 'assets/images/prod-5.png'),
+    GiftOption(
+        name: 'Lista-Presente - 16',
+        price: 200.0,
+        category: 'Presente',
+        image: 'assets/images/prod-1.png'),
+    GiftOption(
+        name: 'Lista-Presente - 17',
+        price: 210.0,
+        category: 'Presente',
+        image: 'assets/images/prod-2.png'),
+    GiftOption(
+        name: 'Lista-Presente - 18',
+        price: 220.0,
+        category: 'Presente',
+        image: 'assets/images/prod-3.png'),
+    GiftOption(
+        name: 'Lista-Presente - 19',
+        price: 230.0,
+        category: 'Presente',
+        image: 'assets/images/prod-4.png'),
+    GiftOption(
+        name: 'Lista-Presente - 20',
+        price: 240.0,
+        category: 'Presente',
         image: 'assets/images/prod-5.png'),
   ];
   @override
@@ -385,14 +620,14 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                   const Text('Painel de Estoque: Selecionado',
                       style: TextStyle(color: Colors.white70)),
                   if (_selectedPainelImage != null)
-                    Text('Imagem: ${_selectedPainelImage!.split('/').last}',
+                    Text('Painel: $_selectedPainelImage',
                         style: const TextStyle(color: Colors.white70)),
                 ] else if (_selectedPainelOption == 'personalizado') ...[
                   const Text('Painel Personalizado: Sim',
                       style: TextStyle(color: Colors.white70)),
-                  Text('Tema: ${_painelTemaController.text}',
+                  Text('Tema escolhido: ${_painelTemaController.text}',
                       style: const TextStyle(color: Colors.white70)),
-                  Text('Frase: ${_painelFraseController.text}',
+                  Text('Frase personalizada: ${_painelFraseController.text}',
                       style: const TextStyle(color: Colors.white70)),
                 ] else ...[
                   const Text('Nenhum painel selecionado',
@@ -435,7 +670,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                   const Text('Nenhuma comida selecionada',
                       style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 12),
-                const Text('🎁 PRESENTES ESCOLHIDOS',
+                const Text('🎁 LISTA DE PRESENTES',
                     style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -540,13 +775,59 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                     return;
                   }
 
+                  // Mapear bebidas selecionadas para os novos campos
+                  final Map<String, int> bebidasMap = {
+                    'Item-bar-Bebida - 1': 0,
+                    'Item-bar-Bebida - 2': 0,
+                    'Item-bar-Bebida - 3': 0,
+                    'Item-bar-Bebida - 4': 0,
+                    'Item-bar-Bebida - 5': 0,
+                    'Item-bar-Bebida - 6': 0,
+                    'Item-bar-Bebida - 7': 0,
+                    'Item-bar-Bebida - 8': 0,
+                    'Item-bar-Bebida - 9': 0,
+                    'Item-bar-Bebida - 10': 0,
+                  };
+
+                  // Mapear comidas selecionadas para os novos campos
+                  final Map<String, int> comidasMap = {
+                    'Item-bar-Comida - 1': 0,
+                    'Item-bar-Comida - 2': 0,
+                    'Item-bar-Comida - 3': 0,
+                    'Item-bar-Comida - 4': 0,
+                    'Item-bar-Comida - 5': 0,
+                    'Item-bar-Comida - 6': 0,
+                    'Item-bar-Comida - 7': 0,
+                    'Item-bar-Comida - 8': 0,
+                    'Item-bar-Comida - 9': 0,
+                    'Item-bar-Comida - 10': 0,
+                  };
+
+                  // Preencher bebidas selecionadas
+                  for (var entry in _selectedBeverages.entries) {
+                    if (bebidasMap.containsKey(entry.key)) {
+                      bebidasMap[entry.key] = entry.value;
+                    }
+                  }
+
+                  // Preencher comidas selecionadas
+                  for (var entry in _selectedFoods.entries) {
+                    if (comidasMap.containsKey(entry.key)) {
+                      comidasMap[entry.key] = entry.value;
+                    }
+                  }
+
+                  // Lista de presentes selecionados
+                  final List<String> presentesSelecionados =
+                      _selectedGifts.map((gift) => gift.name).toList();
+
                   final reservationData = BirthdayReservationModel(
                     userId: loggedInUserId,
                     aniversarianteNome: _aniversarianteNomeController.text,
                     dataAniversario: _selectedBirthdayDate!,
                     quantidadeConvidados: _quantidadeConvidados,
                     barSelecionado: _selectedBar,
-                    decoracaoTipo: _selectedDecoration!.name,
+                    decoracaoTipo: _selectedDecoration?.name,
                     painelPersonalizado:
                         _selectedPainelOption == 'personalizado',
                     painelTema: _selectedPainelOption == 'personalizado'
@@ -558,26 +839,30 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                     painelEstoqueImagemUrl: _selectedPainelOption == 'estoque'
                         ? _selectedPainelImage
                         : null,
-                    bebidaBaldeBudweiser:
-                        _selectedBeverages.containsKey('Balde de Budweiser')
-                            ? _selectedBeverages['Balde de Budweiser']!
-                            : 0,
-                    bebidaBaldeCorona:
-                        _selectedBeverages.containsKey('Balde de Corona')
-                            ? _selectedBeverages['Balde de Corona']!
-                            : 0,
-                    bebidaBaldeHeineken:
-                        _selectedBeverages.containsKey('Balde de Heineken')
-                            ? _selectedBeverages['Balde de Heineken']!
-                            : 0,
-                    bebidaComboGin142:
-                        _selectedBeverages.containsKey('Gin Tônica')
-                            ? _selectedBeverages['Gin Tônica']!
-                            : 0,
-                    bebidaLicorRufus:
-                        _selectedBeverages.containsKey('Licor Rufus')
-                            ? _selectedBeverages['Licor Rufus']!
-                            : 0,
+                    itemBarBebida1: bebidasMap['Item-bar-Bebida - 1'] ?? 0,
+                    itemBarBebida2: bebidasMap['Item-bar-Bebida - 2'] ?? 0,
+                    itemBarBebida3: bebidasMap['Item-bar-Bebida - 3'] ?? 0,
+                    itemBarBebida4: bebidasMap['Item-bar-Bebida - 4'] ?? 0,
+                    itemBarBebida5: bebidasMap['Item-bar-Bebida - 5'] ?? 0,
+                    itemBarBebida6: bebidasMap['Item-bar-Bebida - 6'] ?? 0,
+                    itemBarBebida7: bebidasMap['Item-bar-Bebida - 7'] ?? 0,
+                    itemBarBebida8: bebidasMap['Item-bar-Bebida - 8'] ?? 0,
+                    itemBarBebida9: bebidasMap['Item-bar-Bebida - 9'] ?? 0,
+                    itemBarBebida10: bebidasMap['Item-bar-Bebida - 10'] ?? 0,
+                    itemBarComida1: comidasMap['Item-bar-Comida - 1'] ?? 0,
+                    itemBarComida2: comidasMap['Item-bar-Comida - 2'] ?? 0,
+                    itemBarComida3: comidasMap['Item-bar-Comida - 3'] ?? 0,
+                    itemBarComida4: comidasMap['Item-bar-Comida - 4'] ?? 0,
+                    itemBarComida5: comidasMap['Item-bar-Comida - 5'] ?? 0,
+                    itemBarComida6: comidasMap['Item-bar-Comida - 6'] ?? 0,
+                    itemBarComida7: comidasMap['Item-bar-Comida - 7'] ?? 0,
+                    itemBarComida8: comidasMap['Item-bar-Comida - 8'] ?? 0,
+                    itemBarComida9: comidasMap['Item-bar-Comida - 9'] ?? 0,
+                    itemBarComida10: comidasMap['Item-bar-Comida - 10'] ?? 0,
+                    listaPresentes: presentesSelecionados,
+                    documento: _documentoController.text,
+                    whatsapp: _whatsappController.text,
+                    email: _emailController.text,
                   );
 
                   final result = await _reservationService
@@ -722,29 +1007,61 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                         validator: (value) => null,
                       ),
                       const SizedBox(height: 15),
-                      DropdownButtonFormField<String>(
-                        value: _selectedBar,
-                        decoration: const InputDecoration(
-                          labelText: 'Bar',
-                          prefixIcon: Icon(Icons.store, color: Colors.white70),
-                          filled: true,
-                          fillColor: Color(0xFF333A4D),
-                          labelStyle: TextStyle(color: Colors.white70),
-                          border: OutlineInputBorder(),
-                        ),
-                        dropdownColor: const Color(0xFF333A4D),
-                        style: const TextStyle(color: Colors.white),
-                        items: _barOptions
-                            .map((bar) => DropdownMenuItem(
-                                  value: bar,
-                                  child: Text(bar),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedBar = value;
-                          });
-                        },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: _selectedBar,
+                              decoration: const InputDecoration(
+                                labelText: 'Bar',
+                                prefixIcon:
+                                    Icon(Icons.store, color: Colors.white70),
+                                filled: true,
+                                fillColor: Color(0xFF333A4D),
+                                labelStyle: TextStyle(color: Colors.white70),
+                                border: OutlineInputBorder(),
+                              ),
+                              dropdownColor: const Color(0xFF333A4D),
+                              style: const TextStyle(color: Colors.white),
+                              items: _barOptions
+                                  .map((bar) => DropdownMenuItem(
+                                        value: bar,
+                                        child: Text(bar),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedBar = value;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF26422),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: IconButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const SelectLocationScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.location_on,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                              tooltip: 'Ver localização dos bares',
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 15),
                       Row(
@@ -780,18 +1097,10 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                                 ),
                       ),
                       const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF26422).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: const Color(0xFFF26422).withOpacity(0.3)),
-                        ),
-                        child: const Text(
-                          '💡 A decoração é um aluguel, não pode levar os painéis e bandejas para casa apenas os brindes que estiverem. O valor de cada opção está em cada card e será adicionado à sua comanda.',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
+                      _buildInfoWidget(
+                        '💡 A decoração é um aluguel, não pode levar os painéis e bandejas para casa apenas os brindes que estiverem. O valor de cada opção está em cada card e será adicionado à sua comanda.',
+                        'Informação sobre Decoração',
+                        'A decoração é um aluguel, não pode levar os painéis e bandejas para casa apenas os brindes que estiverem. O valor de cada opção está em cada card e será adicionado à sua comanda.',
                       ),
                       const SizedBox(height: 15),
                       GridView.builder(
@@ -895,18 +1204,10 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                                 ),
                       ),
                       const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF26422).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: const Color(0xFFF26422).withOpacity(0.3)),
-                        ),
-                        child: const Text(
-                          '💡 Tanto o painel que temos no estoque quanto os personalizados não tem valor adicional pois já está incluso o valor na decoração.',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
+                      _buildInfoWidget(
+                        '💡 Tanto o painel que temos no estoque quanto os personalizados não tem valor adicional pois já está incluso o valor na decoração. Para painéis personalizados, você informa o tema e a frase que deseja.',
+                        'Informação sobre Painéis',
+                        'Tanto o painel que temos no estoque quanto os personalizados não tem valor adicional pois já está incluso o valor na decoração. Para painéis personalizados, você informa o tema e a frase que deseja.',
                       ),
                       const SizedBox(height: 15),
                       Row(
@@ -962,80 +1263,189 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                         ),
                         const SizedBox(height: 15),
                         SizedBox(
-                          height: 150,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
+                          height: 280,
+                          child: PageView.builder(
+                            controller: PageController(viewportFraction: 0.8),
                             itemCount: _painelEstoqueImages.length,
                             itemBuilder: (context, index) {
-                              final imageUrl = _painelEstoqueImages[index];
+                              final painelImagePath =
+                                  _painelEstoqueImages[index];
+                              final painelNome = 'Estoque ${index + 1}';
                               final isSelected =
-                                  _selectedPainelImage == imageUrl;
+                                  _selectedPainelImage == painelImagePath;
                               return GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    _selectedPainelImage = imageUrl;
+                                    _selectedPainelImage = painelImagePath;
                                   });
                                 },
                                 child: Container(
-                                  width: 150,
-                                  margin: const EdgeInsets.only(right: 15),
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 8),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF333A4D),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? const Color(0xFFF26422)
-                                          : Colors.transparent,
-                                      width: isSelected ? 3 : 1,
-                                    ),
+                                    borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 4),
+                                        color: Colors.black.withOpacity(0.3),
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 8),
+                                        spreadRadius: 2,
                                       ),
                                     ],
                                   ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.asset(
-                                      imageUrl,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error,
-                                              stackTrace) =>
-                                          const Center(
-                                              child: Icon(Icons.broken_image,
-                                                  color: Colors.white70)),
-                                    ),
+                                  child: Stack(
+                                    children: [
+                                      // Imagem do painel (redonda)
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: Image.asset(
+                                          painelImagePath,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Container(
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF333A4D),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Center(
+                                              child: Icon(
+                                                Icons.image,
+                                                color: Colors.white70,
+                                                size: 60,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      // Overlay gradiente para melhorar legibilidade do texto
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withOpacity(0.7),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      // Indicador de seleção
+                                      if (isSelected)
+                                        Positioned(
+                                          top: 12,
+                                          right: 12,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF26422),
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(0xFFF26422)
+                                                      .withOpacity(0.5),
+                                                  blurRadius: 8,
+                                                  spreadRadius: 2,
+                                                ),
+                                              ],
+                                            ),
+                                            child: const Icon(
+                                              Icons.check,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      // Nome do painel
+                                      Positioned(
+                                        bottom: 20,
+                                        left: 20,
+                                        right: 20,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors.black.withOpacity(0.8),
+                                            borderRadius:
+                                                BorderRadius.circular(25),
+                                            border: Border.all(
+                                              color: isSelected
+                                                  ? const Color(0xFFF26422)
+                                                  : Colors.white
+                                                      .withOpacity(0.3),
+                                              width: isSelected ? 2 : 1,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            painelNome,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? const Color(0xFFF26422)
+                                                  : Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               );
                             },
                           ),
                         ),
+                        const SizedBox(height: 20),
+                        // Indicadores de página
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            _painelEstoqueImages.length,
+                            (index) => Container(
+                              width: 8,
+                              height: 8,
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _selectedPainelImage ==
+                                        _painelEstoqueImages[index]
+                                    ? const Color(0xFFF26422)
+                                    : Colors.white.withOpacity(0.3),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                       if (_selectedPainelOption == 'personalizado') ...[
                         const SizedBox(height: 20),
                         if (!_isPersonalizedPanelAllowed())
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 15.0),
-                            child: Text(
-                              'Atenção: Painel personalizado só pode ser solicitado com no mínimo 5 dias de antecedência da data do aniversário.',
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold),
-                            ),
+                          _buildWarningWidget(
+                            'Atenção: Painel personalizado só pode ser solicitado com no mínimo 5 dias de antecedência da data do aniversário.',
+                            'Atenção',
+                            'Painel personalizado só pode ser solicitado com no mínimo 5 dias de antecedência da data do aniversário.',
                           ),
                         _buildDarkTextField(
                           controller: _painelTemaController,
-                          labelText: 'Tema do Painel Personalizado',
+                          labelText:
+                              'Qual o tema do painel? (ex: Super Heróis, Princesas, etc.)',
                           icon: Icons.palette,
                           validator: (value) => null,
                         ),
                         const SizedBox(height: 15),
                         _buildDarkTextField(
                           controller: _painelFraseController,
-                          labelText: 'Frase para o Painel Personalizado',
+                          labelText:
+                              'Frase que você quer no painel (ex: "Feliz Aniversário João!")',
                           icon: Icons.text_fields,
                           maxLines: 3,
                           validator: (value) => null,
@@ -1051,18 +1461,10 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                                 ),
                       ),
                       const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF26422).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: const Color(0xFFF26422).withOpacity(0.3)),
-                        ),
-                        child: const Text(
-                          '💡 Cada bebida que for adicionada será acrescentada o valor na comanda de quem está criando essa lista.',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
+                      _buildInfoWidget(
+                        '💡 Cada bebida que for adicionada será acrescentada o valor na comanda de quem está criando essa lista.',
+                        'Informação sobre Bebidas',
+                        'Cada bebida que for adicionada será acrescentada o valor na comanda de quem está criando essa lista.',
                       ),
                       const SizedBox(height: 15),
                       ..._beverageOptions
@@ -1089,18 +1491,10 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                                 ),
                       ),
                       const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF26422).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: const Color(0xFFF26422).withOpacity(0.3)),
-                        ),
-                        child: const Text(
-                          '💡 Lembre que cada porção será acrescentada na comanda.',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
+                      _buildInfoWidget(
+                        '💡 Lembre que cada porção será acrescentada na comanda.',
+                        'Informação sobre Porções',
+                        'Lembre que cada porção será acrescentada na comanda.',
                       ),
                       const SizedBox(height: 15),
                       ..._foodOptions.map((food) => _buildItemQuantitySelector(
@@ -1118,47 +1512,6 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                           )),
                       const SizedBox(height: 30),
                       Text(
-                        'Brindes Especiais 🎁',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF26422).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: const Color(0xFFF26422).withOpacity(0.3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('💡 Regras dos Brindes:',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12)),
-                            const SizedBox(height: 8),
-                            const Text('• 10 convidados ou mais: VIP',
-                                style: TextStyle(
-                                    color: Colors.white70, fontSize: 12)),
-                            const Text(
-                                '• Acima de 20 pessoas: 2 VIPs + Drink da casa',
-                                style: TextStyle(
-                                    color: Colors.white70, fontSize: 12)),
-                            const Text(
-                                '• Acima de 30 pessoas: 2 VIPs + garrafa de Rufus Caramel',
-                                style: TextStyle(
-                                    color: Colors.white70, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      Text(
                         'Lista de Presentes 🎁',
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -1167,20 +1520,11 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                                 ),
                       ),
                       const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF26422).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                              color: const Color(0xFFF26422).withOpacity(0.3)),
-                        ),
-                        child: const Text(
-                          '💡 Escolha até 20 itens que você gostaria de receber como presente dos seus convidados.',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
+                      _buildInfoWidget(
+                        '💡 Escolha até 20 itens que você gostaria de receber como presente dos seus convidados.',
+                        'Informação sobre Lista de Presentes',
+                        'Escolha até 20 itens que você gostaria de receber como presente dos seus convidados.',
                       ),
-                      const SizedBox(height: 15),
                       GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),

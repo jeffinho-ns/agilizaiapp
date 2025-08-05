@@ -41,7 +41,9 @@ const List<Bar> allBars = [
       'assets/images/bebida-justino-4.jpeg',
     ],
     mapImageUrl:
-        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k', // Substitua pela sua chave
+        'https://maps.googleapis.com/maps/api/staticmap?center=-23.5572069,-46.6895775&zoom=15&size=600x300&markers=color:red%7C-23.5572069,-46.6895775&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k',
+    latitude: -23.5572069,
+    longitude: -46.6895775,
     amenities: [
       Amenity(icon: Icons.wifi, label: 'Wi-Fi'),
       Amenity(icon: Icons.accessible, label: 'Acessível'),
@@ -81,7 +83,9 @@ const List<Bar> allBars = [
       'assets/images/bebidas-ohfregues-4.jpg',
     ],
     mapImageUrl:
-        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k',
+        'https://maps.googleapis.com/maps/api/staticmap?center=-23.4974950,-46.7017800&zoom=15&size=600x300&markers=color:red%7C-23.4974950,-46.7017800&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k',
+    latitude: -23.4974950,
+    longitude: -46.7017800,
     amenities: [
       Amenity(icon: Icons.music_note, label: 'Samba ao vivo'),
       Amenity(icon: Icons.restaurant, label: 'Feijoada'),
@@ -119,7 +123,9 @@ const List<Bar> allBars = [
       'assets/images/bebida-highline-4.jpeg',
     ],
     mapImageUrl:
-        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k',
+        'https://maps.googleapis.com/maps/api/staticmap?center=-23.5571734,-46.6903979&zoom=15&size=600x300&markers=color:red%7C-23.5571734,-46.6903979&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k',
+    latitude: -23.5571734,
+    longitude: -46.6903979,
     amenities: [
       Amenity(icon: Icons.pets, label: 'Pet Friendly'),
       Amenity(icon: Icons.local_bar, label: 'Cervejas Artesanais'),
@@ -156,7 +162,9 @@ const List<Bar> allBars = [
       'assets/images/bebida-pracinha-4.jpg',
     ],
     mapImageUrl:
-        'https://maps.googleapis.com/maps/api/staticmap?center=-23.567086,-46.687522&zoom=15&size=600x300&markers=color:red%7C-23.567086,-46.687522&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k',
+        'https://maps.googleapis.com/maps/api/staticmap?center=-23.5568850,-46.6897039&zoom=15&size=600x300&markers=color:red%7C-23.5568850,-46.6897039&key=AIzaSyCYujVw1ifZiGAYCrp30RD4yiB5DFcrj4k',
+    latitude: -23.5568850,
+    longitude: -46.6897039,
     amenities: [
       Amenity(icon: Icons.ac_unit, label: 'Ar Condicionado'),
       Amenity(icon: Icons.wifi, label: 'Wi-Fi'),

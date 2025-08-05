@@ -3,6 +3,7 @@
 import 'package:agilizaiapp/models/reservation_model.dart';
 import 'package:agilizaiapp/models/guest_model.dart'; // Necessário para ReservationModel
 import 'package:agilizaiapp/models/brinde_model.dart'; // Necessário para ReservationModel
+import 'package:agilizaiapp/models/birthday_reservation_model.dart'; // Adicionar import
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -25,8 +26,7 @@ class ReservationService {
     try {
       // CORRIGIDO: Agora usamos o URL completo, combinando o _baseUrl com a rota
       final response = await _dio.post('$_baseUrl/birthday-reservations',
-          options:
-              await _getAuthHeaders(), // Adicionado para garantir a autenticação
+          options: await _getAuthHeaders(), // Restaurada autenticação
           data: data);
       return response.data;
     } on DioException catch (e) {
@@ -213,6 +213,72 @@ class ReservationService {
     } catch (e) {
       print('Erro inesperado ao buscar reservas por evento: $e');
       throw Exception('Erro desconhecido ao carregar reservas por evento');
+    }
+  }
+
+  // Método para buscar todas as reservas de aniversário do usuário (GET /api/birthday-reservations)
+  Future<List<BirthdayReservationModel>> fetchAllBirthdayReservations() async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/birthday-reservations',
+        options: await _getAuthHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> reservationData = response.data;
+        return reservationData
+            .map((json) => BirthdayReservationModel.fromJson(json))
+            .toList();
+      } else {
+        throw Exception(
+            'Falha ao carregar reservas de aniversário: Status ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print(
+          'DioError ao buscar reservas de aniversário: ${e.response?.statusCode} - ${e.response?.data}');
+      String errorMessage = 'Falha ao carregar reservas de aniversário.';
+      if (e.response != null &&
+          e.response!.data is Map &&
+          e.response!.data.containsKey('message')) {
+        errorMessage = e.response!.data['message'];
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Erro inesperado ao buscar reservas de aniversário: $e');
+      throw Exception('Erro desconhecido ao carregar reservas de aniversário');
+    }
+  }
+
+  // Método para buscar detalhes de uma reserva de aniversário específica (GET /api/birthday-reservations/:id)
+  Future<BirthdayReservationModel> fetchBirthdayReservationDetails(
+      int reservationId) async {
+    try {
+      final response = await _dio.get(
+        '$_baseUrl/birthday-reservations/$reservationId',
+        options: await _getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return BirthdayReservationModel.fromJson(
+            response.data as Map<String, dynamic>);
+      } else {
+        throw Exception(
+            'Falha ao carregar detalhes da reserva de aniversário: Status ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print(
+          'DioError ao buscar detalhes da reserva de aniversário: ${e.response?.statusCode} - ${e.response?.data}');
+      String errorMessage =
+          'Falha ao carregar detalhes da reserva de aniversário.';
+      if (e.response != null &&
+          e.response!.data is Map &&
+          e.response!.data.containsKey('message')) {
+        errorMessage = e.response!.data['message'];
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Erro inesperado ao buscar detalhes da reserva de aniversário: $e');
+      throw Exception(
+          'Erro desconhecido ao carregar detalhes da reserva de aniversário');
     }
   }
 }
