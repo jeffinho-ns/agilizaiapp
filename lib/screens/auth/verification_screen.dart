@@ -5,6 +5,7 @@ import 'package:agilizaiapp/screens/interests/select_interest_screen.dart';
 import 'package:agilizaiapp/services/auth_service.dart';
 import 'package:agilizaiapp/services/phone_service.dart';
 import 'package:agilizaiapp/screens/main_screen.dart';
+import 'package:agilizaiapp/screens/auth/signin_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String telefone;
@@ -59,9 +60,13 @@ class _VerificationScreenState extends State<VerificationScreen> {
     setState(() => _isVerifying = true);
 
     try {
+      print('🔍 Verificando código: $code');
+
       final isValid = await _phoneService.verifyCode(widget.telefone, code);
 
       if (isValid) {
+        print('✅ Código válido, fazendo cadastro do usuário...');
+
         // Código válido, fazer o cadastro do usuário
         await _authService.signUp(
           widget.userData['name']!,
@@ -74,13 +79,19 @@ class _VerificationScreenState extends State<VerificationScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Cadastro realizado com sucesso!"),
+              content: Text(
+                  "Cadastro realizado com sucesso! Agora selecione seus interesses."),
               backgroundColor: Colors.green,
             ),
           );
 
+          print('🔄 Navegando para tela de interesses...');
+
+          // Vai para a tela de interesses
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => MainScreen()),
+            MaterialPageRoute(
+              builder: (_) => const SelectInterestScreen(),
+            ),
             (route) => false,
           );
         }
@@ -95,6 +106,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         }
       }
     } catch (e) {
+      print('❌ Erro na verificação: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -156,6 +168,25 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     ),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Mensagem informativa para testes
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+              ),
+              child: const Text(
+                "💡 Para testes: Digite qualquer código de 4 dígitos (ex: 1234)",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.orange,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 40),

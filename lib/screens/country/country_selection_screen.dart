@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/screens/auth/signin_screen.dart';
+import 'package:agilizaiapp/providers/language_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:agilizaiapp/l10n/app_localizations.dart';
 
-// 1. Nosso modelo de dados simples para cada país
-class Country {
+// 1. Nosso modelo de dados simples para cada idioma
+class Language {
+  final String code;
   final String name;
+  final String nativeName;
   final String flagEmoji;
 
-  Country({required this.name, required this.flagEmoji});
+  Language({
+    required this.code,
+    required this.name,
+    required this.nativeName,
+    required this.flagEmoji,
+  });
 }
 
 // 2. A tela em si
@@ -18,27 +28,42 @@ class CountrySelectionScreen extends StatefulWidget {
 }
 
 class _CountrySelectionScreenState extends State<CountrySelectionScreen> {
-  // 3. Nossa lista de países de exemplo
-  final List<Country> _countries = [
-    Country(name: 'Bangladesh', flagEmoji: '🇧🇩'),
-    Country(name: 'Australia', flagEmoji: '🇦🇺'),
-    Country(name: 'Pakistan', flagEmoji: '🇵🇰'),
-    Country(name: 'England', flagEmoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿'),
-    Country(name: 'United Arab Emirates', flagEmoji: '🇦🇪'),
-    Country(name: 'Germany', flagEmoji: '🇩🇪'),
-    Country(name: 'United States America', flagEmoji: '🇺🇸'),
-    Country(name: 'Netherlands', flagEmoji: '🇳🇱'),
-    Country(name: 'Brazil', flagEmoji: '🇧🇷'),
+  // 3. Nossa lista de idiomas disponíveis
+  final List<Language> _languages = [
+    Language(
+      code: 'pt',
+      name: 'Português Brasileiro',
+      nativeName: 'Português Brasileiro',
+      flagEmoji: '🇧🇷',
+    ),
+    Language(
+      code: 'en',
+      name: 'English US',
+      nativeName: 'English US',
+      flagEmoji: '🇺🇸',
+    ),
+    Language(
+      code: 'es',
+      name: 'Español',
+      nativeName: 'Español',
+      flagEmoji: '🇪🇸',
+    ),
+    Language(
+      code: 'de',
+      name: 'Deutsch',
+      nativeName: 'Deutsch',
+      flagEmoji: '🇩🇪',
+    ),
   ];
 
-  // 4. Variável para guardar o país que o usuário selecionou
-  Country? _selectedCountry;
+  // 4. Variável para guardar o idioma que o usuário selecionou
+  Language? _selectedLanguage;
 
   @override
   void initState() {
     super.initState();
-    // Pré-seleciona o primeiro país da lista, como no design
-    _selectedCountry = _countries[0];
+    // Pré-seleciona o primeiro idioma da lista (Português Brasileiro)
+    _selectedLanguage = _languages[0];
   }
 
   @override
@@ -52,7 +77,7 @@ class _CountrySelectionScreenState extends State<CountrySelectionScreen> {
             // TODO: Adicionar lógica se necessário, por exemplo, Navigator.pop(context);
           },
         ),
-        title: const Text('Country Selection'),
+        title: Text(AppLocalizations.of(context)!.countrySelectionTitle),
         centerTitle: true,
         // Ícone de "mais opções"
         actions: [
@@ -66,7 +91,8 @@ class _CountrySelectionScreenState extends State<CountrySelectionScreen> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               decoration: InputDecoration(
-                hintText: 'Find Country', // O texto dentro do campo
+                hintText: AppLocalizations.of(context)!
+                    .findCountryHint, // O texto dentro do campo
                 prefixIcon: const Icon(Icons.search), // Ícone de lupa
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.0),
@@ -78,19 +104,19 @@ class _CountrySelectionScreenState extends State<CountrySelectionScreen> {
             ),
           ),
 
-          // 6. A lista de países
+          // 6. A lista de idiomas
           Expanded(
             child: ListView.builder(
-              itemCount: _countries.length,
+              itemCount: _languages.length,
               itemBuilder: (context, index) {
-                final country = _countries[index];
-                return RadioListTile<Country>(
-                  title: Text('${country.flagEmoji}  ${country.name}'),
-                  value: country,
-                  groupValue: _selectedCountry,
-                  onChanged: (Country? value) {
+                final language = _languages[index];
+                return RadioListTile<Language>(
+                  title: Text('${language.flagEmoji}  ${language.nativeName}'),
+                  value: language,
+                  groupValue: _selectedLanguage,
+                  onChanged: (Language? value) {
                     setState(() {
-                      _selectedCountry = value;
+                      _selectedLanguage = value;
                     });
                   },
                   activeColor: const Color(
@@ -109,11 +135,18 @@ class _CountrySelectionScreenState extends State<CountrySelectionScreen> {
             child: SizedBox(
               width: double.infinity, // Ocupa toda a largura
               child: ElevatedButton(
-                onPressed: () {
-                  // Usamos Navigator.push para que o usuário possa voltar
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SignInScreen()),
-                  );
+                onPressed: () async {
+                  if (_selectedLanguage != null) {
+                    // Salva o idioma selecionado
+                    final languageProvider =
+                        Provider.of<LanguageProvider>(context, listen: false);
+                    await languageProvider.setLanguage(_selectedLanguage!.code);
+
+                    // Navega para a tela de login
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const SignInScreen()),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(
@@ -124,9 +157,9 @@ class _CountrySelectionScreenState extends State<CountrySelectionScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'SAVE',
-                  style: TextStyle(
+                child: Text(
+                  AppLocalizations.of(context)!.saveButton,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),

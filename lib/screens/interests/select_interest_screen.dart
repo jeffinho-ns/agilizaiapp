@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:agilizaiapp/screens/location/select_location_screen.dart';
+import 'package:agilizaiapp/screens/main_screen.dart';
+import 'package:agilizaiapp/providers/user_profile_provider.dart';
+import 'package:agilizaiapp/services/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:agilizaiapp/screens/auth/signin_screen.dart'; // Added import for SignInScreen
 
 // Modelo para cada item de interesse
 class Interest {
@@ -22,15 +26,83 @@ class SelectInterestScreen extends StatefulWidget {
 }
 
 class _SelectInterestScreenState extends State<SelectInterestScreen> {
-  // Nossa lista de interesses. **ATUALIZE OS imagePath COM OS NOMES DOS SEUS ARQUIVOS!**
+  // Lista de interesses musicais brasileiros
   final List<Interest> _interests = [
-    Interest(name: 'Design', imagePath: 'assets/images/interest_design.png'),
-    Interest(name: 'Music', imagePath: 'assets/images/interest_music.png'),
-    Interest(name: 'Art', imagePath: 'assets/images/interest_art.png'),
-    Interest(name: 'Sports', imagePath: 'assets/images/interest_sport.png'),
-    Interest(name: 'Food', imagePath: 'assets/images/interest_food.png'),
-    Interest(name: 'Others', imagePath: 'assets/images/interest_others.png'),
+    Interest(name: 'Rock', imagePath: 'assets/images/interest_music.png'),
+    Interest(name: 'Pop', imagePath: 'assets/images/interest_music.png'),
+    Interest(name: 'MPB', imagePath: 'assets/images/interest_music.png'),
+    Interest(name: 'Funk', imagePath: 'assets/images/interest_music.png'),
+    Interest(name: 'Pagode', imagePath: 'assets/images/interest_music.png'),
+    Interest(name: 'Sertanejo', imagePath: 'assets/images/interest_music.png'),
+    Interest(name: 'Eletrônica', imagePath: 'assets/images/interest_music.png'),
+    Interest(name: 'Samba', imagePath: 'assets/images/interest_music.png'),
+    Interest(name: 'Black', imagePath: 'assets/images/interest_music.png'),
+    Interest(name: 'R&B', imagePath: 'assets/images/interest_music.png'),
   ];
+
+  final AuthService _authService = AuthService();
+
+  Future<void> _handleNext() async {
+    // Conta quantos interesses foram selecionados
+    final selectedCount =
+        _interests.where((interest) => interest.isSelected).length;
+
+    print('🎯 Interesses selecionados: $selectedCount');
+
+    if (selectedCount < 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Por favor, selecione pelo menos 3 estilos musicais"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      print('🔍 Buscando usuário atual...');
+
+      // Busca o usuário atual do AuthService
+      final currentUser = await _authService.getCurrentUser();
+
+      if (currentUser != null) {
+        print('✅ Usuário encontrado:');
+        print('   ID: ${currentUser.id}');
+        print('   Nome: ${currentUser.name}');
+        print('   Email: ${currentUser.email}');
+
+        // Atualiza o provider com o usuário atual
+        final userProvider =
+            Provider.of<UserProfileProvider>(context, listen: false);
+        userProvider.setUser(currentUser);
+
+        print('🔄 Atualizando provider e navegando para home...');
+
+        // Navega para a tela de login após selecionar os interesses
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const SignInScreen()),
+          (route) => false,
+        );
+      } else {
+        print('❌ Usuário não encontrado');
+        // Se não conseguir recuperar o usuário, mostra erro
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Erro ao recuperar dados do usuário"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Erro na tela de interesses: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erro: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +119,13 @@ class _SelectInterestScreenState extends State<SelectInterestScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Select Your 3 Interests',
+              'Selecione Seus 3 Estilos Musicais',
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Escolha os estilos que mais te interessam',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 30),
 
@@ -96,6 +173,7 @@ class _SelectInterestScreenState extends State<SelectInterestScreen> {
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
@@ -111,13 +189,7 @@ class _SelectInterestScreenState extends State<SelectInterestScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const SelectLocationScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: _handleNext,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF242A38),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -126,7 +198,7 @@ class _SelectInterestScreenState extends State<SelectInterestScreen> {
                     ),
                   ),
                   child: const Text(
-                    'NEXT',
+                    'CONTINUAR',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

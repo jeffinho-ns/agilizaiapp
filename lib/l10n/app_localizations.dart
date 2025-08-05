@@ -5,7 +5,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
 import 'app_localizations_pt.dart';
 
 // ignore_for_file: type=lint
@@ -94,314 +96,316 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('pt'),
     Locale('en'),
-    Locale('pt')
+    Locale('es'),
+    Locale('de')
   ];
 
   /// No description provided for @countrySelectionTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Country Selection'**
+  /// In pt, this message translates to:
+  /// **'Seleção de País'**
   String get countrySelectionTitle;
 
   /// No description provided for @findCountryHint.
   ///
-  /// In en, this message translates to:
-  /// **'Find Country'**
+  /// In pt, this message translates to:
+  /// **'Buscar País'**
   String get findCountryHint;
 
   /// No description provided for @saveButton.
   ///
-  /// In en, this message translates to:
-  /// **'SAVE'**
+  /// In pt, this message translates to:
+  /// **'SALVAR'**
   String get saveButton;
 
   /// No description provided for @hiWelcome.
   ///
-  /// In en, this message translates to:
-  /// **'Hi Welcome 👋'**
+  /// In pt, this message translates to:
+  /// **'Olá, Bem-vindo(a) 👋'**
   String get hiWelcome;
 
   /// No description provided for @loading.
   ///
-  /// In en, this message translates to:
-  /// **'Loading...'**
+  /// In pt, this message translates to:
+  /// **'Carregando...'**
   String get loading;
 
   /// No description provided for @currentLocation.
   ///
-  /// In en, this message translates to:
-  /// **'Current location'**
+  /// In pt, this message translates to:
+  /// **'Localização atual'**
   String get currentLocation;
 
   /// No description provided for @notDefined.
   ///
-  /// In en, this message translates to:
-  /// **'Not defined'**
+  /// In pt, this message translates to:
+  /// **'Não definida'**
   String get notDefined;
 
   /// No description provided for @findAmazingEvents.
   ///
-  /// In en, this message translates to:
-  /// **'Find amazing events'**
+  /// In pt, this message translates to:
+  /// **'Encontre eventos incríveis'**
   String get findAmazingEvents;
 
   /// No description provided for @popularEvents.
   ///
-  /// In en, this message translates to:
-  /// **'Popular Events 🔥'**
+  /// In pt, this message translates to:
+  /// **'Eventos Populares 🔥'**
   String get popularEvents;
 
   /// No description provided for @viewAll.
   ///
-  /// In en, this message translates to:
-  /// **'VIEW ALL'**
+  /// In pt, this message translates to:
+  /// **'VER TODOS'**
   String get viewAll;
 
   /// No description provided for @noPopularEventsFound.
   ///
-  /// In en, this message translates to:
-  /// **'No popular events found.'**
+  /// In pt, this message translates to:
+  /// **'Nenhum evento popular encontrado.'**
   String get noPopularEventsFound;
 
   /// No description provided for @chooseEventType.
   ///
-  /// In en, this message translates to:
-  /// **'Choose by Event Type ✨'**
+  /// In pt, this message translates to:
+  /// **'Escolha por Tipo de Evento ✨'**
   String get chooseEventType;
 
   /// No description provided for @uniqueEvents.
   ///
-  /// In en, this message translates to:
-  /// **'Unique Events'**
+  /// In pt, this message translates to:
+  /// **'Eventos Únicos'**
   String get uniqueEvents;
 
   /// No description provided for @weeklyEvents.
   ///
-  /// In en, this message translates to:
-  /// **'Weekly Events'**
+  /// In pt, this message translates to:
+  /// **'Eventos Semanais'**
   String get weeklyEvents;
 
   /// No description provided for @noEventsInCategory.
   ///
-  /// In en, this message translates to:
-  /// **'No events in category \"{categoryName}\".'**
+  /// In pt, this message translates to:
+  /// **'Nenhum evento na categoria \"{categoryName}\".'**
   String noEventsInCategory(String categoryName);
 
   /// No description provided for @eventDetailsButton.
   ///
-  /// In en, this message translates to:
-  /// **'DETAILS'**
+  /// In pt, this message translates to:
+  /// **'DETALHES'**
   String get eventDetailsButton;
 
   /// No description provided for @free.
   ///
-  /// In en, this message translates to:
-  /// **'Free'**
+  /// In pt, this message translates to:
+  /// **'Grátis'**
   String get free;
 
   /// No description provided for @notAvailable.
   ///
-  /// In en, this message translates to:
-  /// **'N/A'**
+  /// In pt, this message translates to:
+  /// **'N/D'**
   String get notAvailable;
 
   /// No description provided for @failToLoadImage.
   ///
-  /// In en, this message translates to:
-  /// **'Failed to load image'**
+  /// In pt, this message translates to:
+  /// **'Falha ao carregar imagem'**
   String get failToLoadImage;
 
   /// No description provided for @eventNameUndefined.
   ///
-  /// In en, this message translates to:
-  /// **'Undefined Name'**
+  /// In pt, this message translates to:
+  /// **'Nome Indefinido'**
   String get eventNameUndefined;
 
   /// No description provided for @locationUndefined.
   ///
-  /// In en, this message translates to:
-  /// **'Undefined Location'**
+  /// In pt, this message translates to:
+  /// **'Local Indefinido'**
   String get locationUndefined;
 
   /// No description provided for @dateUndefined.
   ///
-  /// In en, this message translates to:
-  /// **'Undefined Date'**
+  /// In pt, this message translates to:
+  /// **'Data Indefinida'**
   String get dateUndefined;
 
   /// No description provided for @timeUndefined.
   ///
-  /// In en, this message translates to:
-  /// **'Undefined Time'**
+  /// In pt, this message translates to:
+  /// **'Hora Indefinida'**
   String get timeUndefined;
 
   /// No description provided for @eventDescription.
   ///
-  /// In en, this message translates to:
-  /// **'Description'**
+  /// In pt, this message translates to:
+  /// **'Descrição'**
   String get eventDescription;
 
   /// No description provided for @noDescriptionAvailable.
   ///
-  /// In en, this message translates to:
-  /// **'No description available.'**
+  /// In pt, this message translates to:
+  /// **'Sem descrição disponível.'**
   String get noDescriptionAvailable;
 
   /// No description provided for @specialCombo.
   ///
-  /// In en, this message translates to:
-  /// **'Special Combo'**
+  /// In pt, this message translates to:
+  /// **'Combo Especial'**
   String get specialCombo;
 
   /// No description provided for @comboNotAvailable.
   ///
-  /// In en, this message translates to:
-  /// **'Combo not available'**
+  /// In pt, this message translates to:
+  /// **'Combo não disponível'**
   String get comboNotAvailable;
 
   /// No description provided for @location.
   ///
-  /// In en, this message translates to:
-  /// **'Location'**
+  /// In pt, this message translates to:
+  /// **'Localização'**
   String get location;
 
   /// No description provided for @mapUnavailable.
   ///
-  /// In en, this message translates to:
-  /// **'Map unavailable or network failure'**
+  /// In pt, this message translates to:
+  /// **'Mapa indisponível ou falha de rede'**
   String get mapUnavailable;
 
   /// No description provided for @amountOfPeople.
   ///
-  /// In en, this message translates to:
-  /// **'Amount of People'**
+  /// In pt, this message translates to:
+  /// **'Quantidade de Pessoas'**
   String get amountOfPeople;
 
   /// No description provided for @tablesNeeded.
   ///
-  /// In en, this message translates to:
-  /// **'Tables Needed (1 table per 6 people)'**
+  /// In pt, this message translates to:
+  /// **'Mesas Necessárias (1 mesa para 6 pessoas)'**
   String get tablesNeeded;
 
   /// No description provided for @tableSingular.
   ///
-  /// In en, this message translates to:
-  /// **'table'**
+  /// In pt, this message translates to:
+  /// **'mesa'**
   String get tableSingular;
 
   /// No description provided for @tablesPlural.
   ///
-  /// In en, this message translates to:
-  /// **'tables'**
+  /// In pt, this message translates to:
+  /// **'mesas'**
   String get tablesPlural;
 
   /// No description provided for @confirmReservation.
   ///
-  /// In en, this message translates to:
-  /// **'CONFIRM RESERVATION'**
+  /// In pt, this message translates to:
+  /// **'CONFIRMAR RESERVA'**
   String get confirmReservation;
 
   /// No description provided for @membersJoined.
   ///
-  /// In en, this message translates to:
-  /// **'Members joined'**
+  /// In pt, this message translates to:
+  /// **'Membros confirmados'**
   String get membersJoined;
 
   /// No description provided for @viewAllInvite.
   ///
-  /// In en, this message translates to:
-  /// **'VIEW ALL / INVITE'**
+  /// In pt, this message translates to:
+  /// **'VER TODOS / CONVIDAR'**
   String get viewAllInvite;
 
   /// No description provided for @eventOrganizer.
   ///
-  /// In en, this message translates to:
-  /// **'Event Organiser'**
+  /// In pt, this message translates to:
+  /// **'Organizador do Evento'**
   String get eventOrganizer;
 
   /// No description provided for @reservationFeatureToBeImplemented.
   ///
-  /// In en, this message translates to:
-  /// **'Reservation feature to be implemented!'**
+  /// In pt, this message translates to:
+  /// **'Funcionalidade de Reserva a ser implementada!'**
   String get reservationFeatureToBeImplemented;
 
   /// No description provided for @userNotIdentified.
   ///
-  /// In en, this message translates to:
-  /// **'User not identified. Please log in again.'**
+  /// In pt, this message translates to:
+  /// **'Usuário não identificado. Faça login novamente.'**
   String get userNotIdentified;
 
   /// No description provided for @eventHouseInfoNotFound.
   ///
-  /// In en, this message translates to:
-  /// **'Event house information not found.'**
+  /// In pt, this message translates to:
+  /// **'Informação da casa do evento não encontrada.'**
   String get eventHouseInfoNotFound;
 
   /// No description provided for @failedToConfirmReservation.
   ///
-  /// In en, this message translates to:
-  /// **'Failed to confirm reservation:'**
+  /// In pt, this message translates to:
+  /// **'Falha ao confirmar reserva:'**
   String get failedToConfirmReservation;
 
   /// No description provided for @reservationConfirmed.
   ///
-  /// In en, this message translates to:
-  /// **'Reservation confirmed!'**
+  /// In pt, this message translates to:
+  /// **'Reserva confirmada!'**
   String get reservationConfirmed;
 
   /// No description provided for @onboardingExploreTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Explore Upcoming and Nearby Events'**
+  /// In pt, this message translates to:
+  /// **'Explore Eventos Próximos e Futuros'**
   String get onboardingExploreTitle;
 
   /// No description provided for @onboardingExploreSubtitle.
   ///
-  /// In en, this message translates to:
-  /// **'In publishing and graphic design, Lorem is a placeholder text commonly'**
+  /// In pt, this message translates to:
+  /// **'No mundo da publicação e do design gráfico, Lorem Ipsum é um texto de preenchimento comumente usado.'**
   String get onboardingExploreSubtitle;
 
   /// No description provided for @onboardingCreateFindTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Create and Find Events Easily in One Place'**
+  /// In pt, this message translates to:
+  /// **'Crie e Encontre Eventos Facilmente em um Só Lugar'**
   String get onboardingCreateFindTitle;
 
   /// No description provided for @onboardingCreateFindSubtitle.
   ///
-  /// In en, this message translates to:
-  /// **'In this app you can create any kind of events and you can join all events.'**
+  /// In pt, this message translates to:
+  /// **'Neste aplicativo você pode criar qualquer tipo de evento e participar de todos os eventos.'**
   String get onboardingCreateFindSubtitle;
 
   /// No description provided for @onboardingWatchFreeTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Watching Free Concerts with Friends'**
+  /// In pt, this message translates to:
+  /// **'Assista a Shows Gratuitos com Amigos'**
   String get onboardingWatchFreeTitle;
 
   /// No description provided for @onboardingWatchFreeSubtitle.
   ///
-  /// In en, this message translates to:
-  /// **'Find and booking concert tickets near your invite your friends to watch together'**
+  /// In pt, this message translates to:
+  /// **'Encontre e reserve ingressos para shows perto de você e convide seus amigos para assistirem juntos.'**
   String get onboardingWatchFreeSubtitle;
 
   /// No description provided for @onboardingSkip.
   ///
-  /// In en, this message translates to:
-  /// **'Skip'**
+  /// In pt, this message translates to:
+  /// **'Pular'**
   String get onboardingSkip;
 
   /// No description provided for @onboardingNext.
   ///
-  /// In en, this message translates to:
-  /// **'Next'**
+  /// In pt, this message translates to:
+  /// **'Próximo'**
   String get onboardingNext;
 
   /// No description provided for @onboardingGetStarted.
   ///
-  /// In en, this message translates to:
-  /// **'Get Started'**
+  /// In pt, this message translates to:
+  /// **'Começar'**
   String get onboardingGetStarted;
 }
 
@@ -416,7 +420,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'pt'].contains(locale.languageCode);
+      <String>['de', 'en', 'es', 'pt'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -425,8 +429,12 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
     case 'pt':
       return AppLocalizationsPt();
   }

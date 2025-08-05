@@ -63,6 +63,19 @@ class PhoneService {
   /// Verifica se o código enviado está correto
   Future<bool> verifyCode(String telefone, String code) async {
     try {
+      print('🔍 Verificando código: $code para telefone: $telefone');
+
+      // MOCKADO: Aceita qualquer código de 4 dígitos para facilitar testes
+      if (code.length == 4 && RegExp(r'^\d{4}$').hasMatch(code)) {
+        print('✅ Código válido (mockado): $code');
+        return true;
+      }
+
+      print('❌ Código inválido: $code');
+      return false;
+
+      // CÓDIGO ORIGINAL (descomentar quando tiver serviço de WhatsApp):
+      /*
       final cleanTelefone = telefone.replaceAll(RegExp(r'[^\d]'), '');
       final savedCode = await _getVerificationCode(cleanTelefone);
 
@@ -72,8 +85,9 @@ class PhoneService {
         return true;
       }
       return false;
+      */
     } catch (e) {
-      print('Erro ao verificar código: $e');
+      print('❌ Erro ao verificar código: $e');
       return false;
     }
   }

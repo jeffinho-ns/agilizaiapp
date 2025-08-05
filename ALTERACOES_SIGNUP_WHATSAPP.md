@@ -1,126 +1,178 @@
-# 📱 Alterações na Tela de Signup - Telefone Integration
+# Alterações no Fluxo de Cadastro - Agilizaiapp
 
-## ✅ O que foi implementado
+## Problemas Identificados
 
-### 1. Tradução para Português
-- ✅ Título: "Sign up" → "Cadastro"
-- ✅ Subtítulo: "Create account and enjoy all services" → "Crie sua conta e aproveite todos os serviços"
-- ✅ Campo Nome: "Type your full name" → "Digite seu nome completo"
-- ✅ Campo Email: "Type your email" → "Digite seu email"
-- ✅ Campo CPF: "Type your CPF" → "Digite seu CPF"
-- ✅ Campo Senha: "Type your password" → "Digite sua senha"
-- ✅ Campo Confirmar Senha: "Type your confirm password" → "Confirme sua senha"
-- ✅ Botão: "SIGN UP" → "CADASTRAR"
-- ✅ Texto social: "or continue with" → "ou continue com"
-- ✅ Link login: "Already have an account?" → "Já tem uma conta?"
-- ✅ Link login: "Sign in" → "Entrar"
+1. **Fluxo de cadastro não funcionava corretamente**: Os dados não estavam sendo enviados devido a problemas na validação
+2. **Dependência da verificação por WhatsApp**: O cadastro dependia de um código de verificação que não estava funcionando
+3. **Navegação incorreta**: Após a tela de interesses, o usuário não ia para a tela de login
+4. **Tela de interesses em inglês**: Interface não estava traduzida para português
+5. **Interesses genéricos**: Não refletiam o foco musical do app
+6. **Erro de SQL no backend**: Column count doesn't match value count
 
-### 2. Campo Telefone Utilizado
-- ✅ Campo telefone existente com ícone de telefone
-- ✅ Validação de formato de telefone
-- ✅ Hint text: "(11) 99999-9999"
-- ✅ Keyboard type: phone
-- ✅ Validação obrigatória
+## Soluções Implementadas
 
-### 3. Integração com Telefone
-- ✅ Serviço PhoneService criado
-- ✅ Envio de código de verificação via telefone
-- ✅ Validação de código de 4 dígitos
-- ✅ Formatação automática do número
-- ✅ Validação de número válido
+### 1. Verificação WhatsApp Mockada
 
-### 4. Fluxo de Verificação
-- ✅ Tela de verificação atualizada
-- ✅ Tradução da tela de verificação
-- ✅ Integração com dados do usuário
-- ✅ Cadastro automático após verificação
-- ✅ Navegação para MainScreen após sucesso
+- **Arquivo**: `lib/services/phone_service.dart`
+- **Mudança**: Implementado sistema que aceita qualquer código de 4 dígitos
+- **Funcionalidade**: 
+  - Aceita qualquer código de 4 dígitos (ex: 1234, 0000, 9999)
+  - Mantém o fluxo original de verificação
+  - Facilita testes sem necessidade de serviço de WhatsApp
 
-## 🔧 Arquivos Modificados
+### 2. Fluxo Corrigido
 
-### 1. `lib/models/user_model.dart`
-- ✅ Adicionado campo `whatsapp`
-- ✅ Atualizado construtor
-- ✅ Atualizado fromJson/toJson
-- ✅ Atualizado copyWith
+- **Arquivo**: `lib/screens/auth/signup_screen.dart`
+- **Mudança**: Mantido o fluxo original com verificação
+- **Funcionalidade**:
+  - Signup → Verificação → Interesses → Login
+  - Dados mockados apenas para facilitar testes
+  - Validação básica dos campos mantida
 
-### 2. `lib/services/auth_service.dart`
-- ✅ Atualizado método signUp para incluir WhatsApp
-- ✅ Parâmetro whatsapp adicionado
+### 3. Tela de Verificação Melhorada
 
-### 3. `lib/services/phone_service.dart` (NOVO)
-- ✅ Serviço completo para telefone
-- ✅ Geração de código de verificação
-- ✅ Envio via API
-- ✅ Validação de código
-- ✅ Formatação de número
-- ✅ Validação de formato
+- **Arquivo**: `lib/screens/auth/verification_screen.dart`
+- **Mudança**: Adicionada mensagem informativa para testes
+- **Funcionalidade**:
+  - Mostra que qualquer código de 4 dígitos é válido
+  - Logs de debug para acompanhar o processo
+  - Navegação para tela de interesses após sucesso
 
-### 4. `lib/screens/auth/signup_screen.dart`
-- ✅ Tradução completa para português
-- ✅ Campo telefone utilizado
-- ✅ Validações melhoradas
-- ✅ Integração com PhoneService
-- ✅ Navegação para verificação
+### 4. Tela de Interesses Traduzida e Musical
 
-### 5. `lib/screens/auth/verification_screen.dart`
-- ✅ Parâmetros telefone e userData adicionados
-- ✅ Tradução para português
-- ✅ Integração com PhoneService
-- ✅ Cadastro automático após verificação
-- ✅ Loading states
+- **Arquivo**: `lib/screens/interests/select_interest_screen.dart`
+- **Mudança**: Traduzida para português e foco em estilos musicais
+- **Funcionalidade**:
+  - Título: "Selecione Seus 3 Estilos Musicais"
+  - Subtítulo: "Escolha os estilos que mais te interessam"
+  - Estilos musicais brasileiros: Rock, Pop, MPB, Funk, Pagode, Sertanejo, Eletrônica, Samba, Black, R&B
+  - Validação: "Por favor, selecione pelo menos 3 estilos musicais"
+  - Navegação para tela de login após seleção
 
-## 🚀 Fluxo de Cadastro Atualizado
+### 5. Navegação Corrigida
 
-1. **Usuário preenche formulário** (nome, email, CPF, telefone, senha)
-2. **Validações** são executadas
-3. **Código enviado** via WhatsApp
-4. **Tela de verificação** é exibida
-5. **Usuário digita código** recebido
-6. **Verificação** do código
-7. **Cadastro** automático no sistema
-8. **Navegação** para MainScreen
+- **Arquivo**: `lib/screens/interests/select_interest_screen.dart`
+- **Mudança**: Navegação para tela de login após seleção de interesses
+- **Funcionalidade**:
+  - Validação de pelo menos 3 estilos musicais selecionados
+  - Navegação para SignInScreen após seleção
+  - Login real é feito normalmente
 
-## 📋 Validações Implementadas
+### 6. AuthService Melhorado
 
-- ✅ Nome obrigatório
-- ✅ Email obrigatório
-- ✅ CPF obrigatório
-- ✅ Telefone obrigatório e válido
-- ✅ Senha e confirmação iguais
-- ✅ Formato de telefone válido (10-13 dígitos)
+- **Arquivo**: `lib/services/auth_service.dart`
+- **Mudança**: Logs detalhados e validação de campos
+- **Funcionalidade**:
+  - Validação de campos obrigatórios
+  - Logs detalhados para debug
+  - Ordem correta dos campos para o backend
+  - Tratamento de erros melhorado
 
-## 🔗 Endpoints da API
+### 7. Logs de Debug
 
-### Envio de Código Telefone
-```
-POST /api/phone/send-code
-{
-  "telefone": "11999999999",
-  "code": "1234",
-  "message": "Seu código de verificação do Agilizaiapp é: 1234"
-}
-```
+- **Arquivos**: Todos os arquivos modificados
+- **Funcionalidade**: Adicionados logs detalhados para facilitar debug
+- **Logs incluídos**:
+  - Processo de cadastro
+  - Verificação de código
+  - Validação de campos
+  - Resposta da API
+  - Navegação entre telas
 
-### Cadastro de Usuário
-```
-POST /api/users/
-{
-  "name": "Nome do Usuário",
-  "email": "email@exemplo.com",
-  "cpf": "12345678901",
-  "password": "senha123",
-  "telefone": "11999999999"
-}
+## Fluxo Atual
 
-## 🎯 Próximos Passos
+1. **Tela de Signup**:
+   - Usuário preenche formulário (ou deixa vazio para dados mockados)
+   - Validação básica dos campos
+   - Envio de código de verificação (mockado)
+   - Navegação para tela de verificação
 
-1. **Backend**: Implementar endpoint `/api/phone/send-code`
-2. **Testes**: Testar fluxo completo
-3. **UI/UX**: Ajustes finais na interface
-4. **Validações**: Melhorar validações de CPF e email
-5. **Segurança**: Implementar rate limiting para códigos
+2. **Tela de Verificação**:
+   - Usuário digita qualquer código de 4 dígitos
+   - Validação mockada aceita qualquer código
+   - Cadastro real do usuário
+   - Navegação para tela de interesses
 
----
+3. **Tela de Interesses**:
+   - Seleção de pelo menos 3 estilos musicais
+   - Navegação para tela de login
 
-**✅ Implementação concluída! O sistema agora suporta cadastro com verificação via telefone.** 
+4. **Tela de Login**:
+   - Usuário faz login real
+   - Token é gerado pelo backend
+   - Navegação para home
+
+## Estilos Musicais Disponíveis
+
+- **Rock**
+- **Pop**
+- **MPB** (Música Popular Brasileira)
+- **Funk**
+- **Pagode**
+- **Sertanejo**
+- **Eletrônica**
+- **Samba**
+- **Black**
+- **R&B**
+
+## Como Testar
+
+1. **Cadastro com dados reais**:
+   - Preencha todos os campos no formulário
+   - Clique em "CADASTRAR"
+   - Digite qualquer código de 4 dígitos (ex: 1234)
+   - Selecione 3 estilos musicais
+   - Vai para tela de login
+   - Faça login real
+
+2. **Cadastro com dados mockados**:
+   - Deixe os campos vazios
+   - Clique em "CADASTRAR"
+   - Digite qualquer código de 4 dígitos (ex: 0000)
+   - Selecione 3 estilos musicais
+   - Vai para tela de login
+   - Faça login real
+
+3. **Verificar logs**:
+   - Abra o console do Flutter
+   - Observe os logs com emojis
+   - Verifique se não há erros
+
+## Códigos de Teste Válidos
+
+Qualquer código de 4 dígitos é aceito:
+- `1234`
+- `0000`
+- `9999`
+- `5678`
+- etc.
+
+## Arquivos Modificados
+
+- `lib/screens/auth/signup_screen.dart`
+- `lib/services/phone_service.dart`
+- `lib/screens/auth/verification_screen.dart`
+- `lib/screens/interests/select_interest_screen.dart`
+- `lib/services/auth_service.dart`
+
+## Próximos Passos
+
+1. **Implementar serviço real de WhatsApp** quando contratado
+2. **Remover validação mockada** e usar verificação real
+3. **Adicionar validações mais robustas** nos campos
+4. **Implementar persistência dos interesses selecionados**
+5. **Criar ícones específicos** para cada estilo musical
+6. **Adicionar mais estilos musicais** se necessário
+7. **Corrigir erro de SQL** no backend (column count mismatch)
+
+## Observações
+
+- A verificação mockada é temporária e deve ser removida quando tiver serviço de WhatsApp
+- O sistema funciona offline graças ao cache local
+- Os logs facilitam o debug durante o desenvolvimento
+- O fluxo mantém a experiência original do usuário
+- Qualquer código de 4 dígitos é aceito para facilitar testes
+- A tela de interesses agora reflete o foco musical do app
+- As imagens dos estilos musicais usam placeholder temporário (interest_music.png)
+- O login real é feito após seleção dos interesses
+- O erro de SQL no backend precisa ser corrigido (column count mismatch) 

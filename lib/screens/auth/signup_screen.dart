@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:agilizaiapp/services/phone_service.dart';
 import 'package:agilizaiapp/screens/auth/verification_screen.dart';
 import 'package:agilizaiapp/services/auth_service.dart';
+import 'package:agilizaiapp/screens/interests/select_interest_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -19,13 +20,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _isVerifying = false;
 
-  // 2. Instancie o nosso novo serviço centralizado
+  // Instancie o nosso novo serviço centralizado
   final AuthService _authService = AuthService();
   final PhoneService _phoneService = PhoneService();
 
-  // 3. Função _handleSignUp agora está limpa e chama o serviço
+  // Função _handleSignUp agora está limpa e chama o serviço
   Future<void> _handleSignUp() async {
-    // Validações
+    // Validações básicas
     if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -83,8 +84,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _isVerifying = true);
 
     try {
-      // Envia código de verificação via telefone
-      await _phoneService.sendVerificationCode(_telefoneController.text);
+      print('🚀 Iniciando processo de cadastro...');
+
+      // DADOS MOCKADOS PARA TESTE - REMOVER EM PRODUÇÃO
+      final mockName = _nameController.text.isNotEmpty
+          ? _nameController.text
+          : "Usuário Teste";
+      final mockEmail = _emailController.text.isNotEmpty
+          ? _emailController.text
+          : "teste@email.com";
+      final mockCpf =
+          _cpfController.text.isNotEmpty ? _cpfController.text : "12345678901";
+      final mockTelefone = _telefoneController.text.isNotEmpty
+          ? _telefoneController.text
+          : "11999999999";
+      final mockPassword = _passwordController.text.isNotEmpty
+          ? _passwordController.text
+          : "123456";
+
+      print('📝 Dados para cadastro:');
+      print('   Nome: $mockName');
+      print('   Email: $mockEmail');
+      print('   CPF: $mockCpf');
+      print('   Telefone: $mockTelefone');
+
+      // Envia código de verificação via telefone (mockado)
+      await _phoneService.sendVerificationCode(mockTelefone);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -94,23 +119,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         );
 
+        print('🔄 Navegando para tela de verificação...');
+
         // Navega para a tela de verificação
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => VerificationScreen(
-              telefone: _telefoneController.text,
+              telefone: mockTelefone,
               userData: {
-                'name': _nameController.text,
-                'email': _emailController.text,
-                'cpf': _cpfController.text,
-                'telefone': _telefoneController.text,
-                'password': _passwordController.text,
+                'name': mockName,
+                'email': mockEmail,
+                'cpf': mockCpf,
+                'telefone': mockTelefone,
+                'password': mockPassword,
               },
             ),
           ),
         );
       }
     } catch (e) {
+      print('❌ Erro no cadastro: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -124,9 +152,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
     }
   }
-
-  // 4. Lembre-se que as funções _fetchAndSaveUserProfile e _saveCurrentUser
-  // foram removidas daqui, pois sua lógica agora está no AuthService.
 
   @override
   void dispose() {

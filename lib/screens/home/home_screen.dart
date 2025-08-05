@@ -20,6 +20,7 @@ import 'package:agilizaiapp/screens/bar/bar_details_screen.dart';
 
 import 'package:agilizaiapp/widgets/event_preview_sheet.dart';
 import 'package:agilizaiapp/services/event_service.dart'; // <--- NOVO: Importe o serviço de eventos
+import 'package:agilizaiapp/l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -234,8 +235,8 @@ class _HomeScreenState extends State<HomeScreen>
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  'Eventos Populares 🔥', // Traduzido
+                                Text(
+                                  AppLocalizations.of(context)!.popularEvents,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 18,
@@ -251,8 +252,8 @@ class _HomeScreenState extends State<HomeScreen>
                                       ),
                                     );
                                   },
-                                  child: const Text(
-                                    'VER TODOS', // Traduzido
+                                  child: Text(
+                                    AppLocalizations.of(context)!.viewAll,
                                     style: TextStyle(color: Colors.white70),
                                   ),
                                 ),
@@ -414,8 +415,8 @@ class _HomeScreenState extends State<HomeScreen>
                                           ),
                                         );
                                       },
-                                      child: const Text(
-                                        'VER TODOS',
+                                      child: Text(
+                                        AppLocalizations.of(context)!.viewAll,
                                       ),
                                     ),
                                   ],
@@ -549,8 +550,8 @@ class _HomeScreenState extends State<HomeScreen>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Olá, Bem-vindo(a) 👋',
+                    Text(
+                      AppLocalizations.of(context)!.hiWelcome,
                       style: TextStyle(color: Colors.white70),
                     ),
                     Text(
@@ -606,7 +607,7 @@ class _HomeScreenState extends State<HomeScreen>
                       );
                     },
                     decoration: InputDecoration(
-                      hintText: 'Encontre eventos incríveis',
+                      hintText: AppLocalizations.of(context)!.findAmazingEvents,
                       hintStyle: TextStyle(color: Colors.grey[400]),
                       prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
                       filled: true,

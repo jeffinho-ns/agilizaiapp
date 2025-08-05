@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/screens/country/country_selection_screen.dart';
+import 'package:agilizaiapp/l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -18,29 +19,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // --- Dados de Onboarding Traduzidos ---
-  final List<Map<String, String>> _onboardingData = [
-    {
-      "image": "assets/images/onboarding-1.png",
-      "title": "Explore Eventos Próximos e Futuros",
-      "subtitle":
-          "No mundo da publicação e do design gráfico, Lorem Ipsum é um texto de preenchimento comumente usado.",
-    },
-    {
-      "image":
-          "assets/images/onboarding-2.png", // **Verifique se o nome do arquivo está correto**
-      "title": "Crie e Encontre Eventos Facilmente em um Só Lugar",
-      "subtitle":
-          "Neste aplicativo você pode criar qualquer tipo de evento e participar de todos os eventos.",
-    },
-    {
-      "image":
-          "assets/images/onboarding-3.png", // **Verifique se o nome do arquivo está correto**
-      "title": "Assista a Shows Gratuitos com Amigos",
-      "subtitle":
-          "Encontre e reserve ingressos para shows perto de você e convide seus amigos para assistirem juntos.",
-    },
-  ];
+  // --- Dados de Onboarding com Traduções ---
+  List<Map<String, String>> _getOnboardingData(BuildContext context) {
+    return [
+      {
+        "image": "assets/images/onboarding-1.png",
+        "title": AppLocalizations.of(context)!.onboardingExploreTitle,
+        "subtitle": AppLocalizations.of(context)!.onboardingExploreSubtitle,
+      },
+      {
+        "image": "assets/images/onboarding-2.png",
+        "title": AppLocalizations.of(context)!.onboardingCreateFindTitle,
+        "subtitle": AppLocalizations.of(context)!.onboardingCreateFindSubtitle,
+      },
+      {
+        "image": "assets/images/onboarding-3.png",
+        "title": AppLocalizations.of(context)!.onboardingWatchFreeTitle,
+        "subtitle": AppLocalizations.of(context)!.onboardingWatchFreeSubtitle,
+      },
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,11 +51,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               padding: const EdgeInsets.symmetric(vertical: 20.0),
               child: Image.asset('assets/images/logo.png', height: 30),
             ),
-
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: _onboardingData.length,
+                itemCount: _getOnboardingData(context).length,
                 onPageChanged: (index) {
                   setState(() {
                     _currentPage = index;
@@ -65,11 +62,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
                 itemBuilder: (context, index) {
                   // Certifique-se de que os assets de imagem existem neste caminho
-                  return Image.asset(_onboardingData[index]['image']!);
+                  return Image.asset(
+                      _getOnboardingData(context)[index]['image']!);
                 },
               ),
             ),
-
             Container(
               padding: const EdgeInsets.all(32.0),
               decoration: const BoxDecoration(
@@ -82,7 +79,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Column(
                 children: [
                   Text(
-                    _onboardingData[_currentPage]['title']!,
+                    _getOnboardingData(context)[_currentPage]['title']!,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 24,
@@ -92,12 +89,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _onboardingData[_currentPage]['subtitle']!,
+                    _getOnboardingData(context)[_currentPage]['subtitle']!,
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 14, color: Colors.white70),
                   ),
                   const SizedBox(height: 40),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -105,15 +101,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       TextButton(
                         onPressed:
                             _goToNextScreen, // Pula direto para a próxima tela
-                        child: const Text(
-                          'Pular', // Traduzido
-                          style: TextStyle(color: Colors.white),
+                        child: Text(
+                          AppLocalizations.of(context)!.onboardingSkip,
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
 
                       Row(
                         children: List.generate(
-                          _onboardingData.length,
+                          _getOnboardingData(context).length,
                           (index) => buildDot(index),
                         ),
                       ),
@@ -122,7 +118,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       TextButton(
                         onPressed: () {
                           // Se não for a última página, avança
-                          if (_currentPage < _onboardingData.length - 1) {
+                          if (_currentPage <
+                              _getOnboardingData(context).length - 1) {
                             _pageController.nextPage(
                               duration: const Duration(milliseconds: 400),
                               curve: Curves.easeInOut,
@@ -134,9 +131,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         },
                         // O texto do botão muda na última página
                         child: Text(
-                          _currentPage == _onboardingData.length - 1
-                              ? 'Começar' // Traduzido
-                              : 'Próximo', // Traduzido
+                          _currentPage == _getOnboardingData(context).length - 1
+                              ? AppLocalizations.of(context)!
+                                  .onboardingGetStarted
+                              : AppLocalizations.of(context)!.onboardingNext,
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
