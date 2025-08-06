@@ -134,11 +134,12 @@ class BirthdayReservationModel {
 
   factory BirthdayReservationModel.fromJson(Map<String, dynamic> json) {
     return BirthdayReservationModel(
-      id: json['id'],
-      userId: json['user_id'],
+      id: (json['id'] as num?)?.toInt(),
+      userId: (json['user_id'] as num?)?.toInt() ?? 0,
       aniversarianteNome: json['aniversariante_nome'],
       dataAniversario: DateTime.parse(json['data_aniversario']),
-      quantidadeConvidados: json['quantidade_convidados'],
+      quantidadeConvidados:
+          (json['quantidade_convidados'] as num?)?.toInt() ?? 1,
       barSelecionado: json['id_casa_evento'],
       decoracaoTipo: json['decoracao_tipo'],
       painelPersonalizado: json['painel_personalizado'] == 1,

@@ -1,11 +1,14 @@
 // lib/services/reservation_service.dart
 
+import 'dart:convert';
 import 'package:agilizaiapp/models/reservation_model.dart';
 import 'package:agilizaiapp/models/guest_model.dart'; // Necessário para ReservationModel
 import 'package:agilizaiapp/models/brinde_model.dart'; // Necessário para ReservationModel
 import 'package:agilizaiapp/models/birthday_reservation_model.dart'; // Adicionar import
+import 'package:agilizaiapp/models/user_model.dart'; // Necessário para buscar usuário logado
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ReservationService {
   final String _baseUrl = 'https://vamos-comemorar-api.onrender.com/api';
@@ -62,18 +65,57 @@ class ReservationService {
     }
   }
 
-  // Método para buscar todas as reservas do usuário (GET /api/reservas)
+  // Método para buscar apenas as reservas do usuário logado
   Future<List<Reservation>> fetchAllUserReservations() async {
     try {
+      // Primeiro, obtém o usuário logado
+      final prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('currentUser');
+
+      if (userJson == null) {
+        throw Exception('Usuário não logado');
+      }
+
+      final user = User.fromJson(jsonDecode(userJson));
+      final userId = user.id;
+      final userEmail = user.email;
+
+      // Busca todas as reservas da API
       final response = await _dio.get(
         '$_baseUrl/reservas',
         options: await _getAuthHeaders(),
       );
+
       if (response.statusCode == 200) {
         final List<dynamic> reservationData = response.data;
-        return reservationData
-            .map((json) => Reservation.fromJson(json))
-            .toList();
+        final allReservations =
+            reservationData.map((json) => Reservation.fromJson(json)).toList();
+
+        // Filtra apenas as reservas do usuário logado usando email
+        final userReservations = allReservations.where((reservation) {
+          return reservation.userEmail == userEmail;
+        }).toList();
+
+        // Ordena as reservas: primeiro as que têm convidados com status PENDENTE, depois as demais
+        userReservations.sort((a, b) {
+          // Verifica se a reserva A tem convidados com status PENDENTE
+          final aHasPendingGuests = a.convidados
+                  ?.any((guest) => guest.status?.toUpperCase() == 'PENDENTE') ??
+              false;
+
+          // Verifica se a reserva B tem convidados com status PENDENTE
+          final bHasPendingGuests = b.convidados
+                  ?.any((guest) => guest.status?.toUpperCase() == 'PENDENTE') ??
+              false;
+
+          if (aHasPendingGuests && !bHasPendingGuests)
+            return -1; // a vem primeiro
+          if (!aHasPendingGuests && bHasPendingGuests)
+            return 1; // b vem primeiro
+          return 0; // mesma prioridade
+        });
+
+        return userReservations;
       } else {
         throw Exception(
             'Falha ao carregar reservas: Status ${response.statusCode}');
@@ -216,18 +258,49 @@ class ReservationService {
     }
   }
 
-  // Método para buscar todas as reservas de aniversário do usuário (GET /api/birthday-reservations)
+  // Método para buscar apenas as reservas de aniversário do usuário logado
   Future<List<BirthdayReservationModel>> fetchAllBirthdayReservations() async {
     try {
+      // Primeiro, obtém o usuário logado
+      final prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('currentUser');
+
+      if (userJson == null) {
+        throw Exception('Usuário não logado');
+      }
+
+      final user = User.fromJson(jsonDecode(userJson));
+      final userId = user.id;
+      final userEmail = user.email;
+
+      // Busca todas as reservas de aniversário da API
       final response = await _dio.get(
         '$_baseUrl/birthday-reservations',
         options: await _getAuthHeaders(),
       );
+
       if (response.statusCode == 200) {
         final List<dynamic> reservationData = response.data;
-        return reservationData
+        final allReservations = reservationData
             .map((json) => BirthdayReservationModel.fromJson(json))
             .toList();
+
+        // Filtra apenas as reservas de aniversário do usuário logado
+        final userReservations = allReservations.where((reservation) {
+          return reservation.userId == userId;
+        }).toList();
+
+        // Ordena as reservas de aniversário: primeiro as pendentes, depois as demais
+        userReservations.sort((a, b) {
+          final aIsPending = a.status?.toUpperCase() == 'PENDENTE';
+          final bIsPending = b.status?.toUpperCase() == 'PENDENTE';
+
+          if (aIsPending && !bIsPending) return -1; // a vem primeiro
+          if (!aIsPending && bIsPending) return 1; // b vem primeiro
+          return 0; // mesma prioridade
+        });
+
+        return userReservations;
       } else {
         throw Exception(
             'Falha ao carregar reservas de aniversário: Status ${response.statusCode}');

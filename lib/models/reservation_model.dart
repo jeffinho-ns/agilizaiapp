@@ -77,7 +77,11 @@ class Reservation {
 
     return Reservation(
       id: (json['id'] as num?)?.toInt() ?? 0,
-      userId: (json['user_id'] as num?)?.toInt() ?? 0,
+      userId: (json['user_id'] as num?)?.toInt() ??
+          (json['userId'] as num?)?.toInt() ??
+          (json['user_id'] as int?) ??
+          (json['userId'] as int?) ??
+          0,
       eventId: (json['evento_id'] as num?)?.toInt(),
       tipoReserva:
           json['brinde'] as String?, // API retorna 'brinde' para tipo_reserva

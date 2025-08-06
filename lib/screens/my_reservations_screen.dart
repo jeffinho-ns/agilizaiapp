@@ -51,22 +51,12 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
     setState(() {
       _reservationsFuture = _reservationService.fetchAllUserReservations();
     });
-    _reservationsFuture.then((reservas) {
-      print('Reservas carregadas: $reservas');
-    }).catchError((error) {
-      print('Erro ao carregar reservas no THEN: $error');
-    });
   }
 
   void _fetchBirthdayReservations() {
     setState(() {
       _birthdayReservationsFuture =
           _reservationService.fetchAllBirthdayReservations();
-    });
-    _birthdayReservationsFuture.then((reservas) {
-      print('Reservas de aniversário carregadas: ${reservas.length}');
-    }).catchError((error) {
-      print('Erro ao carregar reservas de aniversário: $error');
     });
   }
 
@@ -519,14 +509,16 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
                         onTap: () {
                           Navigator.of(context)
                               .push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      ReservationDetailsScreen(
-                                    reservationId: reservation.id,
-                                  ),
-                                ),
-                              )
-                              .then((_) => _fetchReservations());
+                            MaterialPageRoute(
+                              builder: (context) => ReservationDetailsScreen(
+                                reservationId: reservation.id,
+                              ),
+                            ),
+                          )
+                              .then((_) {
+                            _fetchReservations();
+                            _fetchBirthdayReservations();
+                          });
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),

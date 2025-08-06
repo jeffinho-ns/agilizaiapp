@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:agilizaiapp/screens/onboarding/onboarding_screen.dart';
 import 'package:agilizaiapp/screens/main_screen.dart';
-import 'package:agilizaiapp/main.dart'; // Importe para ter acesso ao mainScreenKey se ela estiver lá
-import 'dart:async'; // Importe a biblioteca async para usar Completer
+import 'package:agilizaiapp/main.dart';
+import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -67,20 +67,19 @@ class _SplashScreenState extends State<SplashScreen> {
             ? Image.asset(
                 'assets/images/logo.gif',
                 gaplessPlayback: true,
-                frameBuilder:
-                    (
-                      BuildContext context,
-                      Widget child,
-                      int? frame,
-                      bool wasSynchronouslyLoaded,
-                    ) {
-                      if (wasSynchronouslyLoaded || frame != null) {
-                        if (!_gifCompleter.isCompleted) {
-                          _gifCompleter.complete();
-                        }
-                      }
-                      return child;
-                    },
+                frameBuilder: (
+                  BuildContext context,
+                  Widget child,
+                  int? frame,
+                  bool wasSynchronouslyLoaded,
+                ) {
+                  if (wasSynchronouslyLoaded || frame != null) {
+                    if (!_gifCompleter.isCompleted) {
+                      _gifCompleter.complete();
+                    }
+                  }
+                  return child;
+                },
               )
             : Container(),
       ),
