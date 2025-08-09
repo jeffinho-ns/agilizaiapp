@@ -133,10 +133,31 @@ class BirthdayReservationModel {
   }
 
   factory BirthdayReservationModel.fromJson(Map<String, dynamic> json) {
+    // Debug para verificar o userId sendo recebido
+    print(
+        'DEBUG - JSON userId: ${json['user_id']} (tipo: ${json['user_id'].runtimeType})');
+
+    // Conversão mais robusta do userId
+    int parseUserId() {
+      final userIdValue = json['user_id'];
+      if (userIdValue == null) return 0;
+
+      if (userIdValue is int) return userIdValue;
+      if (userIdValue is double) return userIdValue.toInt();
+      if (userIdValue is String) {
+        final parsed = int.tryParse(userIdValue);
+        return parsed ?? 0;
+      }
+      return 0;
+    }
+
+    final userId = parseUserId();
+    print('DEBUG - userId convertido: $userId');
+
     return BirthdayReservationModel(
       id: (json['id'] as num?)?.toInt(),
-      userId: (json['user_id'] as num?)?.toInt() ?? 0,
-      aniversarianteNome: json['aniversariante_nome'],
+      userId: userId,
+      aniversarianteNome: json['aniversariante_nome'] ?? '',
       dataAniversario: DateTime.parse(json['data_aniversario']),
       quantidadeConvidados:
           (json['quantidade_convidados'] as num?)?.toInt() ?? 1,

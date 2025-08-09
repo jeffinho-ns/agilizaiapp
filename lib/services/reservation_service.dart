@@ -2,8 +2,6 @@
 
 import 'dart:convert';
 import 'package:agilizaiapp/models/reservation_model.dart';
-import 'package:agilizaiapp/models/guest_model.dart'; // Necessário para ReservationModel
-import 'package:agilizaiapp/models/brinde_model.dart'; // Necessário para ReservationModel
 import 'package:agilizaiapp/models/birthday_reservation_model.dart'; // Adicionar import
 import 'package:agilizaiapp/models/user_model.dart'; // Necessário para buscar usuário logado
 import 'package:dio/dio.dart';
@@ -77,7 +75,6 @@ class ReservationService {
       }
 
       final user = User.fromJson(jsonDecode(userJson));
-      final userId = user.id;
       final userEmail = user.email;
 
       // Busca todas as reservas da API
@@ -273,6 +270,8 @@ class ReservationService {
       final userId = user.id;
       final userEmail = user.email;
 
+      print('DEBUG - Usuário logado ID: $userId, Email: $userEmail');
+
       // Busca todas as reservas de aniversário da API
       final response = await _dio.get(
         '$_baseUrl/birthday-reservations',
@@ -281,14 +280,35 @@ class ReservationService {
 
       if (response.statusCode == 200) {
         final List<dynamic> reservationData = response.data;
+        print(
+            'DEBUG - Total de reservas de aniversário encontradas: ${reservationData.length}');
+
         final allReservations = reservationData
             .map((json) => BirthdayReservationModel.fromJson(json))
             .toList();
 
+        // Debug: imprimir todos os userIds das reservas
+        for (int i = 0; i < allReservations.length; i++) {
+          final reservation = allReservations[i];
+          print(
+              'DEBUG - Reserva $i: userId=${reservation.userId}, aniversariante=${reservation.aniversarianteNome}');
+        }
+
         // Filtra apenas as reservas de aniversário do usuário logado
+        // Verifica tanto por userId quanto por email (dupla verificação)
         final userReservations = allReservations.where((reservation) {
-          return reservation.userId == userId;
+          bool matchesUserId = reservation.userId == userId;
+          bool matchesEmail =
+              reservation.email != null && reservation.email == userEmail;
+
+          print(
+              'DEBUG - Checando reserva: userId=${reservation.userId} == $userId? $matchesUserId, email=${reservation.email} == $userEmail? $matchesEmail');
+
+          return matchesUserId || matchesEmail;
         }).toList();
+
+        print(
+            'DEBUG - Reservas filtradas para o usuário: ${userReservations.length}');
 
         // Ordena as reservas de aniversário: primeiro as pendentes, depois as demais
         userReservations.sort((a, b) {
