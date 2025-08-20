@@ -340,17 +340,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (responseData['success'] == true) {
           print('🎯 Dados de resposta: $responseData');
           
-          // IMPORTANTE: O Next.js recebe apenas o filename e constrói a URL
-          // Nós faremos o mesmo aqui
+          // IMPORTANTE: Como no Next.js, recebemos o filename e construímos a URL
           final filename = responseData['filename'];
-          final baseUrl = 'https://grupoideiaum.com.br/cardapio-agilizaiapp/';
-          final fullUrl = '$baseUrl$filename';
           
-          print('🔗 URL construída: $fullUrl');
+          print('📁 Filename recebido: $filename');
           
           return {
-            'filename': filename, // Apenas o nome do arquivo para o banco
-            'url': fullUrl, // URL completa para exibição
+            'filename': filename, // Apenas o nome do arquivo para o banco (como no Next.js)
+            'url': filename, // Para compatibilidade, mas não será usado
           };
         } else {
           print('❌ Resposta não indica sucesso: $responseData');
