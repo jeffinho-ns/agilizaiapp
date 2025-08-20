@@ -209,6 +209,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
+    // Se uma nova imagem foi selecionada, fazer upload para o FTP primeiro
+    String? uploadedImageFilename;
+    if (_imageFile != null) {
+      try {
+        final uploadResult = await _uploadProfilePhotoToFTP(token);
+        if (uploadResult != null) {
+          uploadedImageFilename = uploadResult['filename'];
+          print('✅ Foto de perfil enviada para FTP: $uploadedImageFilename');
+        } else {
+          _showSnackBar('Erro ao fazer upload da foto de perfil');
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
+      } catch (e) {
+        _showSnackBar('Erro ao fazer upload da foto de perfil: $e');
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+    }
+
     final uri = Uri.parse(
       'https://vamos-comemorar-api.onrender.com/api/users/me',
     );
@@ -237,18 +261,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     request.fields['cidade'] = _cidadeController.text;
     request.fields['estado'] = _estadoController.text;
     request.fields['complemento'] = _complementoController.text;
-    // Campos como 'role' e 'provider' geralmente não são editáveis pelo usuário comum.
-    // Se fossem, seriam adicionados aqui também.
 
-    // Adiciona a foto de perfil se uma nova foi selecionada
-    if (_imageFile != null) {
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'foto_perfil', // Este nome deve corresponder ao 'upload.single('foto_perfil')' na sua API
-          _imageFile!.path,
-          filename: _imageFile!.path.split('/').last,
-        ),
-      );
+    // Adiciona a foto de perfil se uma nova foi enviada para o FTP
+    if (uploadedImageFilename != null) {
+      request.fields['foto_perfil'] = uploadedImageFilename;
     }
 
     try {
@@ -281,6 +297,88 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  // Função para fazer upload da foto de perfil para o FTP
+  Future<Map<String, String>?> _uploadProfilePhotoToFTP(String token) async {
+    try {
+      print('🚀 Iniciando upload FTP da foto de perfil...');
+      print('📁 Caminho da imagem: ${_imageFile!.path}');
+      print('🔑 Token: ${token.substring(0, 20)}...');
+      
+      // Usar a mesma rota que o Next.js usa para upload de imagens
+      final uri = Uri.parse(
+        'https://vamos-comemorar-api.onrender.com/api/images/upload',
+      );
+      print('🌐 URL de upload: $uri');
+
+      final request = http.MultipartRequest('POST', uri);
+      request.headers['Authorization'] = 'Bearer $token';
+      print('📤 Headers configurados');
+
+      // IMPORTANTE: Usar o campo 'image' como no Next.js, não 'foto_perfil'
+      final multipartFile = await http.MultipartFile.fromPath(
+        'image', // Campo correto usado pelo Next.js
+        _imageFile!.path,
+        filename: _imageFile!.path.split('/').last,
+      );
+      request.files.add(multipartFile);
+      print('📎 Arquivo adicionado ao request: ${multipartFile.filename}');
+
+      // Adicionar campos adicionais como no Next.js
+      request.fields['type'] = 'profile_photo';
+      request.fields['entityType'] = 'user';
+
+      print('📤 Enviando request para o servidor...');
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      print('📥 Resposta recebida: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        print('✅ Upload bem-sucedido! Resposta: ${response.body}');
+        final responseData = json.decode(response.body);
+        if (responseData['success'] == true) {
+          print('🎯 Dados de resposta: $responseData');
+          
+          // IMPORTANTE: O Next.js recebe apenas o filename e constrói a URL
+          // Nós faremos o mesmo aqui
+          final filename = responseData['filename'];
+          final baseUrl = 'https://grupoideiaum.com.br/cardapio-agilizaiapp/';
+          final fullUrl = '$baseUrl$filename';
+          
+          print('🔗 URL construída: $fullUrl');
+          
+          return {
+            'filename': filename, // Apenas o nome do arquivo para o banco
+            'url': fullUrl, // URL completa para exibição
+          };
+        } else {
+          print('❌ Resposta não indica sucesso: $responseData');
+        }
+      } else {
+        print('❌ Erro no upload FTP: ${response.statusCode}');
+        print('📄 Corpo da resposta: ${response.body}');
+      }
+
+      print('❌ Falha no upload FTP: ${response.statusCode} ${response.body}');
+      return null;
+    } catch (e) {
+      print('💥 Exceção no upload FTP: $e');
+      print('📚 Stack trace: ${StackTrace.current}');
+      return null;
+    }
+  }
+
+  // Função para obter o provider de imagem de perfil
+  ImageProvider _getProfileImageProvider(String fotoPerfil) {
+    // Se já é uma URL completa, usa diretamente
+    if (fotoPerfil.startsWith('http://') || fotoPerfil.startsWith('https://')) {
+      return NetworkImage(fotoPerfil);
+    }
+
+    // Se é apenas o nome do arquivo, constrói a URL FTP
+    const baseUrl = 'https://grupoideiaum.com.br/cardapio-agilizaiapp/';
+    return NetworkImage('$baseUrl$fotoPerfil');
   }
 
   // Função para fazer logout
@@ -382,7 +480,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       as ImageProvider<Object>
                                   : (_currentUser?.fotoPerfil != null &&
                                           _currentUser!.fotoPerfil!.isNotEmpty
-                                      ? NetworkImage(_currentUser!.fotoPerfil!)
+                                      ? _getProfileImageProvider(
+                                              _currentUser!.fotoPerfil!)
                                           as ImageProvider<Object>
                                       : const AssetImage(
                                           'assets/images/default_avatar.png',

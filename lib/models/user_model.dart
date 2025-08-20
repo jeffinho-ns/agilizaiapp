@@ -52,9 +52,9 @@ class User {
           rawFotoPerfil.startsWith('https://')) {
         finalFotoPerfilUrl = rawFotoPerfil; // Já é a URL completa
       } else {
-        // Se for apenas o nome do arquivo, constrói a URL completa
+        // Se for apenas o nome do arquivo, constrói a URL FTP
         finalFotoPerfilUrl =
-            'https://vamos-comemorar-api.onrender.com/uploads/$rawFotoPerfil';
+            'https://grupoideiaum.com.br/cardapio-agilizaiapp/$rawFotoPerfil';
       }
     }
 
