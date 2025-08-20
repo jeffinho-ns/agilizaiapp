@@ -1,6 +1,6 @@
 // lib/models/user_model.dart
 
-import 'package:flutter/material.dart'; // Import necessário para o `const` no construtor
+// Import necessário para o `const` no construtor
 
 class User {
   final int id;

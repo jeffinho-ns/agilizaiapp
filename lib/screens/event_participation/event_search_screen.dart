@@ -264,7 +264,7 @@ class _EventSearchScreenState extends State<EventSearchScreen> {
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                   Text(
-                    '${event.localDoEvento ?? ''}',
+                    event.localDoEvento ?? '',
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                   Text(

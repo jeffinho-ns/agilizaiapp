@@ -187,9 +187,9 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
 
                   // Descrição
                   if (place.description != null) ...[
-                    Text(
+                    const Text(
                       'Sobre',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -243,9 +243,9 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
 
                   // Amenidades
                   if (place.commodities.isNotEmpty) ...[
-                    Text(
+                    const Text(
                       'Serviços Disponíveis',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),

@@ -296,7 +296,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       Provider.of<UserProfileProvider>(
         context,
         listen: false,
-      ).setUser(User(id: 0, name: '', email: ''));
+      ).setUser(const User(id: 0, name: '', email: ''));
 
       // Redireciona para a SplashScreen e remove todas as rotas anteriores
       Navigator.of(context).pushAndRemoveUntil(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:agilizaiapp/screens/main_screen.dart';
 import 'package:agilizaiapp/providers/user_profile_provider.dart';
 import 'package:agilizaiapp/services/auth_service.dart';
 import 'package:provider/provider.dart';

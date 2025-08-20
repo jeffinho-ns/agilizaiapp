@@ -181,7 +181,7 @@ class _BarDetailsScreenState extends State<BarDetailsScreen> {
                   if (widget.bar.hasCoordinates) ...[
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Container(
+                      child: SizedBox(
                         height: 200,
                         child: GoogleMap(
                           initialCameraPosition: CameraPosition(

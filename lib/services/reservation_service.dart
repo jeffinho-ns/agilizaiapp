@@ -105,10 +105,12 @@ class ReservationService {
                   ?.any((guest) => guest.status?.toUpperCase() == 'PENDENTE') ??
               false;
 
-          if (aHasPendingGuests && !bHasPendingGuests)
+          if (aHasPendingGuests && !bHasPendingGuests) {
             return -1; // a vem primeiro
-          if (!aHasPendingGuests && bHasPendingGuests)
+          }
+          if (!aHasPendingGuests && bHasPendingGuests) {
             return 1; // b vem primeiro
+          }
           return 0; // mesma prioridade
         });
 
@@ -198,7 +200,7 @@ class ReservationService {
   Future<void> rejectReserve(int id) async {
     try {
       final response = await _dio.patch(
-        '$_baseUrl/reservas/${id}/reject',
+        '$_baseUrl/reservas/$id/reject',
         options: await _getAuthHeaders(),
       );
       if (response.statusCode != 200) {

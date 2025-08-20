@@ -417,7 +417,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       print('Erro ao geocodificar "${widget.event.localDoEvento}": $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Não foi possível exibir a localização do evento.'),
             backgroundColor: Colors.orange,
           ),

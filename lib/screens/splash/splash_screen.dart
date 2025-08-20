@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:agilizaiapp/screens/onboarding/onboarding_screen.dart';
 import 'package:agilizaiapp/screens/main_screen.dart';
-import 'package:agilizaiapp/main.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {

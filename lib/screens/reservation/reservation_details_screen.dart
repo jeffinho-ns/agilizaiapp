@@ -90,15 +90,6 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
 
   // Lógica para o self check-in do convidado
   Future<void> _selfCheckIn(Guest guest) async {
-    if (guest.id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('ID do convidado inválido.'),
-            backgroundColor: Colors.red),
-      );
-      return;
-    }
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -115,7 +106,7 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
       }
 
       final response = await _eventService.selfCheckInGuest(
-        guest.id!, // Usar guest.id! porque já verificamos se não é null
+        guest.id, // Usar guest.id! porque já verificamos se não é null
         position.latitude,
         position.longitude,
       );
@@ -445,8 +436,7 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
                               const SizedBox(height: 10),
 
                               // Exibir QR Code para CADA convidado
-                              if (guest.qrCode != null &&
-                                  guest.qrCode!.isNotEmpty)
+                              if (guest.qrCode.isNotEmpty)
                                 Center(
                                   child: Container(
                                     padding: const EdgeInsets.all(8.0),
@@ -457,7 +447,7 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
                                           Border.all(color: Colors.grey[300]!),
                                     ),
                                     child: QrImageView(
-                                      data: guest.qrCode!,
+                                      data: guest.qrCode,
                                       version: QrVersions.auto,
                                       size: 150.0,
                                       gapless: true,

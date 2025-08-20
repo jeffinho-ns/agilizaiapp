@@ -189,8 +189,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             );
                           }
 
-                          if (eventsForDay.isEmpty)
+                          if (eventsForDay.isEmpty) {
                             return const SizedBox.shrink();
+                          }
 
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +203,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       _showEventPreview(context, event),
                                   child: EventTimelineTile(event: event),
                                 );
-                              }).toList(),
+                              }),
                             ],
                           );
                         },

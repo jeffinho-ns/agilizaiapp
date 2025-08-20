@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:agilizaiapp/services/phone_service.dart';
 import 'package:agilizaiapp/screens/auth/verification_screen.dart';
 import 'package:agilizaiapp/services/auth_service.dart';
-import 'package:agilizaiapp/screens/interests/select_interest_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});

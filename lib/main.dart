@@ -5,7 +5,6 @@ import 'package:agilizaiapp/screens/event_participation/event_participation_form
 import 'package:agilizaiapp/screens/home/home_screen.dart';
 import 'package:agilizaiapp/screens/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:agilizaiapp/l10n/app_localizations.dart';
 import 'package:agilizaiapp/screens/event/event_details_screen.dart';
 import 'package:agilizaiapp/screens/main_screen.dart';

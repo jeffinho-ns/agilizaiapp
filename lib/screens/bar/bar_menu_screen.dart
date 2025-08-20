@@ -449,10 +449,10 @@ class BarMenuScreen extends StatefulWidget {
   final Color appBarColor;
 
   const BarMenuScreen({
-    Key? key,
+    super.key,
     required this.barId, // Agora espera barId
     this.appBarColor = Colors.deepPurple,
-  }) : super(key: key);
+  });
 
   @override
   State<BarMenuScreen> createState() => _BarMenuScreenState();

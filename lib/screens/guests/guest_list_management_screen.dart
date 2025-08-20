@@ -82,15 +82,6 @@ class _GuestListManagementScreenState extends State<GuestListManagementScreen> {
   }
 
   Future<void> _selfCheckIn(Guest guest) async {
-    if (guest.id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('ID do convidado inválido.'),
-            backgroundColor: Colors.red),
-      );
-      return;
-    }
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -243,25 +234,25 @@ class _GuestListManagementScreenState extends State<GuestListManagementScreen> {
                   ),
                 );
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(
+                return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.people_outline,
                         size: 64,
                         color: Colors.grey,
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
+                      SizedBox(height: 16),
+                      Text(
                         'Nenhuma reserva encontrada',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
+                      SizedBox(height: 8),
+                      Text(
                         'Ainda não há reservas para este evento.',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.grey),
@@ -375,7 +366,7 @@ class _GuestListManagementScreenState extends State<GuestListManagementScreen> {
                                         )
                                       : null,
                                 );
-                              }).toList()
+                              })
                             else
                               const Padding(
                                 padding: EdgeInsets.all(16.0),

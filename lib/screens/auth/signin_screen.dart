@@ -1,4 +1,3 @@
-import 'package:agilizaiapp/models/user_model.dart';
 import 'package:agilizaiapp/screens/auth/reset_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/screens/auth/signup_screen.dart';

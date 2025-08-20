@@ -1,6 +1,5 @@
 // lib/models/brinde_model.dart
 
-import 'package:flutter/material.dart';
 
 class Brinde {
   final int id;

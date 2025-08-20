@@ -81,7 +81,7 @@ class _AppDrawerState extends State<AppDrawer> {
       Provider.of<UserProfileProvider>(
         context,
         listen: false,
-      ).setUser(User(id: 0, name: '', email: ''));
+      ).setUser(const User(id: 0, name: '', email: ''));
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const SplashScreen()),

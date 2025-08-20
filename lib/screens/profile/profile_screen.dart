@@ -113,15 +113,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Helper para formatar o endereço
   String _formatAddress(User user) {
     List<String> parts = [];
-    if (user.endereco != null && user.endereco!.isNotEmpty)
+    if (user.endereco != null && user.endereco!.isNotEmpty) {
       parts.add(user.endereco!);
+    }
     if (user.numero != null && user.numero!.isNotEmpty) parts.add(user.numero!);
     if (user.bairro != null && user.bairro!.isNotEmpty) parts.add(user.bairro!);
     if (user.cidade != null && user.cidade!.isNotEmpty) parts.add(user.cidade!);
     if (user.estado != null && user.estado!.isNotEmpty) parts.add(user.estado!);
     if (user.cep != null && user.cep!.isNotEmpty) parts.add(user.cep!);
-    if (user.complemento != null && user.complemento!.isNotEmpty)
+    if (user.complemento != null && user.complemento!.isNotEmpty) {
       parts.add('Comp: ${user.complemento!}');
+    }
 
     return parts.join(', ');
   }

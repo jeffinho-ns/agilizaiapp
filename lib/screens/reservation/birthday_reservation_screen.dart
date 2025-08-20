@@ -219,33 +219,33 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
   }
 
   // Decorações com os novos nomes
-  List<DecorationOption> _decorationOptions = [
-    DecorationOption(
+  final List<DecorationOption> _decorationOptions = [
+    const DecorationOption(
         name: 'Decoração Pequena 1',
         price: 200.0,
         image: 'assets/images/kit-1.jpg',
         description: 'Decoração pequena estilo 1.'),
-    DecorationOption(
+    const DecorationOption(
         name: 'Decoração Pequena 2',
         price: 220.0,
         image: 'assets/images/kit-2.jpg',
         description: 'Decoração pequena estilo 2.'),
-    DecorationOption(
+    const DecorationOption(
         name: 'Decoração Media 3',
         price: 250.0,
         image: 'assets/images/kit-3.jpg',
         description: 'Decoração média estilo 3.'),
-    DecorationOption(
+    const DecorationOption(
         name: 'Decoração Media 4',
         price: 270.0,
         image: 'assets/images/kit-4.jpg',
         description: 'Decoração média estilo 4.'),
-    DecorationOption(
+    const DecorationOption(
         name: 'Decoração Grande 5',
         price: 300.0,
         image: 'assets/images/kit-5.jpg',
         description: 'Decoração grande estilo 5.'),
-    DecorationOption(
+    const DecorationOption(
         name: 'Decoração Grande 6',
         price: 320.0,
         image: 'assets/images/kit-6.jpg',
@@ -256,7 +256,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
   String? _selectedPainelImage;
 
   // Painéis do estoque com os novos nomes
-  List<String> _painelEstoqueImages = [
+  final List<String> _painelEstoqueImages = [
     'assets/images/painel-1.jpg',
     'assets/images/painel-2.jpg',
     'assets/images/painel-3.jpg',
@@ -270,62 +270,62 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
   ];
 
   // Bebidas do bar com os novos nomes
-  List<BeverageOption> _beverageOptions = [
-    BeverageOption(
+  final List<BeverageOption> _beverageOptions = [
+    const BeverageOption(
         name: 'Item-bar-Bebida - 1',
         price: 12.0,
         category: 'Bebida',
         description: 'Bebida do bar item 1.'),
-    BeverageOption(
+    const BeverageOption(
         name: 'Item-bar-Bebida - 2',
         price: 15.0,
         category: 'Bebida',
         description: 'Bebida do bar item 2.'),
-    BeverageOption(
+    const BeverageOption(
         name: 'Item-bar-Bebida - 3',
         price: 18.0,
         category: 'Bebida',
         description: 'Bebida do bar item 3.'),
-    BeverageOption(
+    const BeverageOption(
         name: 'Item-bar-Bebida - 4',
         price: 20.0,
         category: 'Bebida',
         description: 'Bebida do bar item 4.'),
-    BeverageOption(
+    const BeverageOption(
         name: 'Item-bar-Bebida - 5',
         price: 22.0,
         category: 'Bebida',
         description: 'Bebida do bar item 5.'),
-    BeverageOption(
+    const BeverageOption(
         name: 'Item-bar-Bebida - 6',
         price: 25.0,
         category: 'Bebida',
         description: 'Bebida do bar item 6.'),
-    BeverageOption(
+    const BeverageOption(
         name: 'Item-bar-Bebida - 7',
         price: 28.0,
         category: 'Bebida',
         description: 'Bebida do bar item 7.'),
-    BeverageOption(
+    const BeverageOption(
         name: 'Item-bar-Bebida - 8',
         price: 30.0,
         category: 'Bebida',
         description: 'Bebida do bar item 8.'),
-    BeverageOption(
+    const BeverageOption(
         name: 'Item-bar-Bebida - 9',
         price: 35.0,
         category: 'Bebida',
         description: 'Bebida do bar item 9.'),
-    BeverageOption(
+    const BeverageOption(
         name: 'Item-bar-Bebida - 10',
         price: 40.0,
         category: 'Bebida',
         description: 'Bebida do bar item 10.'),
   ];
-  Map<String, int> _selectedBeverages = {};
-  Map<String, int> _selectedFoods = {};
-  List<GiftOption> _selectedGifts = [];
-  List<String> _barOptions = [
+  final Map<String, int> _selectedBeverages = {};
+  final Map<String, int> _selectedFoods = {};
+  final List<GiftOption> _selectedGifts = [];
+  final List<String> _barOptions = [
     'Seu Justino',
     'Oh Fregues',
     'HighLine',
@@ -335,52 +335,52 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
 
   // Comidas do bar com os novos nomes
   final List<FoodOption> _foodOptions = [
-    FoodOption(
+    const FoodOption(
         name: 'Item-bar-Comida - 1',
         price: 25.0,
         category: 'Comida',
         description: 'Comida do bar item 1'),
-    FoodOption(
+    const FoodOption(
         name: 'Item-bar-Comida - 2',
         price: 28.0,
         category: 'Comida',
         description: 'Comida do bar item 2'),
-    FoodOption(
+    const FoodOption(
         name: 'Item-bar-Comida - 3',
         price: 30.0,
         category: 'Comida',
         description: 'Comida do bar item 3'),
-    FoodOption(
+    const FoodOption(
         name: 'Item-bar-Comida - 4',
         price: 32.0,
         category: 'Comida',
         description: 'Comida do bar item 4'),
-    FoodOption(
+    const FoodOption(
         name: 'Item-bar-Comida - 5',
         price: 35.0,
         category: 'Comida',
         description: 'Comida do bar item 5'),
-    FoodOption(
+    const FoodOption(
         name: 'Item-bar-Comida - 6',
         price: 38.0,
         category: 'Comida',
         description: 'Comida do bar item 6'),
-    FoodOption(
+    const FoodOption(
         name: 'Item-bar-Comida - 7',
         price: 40.0,
         category: 'Comida',
         description: 'Comida do bar item 7'),
-    FoodOption(
+    const FoodOption(
         name: 'Item-bar-Comida - 8',
         price: 42.0,
         category: 'Comida',
         description: 'Comida do bar item 8'),
-    FoodOption(
+    const FoodOption(
         name: 'Item-bar-Comida - 9',
         price: 45.0,
         category: 'Comida',
         description: 'Comida do bar item 9'),
-    FoodOption(
+    const FoodOption(
         name: 'Item-bar-Comida - 10',
         price: 48.0,
         category: 'Comida',
@@ -389,102 +389,102 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
 
   // Lista de presentes com os novos nomes
   final List<GiftOption> _giftOptions = [
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 1',
         price: 50.0,
         category: 'Presente',
         image: 'assets/images/prod-1.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 2',
         price: 60.0,
         category: 'Presente',
         image: 'assets/images/prod-2.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 3',
         price: 70.0,
         category: 'Presente',
         image: 'assets/images/prod-3.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 4',
         price: 80.0,
         category: 'Presente',
         image: 'assets/images/prod-4.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 5',
         price: 90.0,
         category: 'Presente',
         image: 'assets/images/prod-5.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 6',
         price: 100.0,
         category: 'Presente',
         image: 'assets/images/prod-6.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 7',
         price: 110.0,
         category: 'Presente',
         image: 'assets/images/prod-7.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 8',
         price: 120.0,
         category: 'Presente',
         image: 'assets/images/prod-8.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 9',
         price: 130.0,
         category: 'Presente',
         image: 'assets/images/prod-9.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 10',
         price: 140.0,
         category: 'Presente',
         image: 'assets/images/prod-10.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 11',
         price: 150.0,
         category: 'Presente',
         image: 'assets/images/prod-11.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 12',
         price: 160.0,
         category: 'Presente',
         image: 'assets/images/prod-12.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 13',
         price: 170.0,
         category: 'Presente',
         image: 'assets/images/prod-13.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 14',
         price: 180.0,
         category: 'Presente',
         image: 'assets/images/prod-14.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 15',
         price: 190.0,
         category: 'Presente',
         image: 'assets/images/prod-5.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 16',
         price: 200.0,
         category: 'Presente',
         image: 'assets/images/prod-1.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 17',
         price: 210.0,
         category: 'Presente',
         image: 'assets/images/prod-2.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 18',
         price: 220.0,
         category: 'Presente',
         image: 'assets/images/prod-3.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 19',
         price: 230.0,
         category: 'Presente',
         image: 'assets/images/prod-4.png'),
-    GiftOption(
+    const GiftOption(
         name: 'Lista-Presente - 20',
         price: 240.0,
         category: 'Presente',
@@ -527,8 +527,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
               onPrimary: Colors.white,
               surface: Color(0xFF242A38),
               onSurface: Colors.white,
-            ),
-            dialogBackgroundColor: const Color(0xFF2B3245),
+            ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF2B3245)),
           ),
           child: child!,
         );
@@ -607,8 +606,8 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                       '${_selectedDecoration!.name} - R\$ ${_selectedDecoration!.price.toStringAsFixed(2)}',
                       style: const TextStyle(color: Colors.white70))
                 else
-                  Text('Nenhuma decoração selecionada',
-                      style: const TextStyle(color: Colors.grey)),
+                  const Text('Nenhuma decoração selecionada',
+                      style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 8),
                 const Text('🖼️ PAINEL',
                     style: TextStyle(
@@ -704,8 +703,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'R\$ ' +
-                            (() {
+                        'R\$ ${(() {
                               double total = 0.0;
                               if (_selectedDecoration != null) {
                                 total += _selectedDecoration!.price;
@@ -721,7 +719,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                                 total += food.price * entry.value;
                               }
                               return total.toStringAsFixed(2);
-                            })(),
+                            })()}',
                         style: const TextStyle(
                           color: Color(0xFFF26422),
                           fontWeight: FontWeight.bold,
@@ -765,7 +763,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                 );
                 try {
                   // Exemplo de como obter o ID do usuário
-                  final int loggedInUserId =
+                  const int loggedInUserId =
                       1; // Substitua com a sua lógica real
 
                   if (_selectedBar == null ||
@@ -1311,7 +1309,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                                               borderRadius:
                                                   BorderRadius.circular(20),
                                             ),
-                                            child: Center(
+                                            child: const Center(
                                               child: Icon(
                                                 Icons.image,
                                                 color: Colors.white70,
@@ -1790,7 +1788,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                 Text(
                   'R\$ ${price.toStringAsFixed(2)}',
                   style: const TextStyle(
-                      color: const Color(0xFFF26422), fontSize: 12),
+                      color: Color(0xFFF26422), fontSize: 12),
                 ),
               ],
             ),
@@ -1839,8 +1837,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            'R\$ ' +
-                (() {
+            'R\$ ${(() {
                   double total = 0.0;
                   if (_selectedDecoration != null) {
                     total += _selectedDecoration!.price;
@@ -1856,7 +1853,7 @@ class _BirthdayReservationScreenState extends State<BirthdayReservationScreen> {
                     total += food.price * entry.value;
                   }
                   return total.toStringAsFixed(2);
-                })(),
+                })()}',
             style: const TextStyle(
               color: Color(0xFFF26422),
               fontWeight: FontWeight.bold,

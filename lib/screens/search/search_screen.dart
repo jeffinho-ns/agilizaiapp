@@ -1,9 +1,7 @@
 // lib/screens/search/search_screen.dart
 
-import 'dart:convert';
 import 'package:agilizaiapp/screens/event/event_details_screen.dart';
-import 'package:http/http.dart'
-    as http; // AINDA USADO PARA _fetchEvents mas vamos remover
+// AINDA USADO PARA _fetchEvents mas vamos remover
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/screens/filter/filter_screen.dart';
 import 'package:agilizaiapp/widgets/search_result_tile.dart';

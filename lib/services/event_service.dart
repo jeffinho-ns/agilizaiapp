@@ -2,7 +2,7 @@
 
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/models/rule_model.dart';
-import 'package:agilizaiapp/models/guest_model.dart'; // <--- NOVO: Importe Guest para tipagem
+// <--- NOVO: Importe Guest para tipagem
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 

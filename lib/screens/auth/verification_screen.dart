@@ -4,8 +4,6 @@ import 'package:pinput/pinput.dart';
 import 'package:agilizaiapp/screens/interests/select_interest_screen.dart';
 import 'package:agilizaiapp/services/auth_service.dart';
 import 'package:agilizaiapp/services/phone_service.dart';
-import 'package:agilizaiapp/screens/main_screen.dart';
-import 'package:agilizaiapp/screens/auth/signin_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String telefone;

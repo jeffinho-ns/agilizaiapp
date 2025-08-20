@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen>
                               children: [
                                 Text(
                                   AppLocalizations.of(context)!.popularEvents,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -254,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   },
                                   child: Text(
                                     AppLocalizations.of(context)!.viewAll,
-                                    style: TextStyle(color: Colors.white70),
+                                    style: const TextStyle(color: Colors.white70),
                                   ),
                                 ),
                               ],
@@ -552,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     Text(
                       AppLocalizations.of(context)!.hiWelcome,
-                      style: TextStyle(color: Colors.white70),
+                      style: const TextStyle(color: Colors.white70),
                     ),
                     Text(
                       _currentUser?.name ?? 'Carregando...',
