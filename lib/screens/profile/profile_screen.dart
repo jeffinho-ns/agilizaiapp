@@ -13,6 +13,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:agilizaiapp/screens/home/home_screen.dart';
 import 'package:agilizaiapp/screens/main_screen.dart';
 
+// Adicionar a URL base do FTP para as fotos de perfil
+const BASE_URL_FTP = 'https://grupoideiaum.com.br/cardapio-agilizaiapp/';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -49,8 +52,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             'Token de autenticação ausente. Por favor, faça login novamente.';
         _isLoading = false;
       });
-      // Opcional: Redirecionar para a tela de login se não houver token
-      // Navigator.of(context).pushReplacementNamed('/login');
       return;
     }
 
@@ -128,6 +129,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return parts.join(', ');
   }
 
+  // NOVO: Função para obter a URL completa da foto de perfil
+  String? _getProfileImageUrl(String? filename) {
+    if (filename == null || filename.isEmpty) {
+      return null;
+    }
+    // Verifica se a URL já é completa para evitar duplicidade
+    if (filename.startsWith('http://') || filename.startsWith('https://')) {
+      return filename;
+    }
+    return '$BASE_URL_FTP$filename';
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -176,6 +189,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
+    // Obtém a URL completa da foto de perfil
+    final profileImageUrl = _getProfileImageUrl(_currentUser?.fotoPerfil);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -219,13 +235,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 60,
-                  backgroundImage: _currentUser?.fotoPerfil != null &&
-                          _currentUser!.fotoPerfil!.isNotEmpty
-                      ? NetworkImage(
-                          _currentUser!.fotoPerfil!,
-                        ) // Se houver URL válida
+                  // Usa a URL completa da foto de perfil
+                  backgroundImage: profileImageUrl != null
+                      ? NetworkImage(profileImageUrl) as ImageProvider<Object>
                       : const AssetImage('assets/images/default_avatar.png')
-                          as ImageProvider<Object>, // Fallback para asset
+                          as ImageProvider<Object>,
                   onBackgroundImageError: (exception, stackTrace) {
                     print(
                       'Erro ao carregar imagem de perfil (NetworkImage): $exception',

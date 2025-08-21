@@ -7,9 +7,11 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+import 'package:mime/mime.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:agilizaiapp/screens/splash/splash_screen.dart';
+import 'package:http_parser/http_parser.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -190,8 +192,76 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  // Função para enviar as atualizações para a API (incluindo foto)
-  Future<void> _saveProfileChanges() async {
+  // NOVA FUNÇÃO: Faz upload da foto para o FTP via API e retorna o nome do arquivo.
+  Future<String?> _saveProfilePhoto() async {
+    if (_imageFile == null) {
+      return null;
+    }
+
+    try {
+      const storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'jwt_token');
+
+      if (token == null || token.isEmpty) {
+        _showSnackBar('Erro: Token de autenticação ausente.');
+        return null;
+      }
+
+      final uri = Uri.parse(
+        'https://vamos-comemorar-api.onrender.com/api/images/upload',
+      );
+      final request = http.MultipartRequest('POST', uri);
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Obtenha o MIME type do arquivo
+      final mimeType = lookupMimeType(_imageFile!.path);
+      final fileType = mimeType?.split('/');
+
+      if (fileType == null || fileType.isEmpty || fileType[0] != 'image') {
+        _showSnackBar(
+            'Tipo de arquivo não suportado. Por favor, selecione uma imagem.');
+        return null;
+      }
+
+      // Anexa o arquivo de imagem ao request com o MIME type correto
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image', // O nome do campo deve ser 'image', igual ao Next.js
+          _imageFile!.path,
+          contentType: MediaType(fileType[0], fileType[1]),
+        ),
+      );
+
+      // Envia o request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        if (responseData['success'] == true &&
+            responseData['filename'] != null) {
+          _showSnackBar('Foto de perfil enviada com sucesso!');
+          return responseData['filename']; // Retorna apenas o nome do arquivo
+        } else {
+          _showSnackBar(
+            'Erro no upload da foto: ${responseData['error'] ?? 'Resposta inválida'}',
+          );
+          return null;
+        }
+      } else {
+        _showSnackBar('Falha no upload da foto: ${response.statusCode}');
+        print('Erro no upload da foto: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      _showSnackBar('Erro de conexão ao enviar a foto: $e');
+      print('Exceção no upload da foto: $e');
+      return null;
+    }
+  }
+
+  // NOVA FUNÇÃO: Envia os dados do perfil (com ou sem a foto)
+  Future<void> _saveProfileData({String? photoFilename}) async {
     setState(() {
       _isLoading = true;
     });
@@ -201,75 +271,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (token == null || token.isEmpty) {
       _showSnackBar(
-        'Erro: Token de autenticação ausente. Faça login novamente.',
-      );
+          'Erro: Token de autenticação ausente. Faça login novamente.');
       setState(() {
         _isLoading = false;
       });
       return;
     }
 
-    // Se uma nova imagem foi selecionada, fazer upload para o FTP primeiro
-    String? uploadedImageFilename;
-    if (_imageFile != null) {
-      try {
-        final uploadResult = await _uploadProfilePhotoToFTP(token);
-        if (uploadResult != null) {
-          uploadedImageFilename = uploadResult['filename'];
-          print('✅ Foto de perfil enviada para FTP: $uploadedImageFilename');
-        } else {
-          _showSnackBar('Erro ao fazer upload da foto de perfil');
-          setState(() {
-            _isLoading = false;
-          });
-          return;
-        }
-      } catch (e) {
-        _showSnackBar('Erro ao fazer upload da foto de perfil: $e');
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
-    }
-
-    final uri = Uri.parse(
-      'https://vamos-comemorar-api.onrender.com/api/users/me',
-    );
-    final request = http.MultipartRequest(
-      'PUT',
-      uri,
-    ); // Usando PUT para atualização
-    request.headers['Authorization'] = 'Bearer $token';
-
-    // Adiciona os campos de texto que correspondem ao BD
-    request.fields['name'] = _fullNameController.text;
-    request.fields['email'] = _emailController.text;
-    request.fields['telefone'] = _phoneController.text;
-    if (_passwordController.text.isNotEmpty) {
-      request.fields['password'] =
-          _passwordController.text; // Envia senha se não estiver vazia
-    }
-    request.fields['data_nascimento'] =
-        _dataNascimentoController.text; // Nome do campo da API/BD
-    request.fields['cpf'] = _cpfController.text;
-    request.fields['sexo'] = _sexoController.text;
-    request.fields['cep'] = _cepController.text;
-    request.fields['endereco'] = _enderecoController.text;
-    request.fields['numero'] = _numeroController.text;
-    request.fields['bairro'] = _bairroController.text;
-    request.fields['cidade'] = _cidadeController.text;
-    request.fields['estado'] = _estadoController.text;
-    request.fields['complemento'] = _complementoController.text;
-
-    // Adiciona a foto de perfil se uma nova foi enviada para o FTP
-    if (uploadedImageFilename != null) {
-      request.fields['foto_perfil'] = uploadedImageFilename;
-    }
-
     try {
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+      final response = await http.put(
+        Uri.parse('https://vamos-comemorar-api.onrender.com/api/users/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'name': _fullNameController.text,
+          'email': _emailController.text,
+          'telefone': _phoneController.text,
+          if (_passwordController.text.isNotEmpty)
+            'password': _passwordController.text,
+          'data_nascimento': _dataNascimentoController.text,
+          'cpf': _cpfController.text,
+          'sexo': _sexoController.text,
+          'cep': _cepController.text,
+          'endereco': _enderecoController.text,
+          'numero': _numeroController.text,
+          'bairro': _bairroController.text,
+          'cidade': _cidadeController.text,
+          'estado': _estadoController.text,
+          'complemento': _complementoController.text,
+          if (photoFilename != null) 'foto_perfil': photoFilename,
+        }),
+      );
 
       if (response.statusCode == 200) {
         _showSnackBar('Perfil atualizado com sucesso!');
@@ -299,71 +333,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  // Função para fazer upload da foto de perfil para o FTP
-  Future<Map<String, String>?> _uploadProfilePhotoToFTP(String token) async {
-    try {
-      print('🚀 Iniciando upload FTP da foto de perfil...');
-      print('📁 Caminho da imagem: ${_imageFile!.path}');
-      print('🔑 Token: ${token.substring(0, 20)}...');
-      
-      // Usar a mesma rota que o Next.js usa para upload de imagens
-      final uri = Uri.parse(
-        'https://vamos-comemorar-api.onrender.com/api/images/upload',
-      );
-      print('🌐 URL de upload: $uri');
+  // FUNÇÃO REFEITA: Centraliza a lógica de salvamento.
+  Future<void> _saveProfileChanges() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-      final request = http.MultipartRequest('POST', uri);
-      request.headers['Authorization'] = 'Bearer $token';
-      print('📤 Headers configurados');
-
-      // IMPORTANTE: Usar o campo 'image' como no Next.js, não 'foto_perfil'
-      final multipartFile = await http.MultipartFile.fromPath(
-        'image', // Campo correto usado pelo Next.js
-        _imageFile!.path,
-        filename: _imageFile!.path.split('/').last,
-      );
-      request.files.add(multipartFile);
-      print('📎 Arquivo adicionado ao request: ${multipartFile.filename}');
-
-      // Adicionar campos adicionais como no Next.js
-      request.fields['type'] = 'profile_photo';
-      request.fields['entityType'] = 'user';
-
-      print('📤 Enviando request para o servidor...');
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-      print('📥 Resposta recebida: ${response.statusCode}');
-
-      if (response.statusCode == 200) {
-        print('✅ Upload bem-sucedido! Resposta: ${response.body}');
-        final responseData = json.decode(response.body);
-        if (responseData['success'] == true) {
-          print('🎯 Dados de resposta: $responseData');
-          
-          // IMPORTANTE: Como no Next.js, recebemos o filename e construímos a URL
-          final filename = responseData['filename'];
-          
-          print('📁 Filename recebido: $filename');
-          
-          return {
-            'filename': filename, // Apenas o nome do arquivo para o banco (como no Next.js)
-            'url': filename, // Para compatibilidade, mas não será usado
-          };
-        } else {
-          print('❌ Resposta não indica sucesso: $responseData');
-        }
-      } else {
-        print('❌ Erro no upload FTP: ${response.statusCode}');
-        print('📄 Corpo da resposta: ${response.body}');
+    String? photoFilename;
+    if (_imageFile != null) {
+      photoFilename = await _saveProfilePhoto();
+      if (photoFilename == null) {
+        // Se o upload falhar, _saveProfilePhoto já exibirá um snackbar.
+        // Apenas pare o processo de salvamento.
+        setState(() {
+          _isLoading = false;
+        });
+        return;
       }
-
-      print('❌ Falha no upload FTP: ${response.statusCode} ${response.body}');
-      return null;
-    } catch (e) {
-      print('💥 Exceção no upload FTP: $e');
-      print('📚 Stack trace: ${StackTrace.current}');
-      return null;
     }
+
+    await _saveProfileData(photoFilename: photoFilename);
   }
 
   // Função para obter o provider de imagem de perfil

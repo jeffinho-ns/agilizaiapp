@@ -117,3 +117,4 @@ Para testar o sistema:
 - **Monitoramento**: Verificar logs do servidor para problemas de upload
 - **Backup**: Imagens ficam no servidor FTP, não apenas localmente
 - **Limpeza**: Considerar implementar limpeza automática de arquivos antigos
+
