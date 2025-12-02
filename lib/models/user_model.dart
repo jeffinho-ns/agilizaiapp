@@ -55,12 +55,17 @@ class User {
       // Verifica se a URL já é completa (Cloudinary, FTP ou outro serviço)
       if (rawFotoPerfil.startsWith('http://') ||
           rawFotoPerfil.startsWith('https://')) {
-        finalFotoPerfilUrl =
-            rawFotoPerfil; // Já é a URL completa (Cloudinary ou legado)
+        // Se for URL do /uploads/ (legado), não usar - essas imagens não existem mais
+        if (rawFotoPerfil.contains('/uploads/')) {
+          print('⚠️ URL de imagem legada detectada (/uploads/), ignorando: $rawFotoPerfil');
+          finalFotoPerfilUrl = null; // Não usar URLs legadas que não funcionam
+        } else {
+          finalFotoPerfilUrl = rawFotoPerfil; // URL completa válida (Cloudinary)
+        }
       } else {
-        // Se for apenas o nome do arquivo (legado), usa método auxiliar
-        // NOTA: O backend agora sempre retorna URLs completas do Cloudinary
-        finalFotoPerfilUrl = ApiConfig.getProfileImageUrl(rawFotoPerfil);
+        // Se for apenas o nome do arquivo (legado), não usar - imagens devem estar no Cloudinary
+        print('⚠️ Nome de arquivo legado detectado, ignorando: $rawFotoPerfil');
+        finalFotoPerfilUrl = null; // Não usar nomes de arquivo legados
       }
     }
 
