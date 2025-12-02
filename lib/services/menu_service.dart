@@ -1,12 +1,13 @@
 // lib/services/menu_service.dart
 
 import 'package:agilizaiapp/config/api_config.dart';
+import 'package:agilizaiapp/services/http_service.dart';
 import 'package:dio/dio.dart';
 import 'package:agilizaiapp/models/menu_models.dart';
 
 class MenuService {
   final String _baseUrl = ApiConfig.cardapioEndpoint;
-  final Dio _dio = Dio();
+  Dio get _dio => HttpService().dio;
 
   // Cache para melhorar performance
   final Map<int, Map<String, List<MenuItemFromAPI>>> _menuCache = {};

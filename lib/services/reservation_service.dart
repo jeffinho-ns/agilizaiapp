@@ -5,13 +5,14 @@ import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/reservation_model.dart';
 import 'package:agilizaiapp/models/birthday_reservation_model.dart'; // Adicionar import
 import 'package:agilizaiapp/models/user_model.dart'; // Necessário para buscar usuário logado
+import 'package:agilizaiapp/services/http_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ReservationService {
   final String _baseUrl = ApiConfig.apiUrl;
-  final Dio _dio = Dio();
+  Dio get _dio => HttpService().dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<Options> _getAuthHeaders() async {

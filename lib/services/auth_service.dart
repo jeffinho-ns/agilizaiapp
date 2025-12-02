@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/user_model.dart'; // Certifique-se que o caminho está correto
+import 'package:agilizaiapp/services/http_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -10,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   final String _baseUrl = ApiConfig.apiBaseUrl;
-  final Dio _dio = Dio();
+  Dio get _dio => HttpService().dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
 
@@ -195,6 +196,7 @@ class AuthService {
   /// Busca o perfil do usuário no endpoint /me e salva localmente.
   Future<User> _fetchAndSaveUserProfile(String token) async {
     try {
+      // O interceptor já adiciona o token automaticamente, mas garantimos aqui também
       final response = await _dio.get(
         '$_baseUrl/api/users/me',
         options: Options(headers: {'Authorization': 'Bearer $token'}),

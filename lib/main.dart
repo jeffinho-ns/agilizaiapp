@@ -32,13 +32,17 @@ import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/models/bar_model.dart';
 import 'package:agilizaiapp/providers/user_profile_provider.dart'; // Importe UserProfileProvider
 import 'package:agilizaiapp/providers/language_provider.dart'; // Importe LanguageProvider
+import 'package:agilizaiapp/services/http_service.dart'; // Importe HttpService
 import 'package:provider/provider.dart'; // Importe Provider
 
 // DEFINIÇÃO GLOBAL DA CHAVE DO NAVEGADOR
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializar serviço HTTP centralizado
+  HttpService().initialize();
   
   runApp(
     MultiProvider(

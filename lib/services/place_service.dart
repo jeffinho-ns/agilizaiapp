@@ -2,12 +2,13 @@
 
 import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/place_model.dart';
+import 'package:agilizaiapp/services/http_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class PlaceService {
   final String _baseUrl = ApiConfig.apiUrl;
-  final Dio _dio = Dio();
+  Dio get _dio => HttpService().dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<Options> _getAuthHeaders() async {

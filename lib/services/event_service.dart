@@ -3,13 +3,14 @@
 import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/models/rule_model.dart';
+import 'package:agilizaiapp/services/http_service.dart';
 // <--- NOVO: Importe Guest para tipagem
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class EventService {
   final String _baseUrl = ApiConfig.apiUrl;
-  final Dio _dio = Dio();
+  Dio get _dio => HttpService().dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<Options> _getAuthHeaders() async {

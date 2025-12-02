@@ -1,10 +1,11 @@
 import 'dart:math';
 import 'package:agilizaiapp/config/api_config.dart';
+import 'package:agilizaiapp/services/http_service.dart';
 import 'package:dio/dio.dart';
 
 class PhoneService {
   final String _baseUrl = ApiConfig.apiBaseUrl;
-  final Dio _dio = Dio();
+  Dio get _dio => HttpService().dio;
 
   /// Gera um código de verificação de 4 dígitos
   String _generateVerificationCode() {
