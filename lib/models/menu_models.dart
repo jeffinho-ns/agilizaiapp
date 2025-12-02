@@ -40,10 +40,28 @@ class BarFromAPI {
   });
 
   factory BarFromAPI.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter ID de string ou int para int
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    // Função auxiliar para converter int nullable de string ou int para int?
+    int? parseIntNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return BarFromAPI(
-      id: json['id'],
-      name: json['name'],
-      slug: json['slug'],
+      id: parseId(json['id']),
+      name: json['name'] as String,
+      slug: json['slug'] as String,
       description: json['description'] ?? '',
       logoUrl: json['logoUrl'] ?? '',
       coverImageUrl: json['coverImageUrl'] ?? '',
@@ -54,7 +72,7 @@ class BarFromAPI {
       rating: json['rating'] != null
           ? double.tryParse(json['rating'].toString())
           : null,
-      reviewsCount: json['reviewsCount'],
+      reviewsCount: parseIntNullable(json['reviewsCount']),
       amenities: json['amenities'] != null
           ? (json['amenities'] as List).map((e) => e.toString()).toList()
           : [],
@@ -86,11 +104,20 @@ class MenuCategoryFromAPI {
   });
 
   factory MenuCategoryFromAPI.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter ID de string ou int para int
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return MenuCategoryFromAPI(
-      id: json['id'],
-      barId: json['barId'],
-      name: json['name'],
-      order: json['order'] ?? 0,
+      id: parseId(json['id']),
+      barId: parseId(json['barId']),
+      name: json['name'] as String,
+      order: parseId(json['order'] ?? 0),
     );
   }
 }
@@ -125,15 +152,24 @@ class MenuItemFromAPI {
   });
 
   factory MenuItemFromAPI.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter ID de string ou int para int
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return MenuItemFromAPI(
-      id: json['id'],
-      name: json['name'],
+      id: parseId(json['id']),
+      name: json['name'] as String,
       description: json['description'] ?? '',
       price: double.tryParse(json['price']?.toString() ?? '0.0') ?? 0.0,
-      imageUrl: json['imageUrl'],
-      categoryId: json['categoryId'],
-      barId: json['barId'],
-      order: json['order'] ?? 0,
+      imageUrl: json['imageUrl'] as String?,
+      categoryId: parseId(json['categoryId']),
+      barId: parseId(json['barId']),
+      order: parseId(json['order'] ?? 0),
       category: json['category'] ?? '',
       subCategoryName: json['subCategoryName'],
       toppings: json['toppings'] != null
@@ -160,9 +196,18 @@ class ToppingFromAPI {
   });
 
   factory ToppingFromAPI.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter ID de string ou int para int
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return ToppingFromAPI(
-      id: json['id'],
-      name: json['name'],
+      id: parseId(json['id']),
+      name: json['name'] as String,
       price: double.tryParse(json['price']?.toString() ?? '0.0') ?? 0.0,
     );
   }

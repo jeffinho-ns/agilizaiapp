@@ -19,15 +19,30 @@ class Brinde {
   });
 
   factory Brinde.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter ID de string ou int para int
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    // Função auxiliar para converter int nullable de string ou int para int?
+    int? parseIntNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return Brinde(
-      id: (json['id'] as num?)?.toInt() ??
-          0, // <<--- CORRIGIDO: Tratamento seguro para int
-      reservaId: (json['reserva_id'] as num?)?.toInt() ??
-          0, // <<--- CORRIGIDO: Tratamento seguro para int
+      id: parseId(json['id']),
+      reservaId: parseId(json['reserva_id']),
       descricao: json['descricao'] as String?,
       condicaoTipo: json['condicao_tipo'] as String?,
-      condicaoValor: (json['condicao_valor'] as num?)
-          ?.toInt(), // <<--- CORRIGIDO: Tratamento seguro para int (pode ser nulo)
+      condicaoValor: parseIntNullable(json['condicao_valor']),
       status: json['status'] as String?,
     );
   }

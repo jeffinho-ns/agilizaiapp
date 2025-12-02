@@ -60,6 +60,24 @@ class Reservation {
   });
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter ID de string ou int para int
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    // Função auxiliar para converter int nullable de string ou int para int?
+    int? parseIntNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     List<Guest>? parsedGuests;
     if (json['convidados'] != null) {
       parsedGuests = (json['convidados'] as List<dynamic>)
@@ -76,20 +94,15 @@ class Reservation {
     }
 
     return Reservation(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      userId: (json['user_id'] as num?)?.toInt() ??
-          (json['userId'] as num?)?.toInt() ??
-          (json['user_id'] as int?) ??
-          (json['userId'] as int?) ??
-          0,
-      eventId: (json['evento_id'] as num?)?.toInt(),
+      id: parseId(json['id']),
+      userId: parseId(json['user_id'] ?? json['userId']),
+      eventId: parseIntNullable(json['evento_id'] ?? json['eventId']),
       tipoReserva:
           json['brinde'] as String?, // API retorna 'brinde' para tipo_reserva
       nomeLista: json['nome_lista'] as String?,
       dataReserva: json['data_reserva'] as String?,
       status: json['status'] as String?,
-      quantidadeConvidados:
-          (json['quantidade_convidados'] as num?)?.toInt() ?? 1,
+      quantidadeConvidados: parseIntNullable(json['quantidade_convidados']) ?? 1,
       codigoConvite: json['codigo_convite'] as String?,
       mesas: json['mesas'] as String?,
       userName: json['name'] as String?, // Nome do usuário criador

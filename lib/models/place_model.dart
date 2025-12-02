@@ -40,23 +40,41 @@ class Place {
   bool get hasCoordinates => latitude != null && longitude != null;
 
   factory Place.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter ID de string ou int para int
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    // Função auxiliar para converter número de string ou int para int
+    int parseNumber(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return Place(
-      id: json['id'],
-      slug: json['slug'],
-      name: json['name'],
-      email: json['email'],
-      description: json['description'],
-      logo: json['logo'],
-      street: json['street'],
-      number: json['number'],
+      id: parseId(json['id']),
+      slug: json['slug'] as String,
+      name: json['name'] as String,
+      email: json['email'] as String?,
+      description: json['description'] as String?,
+      logo: json['logo'] as String?,
+      street: json['street'] as String,
+      number: parseNumber(json['number']),
       latitude: json['latitude'] != null
           ? double.parse(json['latitude'].toString())
           : null,
       longitude: json['longitude'] != null
           ? double.parse(json['longitude'].toString())
           : null,
-      status: json['status'] ?? 'active',
-      visible: json['visible'] ?? 1,
+      status: json['status'] as String? ?? 'active',
+      visible: parseNumber(json['visible'] ?? 1),
       commodities: json['commodities'] != null
           ? (json['commodities'] as List)
               .map((c) => Commodity.fromJson(c))
@@ -106,9 +124,26 @@ class Commodity {
   });
 
   factory Commodity.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter ID de string ou int para int
+    int? parseIntNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return Commodity(
-      id: json['id'],
-      placeId: json['place_id'],
+      id: parseIntNullable(json['id']),
+      placeId: parseId(json['place_id']),
       icon: json['icon'],
       color: json['color'],
       name: json['name'],
@@ -144,9 +179,26 @@ class Photo {
   });
 
   factory Photo.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter ID de string ou int para int
+    int? parseIntNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return Photo(
-      id: json['id'],
-      placeId: json['place_id'],
+      id: parseIntNullable(json['id']),
+      placeId: parseId(json['place_id']),
       photo: json['photo'],
       type: json['type'],
       url: json['url'],

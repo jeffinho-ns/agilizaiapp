@@ -54,8 +54,24 @@ class Event {
       return null;
     }
 
+    // Função auxiliar para converter ID de string ou int para int
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    // Função auxiliar para converter int nullable de string ou int para int?
+    int? parseIntNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return Event(
-      id: json['id'] as int,
+      id: parseId(json['id']),
       casaDoEvento: json['casa_do_evento'] as String?,
       nomeDoEvento: json['nome_do_evento'] as String?,
       localDoEvento: json['local_do_evento'] as String?,
@@ -71,13 +87,13 @@ class Event {
       imagemDoComboUrl: json['imagem_do_combo_url'] as String?,
 
       criadoEm: json['criado_em'] as String?,
-      mesas: json['mesas'] as int?,
+      mesas: parseIntNullable(json['mesas']),
       valorDaMesa:
           parseToDouble(json['valor_da_mesa']), // <--- APLICA PARSE SEGURO
       brinde: json['brinde'] as String?,
-      numeroDeConvidados: json['numero_de_convidados'] as int?,
+      numeroDeConvidados: parseIntNullable(json['numero_de_convidados']),
       observacao: json['observacao'] as String?,
-      diaDaSemana: json['dia_da_semana'] as int?,
+      diaDaSemana: parseIntNullable(json['dia_da_semana']),
     );
   }
 }

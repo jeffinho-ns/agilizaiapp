@@ -20,9 +20,18 @@ class EventRule {
   });
 
   factory EventRule.fromJson(Map<String, dynamic> json) {
+    // Função auxiliar para converter ID de string ou int para int
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return EventRule(
-      id: json['id'],
-      eventoId: json['evento_id'],
+      id: parseId(json['id']),
+      eventoId: parseId(json['evento_id']),
       tipoRegra: json['tipo_regra'],
       valorRegra: json['valor_regra'],
       descricao: json['descricao'],

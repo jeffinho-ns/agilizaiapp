@@ -154,8 +154,17 @@ class BirthdayReservationModel {
     final userId = parseUserId();
     print('DEBUG - userId convertido: $userId');
 
+    // Função auxiliar para converter ID nullable de string ou int para int?
+    int? parseIdNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return BirthdayReservationModel(
-      id: (json['id'] as num?)?.toInt(),
+      id: parseIdNullable(json['id']),
       userId: userId,
       aniversarianteNome: json['aniversariante_nome'] ?? '',
       dataAniversario: DateTime.parse(json['data_aniversario']),

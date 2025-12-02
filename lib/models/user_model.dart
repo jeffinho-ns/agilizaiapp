@@ -60,8 +60,16 @@ class User {
       }
     }
 
+    // Função auxiliar para converter ID de string ou int para int
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return User(
-      id: json['id'] as int,
+      id: parseId(json['id']),
       name: json['name'] as String,
       email: json['email'] as String,
       fotoPerfil: finalFotoPerfilUrl, // Usa a URL final construída/verificada
