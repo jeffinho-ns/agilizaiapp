@@ -45,8 +45,11 @@ post_install do |installer|
       config.build_settings['ENABLE_BITCODE'] = 'NO'
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
       
-      # Fix para erro de memória RX/RW - removido EXCLUDED_ARCHS que pode causar problemas
+      # Fix para erro de memória RX/RW
       config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
+      
+      # Desabilitar otimizações agressivas que podem causar problemas de memória
+      config.build_settings['GCC_OPTIMIZATION_LEVEL'] = '0' if config.name == 'Debug'
       
       # Para dispositivos físicos
       if config.name == 'Release'
