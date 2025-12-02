@@ -26,31 +26,62 @@ class _SplashScreenState extends State<SplashScreen> {
       _showGif = true;
     });
 
-    // Tempo mínimo para a splash screen, que agora será a duração do GIF (5 segundos).
-    final Future<void> gifAnimationDuration = Future.delayed(
-      const Duration(seconds: 5),
-    ); // Ajustado para 5 segundos
+    // Tempo mínimo para a splash screen (3 segundos)
+    final Future<void> splashDuration = Future.delayed(
+      const Duration(seconds: 3),
+    );
 
-    // Aguarda tanto o carregamento do GIF quanto a duração total da animação.
-    await Future.wait([
-      _gifCompleter.future, // Aguarda o sinal de que o GIF carregou
-      gifAnimationDuration, // Aguarda a duração total da animação do GIF
-    ]);
+    // Timeout para o GIF (máximo 2 segundos)
+    final Future<void> gifTimeout = Future.delayed(
+      const Duration(seconds: 2),
+    ).then((_) {
+      if (!_gifCompleter.isCompleted) {
+        _gifCompleter.complete();
+      }
+    });
+
+    // Aguarda o carregamento do GIF com timeout
+    try {
+      await Future.any([
+        _gifCompleter.future,
+        gifTimeout,
+      ]);
+    } catch (e) {
+      print('Erro ao aguardar GIF: $e');
+      if (!_gifCompleter.isCompleted) {
+        _gifCompleter.complete();
+      }
+    }
+
+    // Aguarda o tempo mínimo da splash
+    await splashDuration;
 
     // Agora, verifica o status de autenticação e navega.
-    _checkAuthAndNavigate();
+    if (mounted) {
+      _checkAuthAndNavigate();
+    }
   }
 
   Future<void> _checkAuthAndNavigate() async {
-    const storage = FlutterSecureStorage();
-    final token = await storage.read(key: 'jwt_token');
+    try {
+      const storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'jwt_token');
 
-    if (token != null) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => MainScreen(key: mainScreenKey)),
-        (route) => false,
-      );
-    } else {
+      if (!mounted) return;
+
+      if (token != null && token.isNotEmpty) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => MainScreen(key: mainScreenKey)),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+        );
+      }
+    } catch (e) {
+      print('Erro ao verificar autenticação: $e');
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const OnboardingScreen()),
       );
@@ -66,6 +97,18 @@ class _SplashScreenState extends State<SplashScreen> {
             ? Image.asset(
                 'assets/images/logo.gif',
                 gaplessPlayback: true,
+                errorBuilder: (context, error, stackTrace) {
+                  // Se o GIF não carregar, mostra um placeholder e continua
+                  print('Erro ao carregar GIF: $error');
+                  if (!_gifCompleter.isCompleted) {
+                    _gifCompleter.complete();
+                  }
+                  return const Icon(
+                    Icons.restaurant_menu,
+                    size: 100,
+                    color: Color(0xFFF26422),
+                  );
+                },
                 frameBuilder: (
                   BuildContext context,
                   Widget child,
@@ -80,7 +123,9 @@ class _SplashScreenState extends State<SplashScreen> {
                   return child;
                 },
               )
-            : Container(),
+            : const CircularProgressIndicator(
+                color: Color(0xFFF26422),
+              ),
       ),
     );
   }
