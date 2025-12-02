@@ -62,6 +62,7 @@ class AgilizaAiApp extends StatelessWidget {
         return MaterialApp(
           navigatorKey: navigatorKey, // A chave global do navegador
           title: 'Agilizai App', // Título do seu app
+          debugShowCheckedModeBanner: false, // Remove o banner de debug
           theme: ThemeData(
             colorScheme:
                 ColorScheme.fromSeed(seedColor: const Color(0xFFF26422)),
