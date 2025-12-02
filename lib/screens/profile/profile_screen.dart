@@ -1,5 +1,6 @@
 // lib/screens/profile/profile_screen.dart
 
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,9 +13,6 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:agilizaiapp/screens/home/home_screen.dart';
 import 'package:agilizaiapp/screens/main_screen.dart';
-
-// Adicionar a URL base do FTP para as fotos de perfil
-const BASE_URL_FTP = 'https://grupoideiaum.com.br/cardapio-agilizaiapp/';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -57,7 +55,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://vamos-comemorar-api.onrender.com/api/users/me'),
+        Uri.parse(ApiConfig.userEndpoint('me')),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -134,11 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (filename == null || filename.isEmpty) {
       return null;
     }
-    // Verifica se a URL já é completa para evitar duplicidade
-    if (filename.startsWith('http://') || filename.startsWith('https://')) {
-      return filename;
-    }
-    return '$BASE_URL_FTP$filename';
+    return ApiConfig.getProfileImageUrl(filename);
   }
 
   @override

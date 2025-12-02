@@ -1,6 +1,7 @@
 // lib/services/reservation_service.dart
 
 import 'dart:convert';
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/reservation_model.dart';
 import 'package:agilizaiapp/models/birthday_reservation_model.dart'; // Adicionar import
 import 'package:agilizaiapp/models/user_model.dart'; // Necessário para buscar usuário logado
@@ -9,7 +10,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ReservationService {
-  final String _baseUrl = 'https://vamos-comemorar-api.onrender.com/api';
+  final String _baseUrl = ApiConfig.apiUrl;
   final Dio _dio = Dio();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 

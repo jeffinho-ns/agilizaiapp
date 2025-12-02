@@ -1,11 +1,12 @@
 // lib/services/place_service.dart
 
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/place_model.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class PlaceService {
-  final String _baseUrl = 'https://vamos-comemorar-api.onrender.com/api';
+  final String _baseUrl = ApiConfig.apiUrl;
   final Dio _dio = Dio();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 

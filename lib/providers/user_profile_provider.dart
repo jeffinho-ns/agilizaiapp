@@ -1,4 +1,5 @@
 // lib/providers/user_profile_provider.dart
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/models/user_model.dart';
 import 'package:http/http.dart' as http;
@@ -61,7 +62,7 @@ class UserProfileProvider with ChangeNotifier {
 
     try {
       final response = await http.get(
-        Uri.parse('https://vamos-comemorar-api.onrender.com/api/users/me'),
+        Uri.parse(ApiConfig.userEndpoint('me')),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

@@ -53,7 +53,7 @@ const List<Bar> allBars = [
     ],
   ),
   Bar(
-    id: 4,
+    id: 2,
     name: 'Oh Fregues',
     slug: 'ohfregues',
     description: 'Um lugar incrível para curtir com os amigos.',
@@ -93,7 +93,7 @@ const List<Bar> allBars = [
     ],
   ),
   Bar(
-    id: 7,
+    id: 3,
     name: 'HighLine',
     slug: 'highline',
     description: 'Vista panorâmica e drinks exclusivos.',
@@ -132,7 +132,7 @@ const List<Bar> allBars = [
     ],
   ),
   Bar(
-    id: 8,
+    id: 4,
     name: 'Pracinha do Seu Justino',
     slug: 'pracinha',
     description: 'O melhor do samba e gastronomia em um só lugar.',

@@ -1,445 +1,29 @@
 // lib/screens/bar/bar_menu_screen.dart
 
-import 'package:diacritic/diacritic.dart';
 import 'package:flutter/material.dart';
-import 'package:agilizaiapp/models/bar_model.dart'; // Importe Bar para acessar o slug
-import 'package:agilizaiapp/data/bar_data.dart'; // Importe os dados dos bares
-import 'item_detail_sheet.dart'; // Importando a nova tela de detalhes
-import 'package:collection/collection.dart'; // <--- NOVO: Importe firstWhereOrNull
+import 'package:agilizaiapp/models/menu_models.dart';
+import 'package:agilizaiapp/services/menu_service.dart';
 
-// --- MODELOS DE DADOS --- (Permanecem como estão)
-class Topping {
-  final String name;
-  final double price;
+// Constantes dos selos (igual ao Next.js)
+const Map<String, Map<String, String>> FOOD_SEALS = {
+  'especial-do-dia': {'name': 'Especial do Dia', 'color': '#FF6B35'},
+  'vegetariano': {'name': 'Vegetariano', 'color': '#4CAF50'},
+  'saudavel-leve': {'name': 'Saudável/Leve', 'color': '#8BC34A'},
+  'prato-da-casa': {'name': 'Prato da Casa', 'color': '#FF9800'},
+  'artesanal': {'name': 'Artesanal', 'color': '#795548'},
+};
 
-  Topping({required this.name, required this.price});
-}
-
-class MenuItem {
-  final String name;
-  final String description;
-  final double price;
-  final String imageUrl;
-  final List<Topping> toppings;
-
-  MenuItem({
-    required this.name,
-    required this.description,
-    required this.price,
-    required this.imageUrl,
-    this.toppings = const [],
-  });
-}
-
-class MenuCategory {
-  final String name;
-  final List<MenuItem> items;
-
-  MenuCategory({
-    required this.name,
-    required this.items,
-  });
-}
-
-// --- DADOS MOCKADOS (EXEMPLO COMPLETO) --- (Permanecem como estão)
-final Map<String, List<MenuCategory>> barMenus = {
-  'seujustino': [
-    MenuCategory(
-      name: 'Entradinhas',
-      items: [
-        MenuItem(
-          name: 'Justino Fries with Cheddar Cream',
-          description: 'French fries with cheddar and smoked sausage farofa.',
-          price: 46.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/1eb6dcf0-6642-11ef-a44d-f10c103cb578.jpg',
-        ),
-        MenuItem(
-          name: 'Crispy Chicken Strips',
-          description:
-              'Breaded chicken strips in corn flakes flour. Served with spicy citrus mayonnaise.',
-          price: 46.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/09fafb60-6643-11ef-a44d-f10c103cb578.jpg',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Lanches',
-      items: [
-        MenuItem(
-          name: 'Sanduíche de bife de parmesão no pão francês',
-          description:
-              'Sanduíche de filé mignon à parmegiana no pão francês. Servido com batatas fritas.',
-          price: 52.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/fa858420-6647-11ef-938a-a76c2488c351.jpg',
-          toppings: [
-            Topping(name: 'Bacon extra', price: 4.00),
-            Topping(name: 'Cebola caramelizada', price: 3.50),
-            Topping(name: 'Ovo', price: 2.50),
-          ],
-        ),
-        MenuItem(
-          name: 'Justa Burger',
-          description:
-              'Cheeseburger de 180g com queijo prato, bacon, picles de pepino e cebola roxa. Acompanha batata frita e maionese.',
-          price: 48.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/353be190-6648-11ef-938a-a76c2488c351.jpg',
-          toppings: [
-            Topping(name: 'Bacon extra', price: 4.00),
-            Topping(name: 'Batata', price: 3.50),
-            Topping(name: 'Molho', price: 2.50),
-          ],
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Principal',
-      items: [
-        MenuItem(
-          name: 'Bife à parmegiana',
-          description:
-              'Bife empanado com molho de tomate rústico, coberto com queijo mussarela derretido. Servido com arroz e fritas.',
-          price: 58.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/a0523260-6646-11ef-938a-a76c2488c351.jpg',
-        ),
-        MenuItem(
-          name: 'Risoto de Limão Siciliano',
-          description: 'Risoto clássico de limao siciliano.',
-          price: 46.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/7291d5a0-be17-11ef-aff9-d1b98f4953c6.jpg',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Chapas',
-      items: [
-        MenuItem(
-          name: 'Bife de Fraldinha Grelhado 1953',
-          description:
-              'Fraldinha na chapa, acompanhada de batata frita, farofa e vinagrete.',
-          price: 139.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/2fca2180-be28-11ef-aff9-d1b98f4953c6.jpg?ims=filters:quality(70):format(webp)',
-        ),
-        MenuItem(
-          name: 'Carne Seca Grelhada',
-          description:
-              'Carne-seca desfiada, passada na manteiga de garrafa com cebola dourada e pimenta biquinho. Servida com vinagrete e mandioca frita.',
-          price: 89.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/d59eb7a0-be29-11ef-aff9-d1b98f4953c6.jpg?ims=filters:quality(70):format(webp)',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Saladas',
-      items: [
-        MenuItem(
-          name: 'Salada Caesar de Frango',
-          description:
-              'Mini alface americana e romana com espeto de medalhão de frango e bacon, molho Caesar, parmesão e croutons.',
-          price: 46.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/1538b440-2b6e-11f0-bb82-33a551cf21f9.jpg?ims=filters:quality(70):format(webp)',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Sobremesas',
-      items: [
-        MenuItem(
-          name: 'Pote de Nutella',
-          description:
-              'Sorvete de creme, ganache de Nutella, chantilly e canudo biju.',
-          price: 32.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/47143d20-be29-11ef-aff9-d1b98f4953c6.jpg?ims=filters:quality(70):format(webp)',
-        ),
-      ],
-    ),
-  ],
-  'pracinha': [
-    MenuCategory(
-      name: 'Para compartilhar!',
-      items: [
-        MenuItem(
-          name: 'Carne Guioza',
-          description:
-              'Diretamente da Feira da Liberdade, 6 pastéis finos e fritos, recheados com carne bovina, servidos com molho de gergelim.',
-          price: 38.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/b6f08a60-5f04-11ef-8b79-1d6149ef83bb.jpg?ims=filters:quality(70):format(webp)',
-        ),
-        MenuItem(
-          name: 'faturamento de pizza',
-          description:
-              'Queijo, tomate e orégano. O sabor da comida de rua para petiscar com os amigos. Podemos sentir falta do caldo de cana, mas com certeza uma das nossas bebidas vai te refrescar.',
-          price: 36.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/6c8d27c0-5f05-11ef-8b79-1d6149ef83bb.jpg?ims=filters:quality(70):format(webp)',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Sanduiches',
-      items: [
-        MenuItem(
-          name: 'X-Picanha Burger',
-          description:
-              'Clássico e bem feito, hambúrguer de picanha, mussarela e batata frita. Direto ao ponto.',
-          price: 38.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/cdd05600-5f06-11ef-8b79-1d6149ef83bb.jpg?ims=filters:quality(70):format(webp)',
-          toppings: [
-            Topping(name: 'Provolone', price: 5.00),
-            Topping(name: 'Batata', price: 3.00),
-          ],
-        ),
-        MenuItem(
-          name: 'Estadao Sandwich',
-          description:
-              'Perna de porco super suculenta, com cebola, um toque de churrasco e muito queijo derretido!!',
-          price: 38.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/149789a0-5f07-11ef-8b79-1d6149ef83bb.jpg?ims=filters:quality(70):format(webp)',
-          toppings: [
-            Topping(name: 'Provolone', price: 5.00),
-            Topping(name: 'Batata', price: 3.00),
-          ],
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Espetos',
-      items: [
-        MenuItem(
-          name: 'Espeto de carne',
-          description:
-              'Seja no estádio, na saída do clube, no trem ou no metrô, sempre podemos contar com um espeto para matar a fome. Aqui, ele é sempre servido com bastante farofa e vinagrete.',
-          price: 16.00,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/a2f8aa30-5f07-11ef-8b79-1d6149ef83bb.jpg?ims=filters:quality(70):format(webp)',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Drinks',
-      items: [
-        MenuItem(
-          name: 'Classic Caipirinha',
-          description:
-              'Frutas disponíveis: limão, morango, uva verde, abacaxi, maracujá.',
-          price: 28.00,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/Product/41cbda80-6000-11ef-8b79-1d6149ef83bb.jpg?ims=filters:quality(70):format(webp)',
-          toppings: [
-            Topping(name: 'Cachaça Salinissíma', price: 32.90),
-            Topping(name: 'Vodka Tuvalu', price: 34.90),
-            Topping(name: 'Absolut Vodka', price: 38.90),
-            Topping(name: 'Vodka Elyx', price: 48.90),
-          ],
-        ),
-      ],
-    ),
-  ],
-  'highline': [
-    MenuCategory(
-      name: 'Aperitivos',
-      items: [
-        MenuItem(
-          name: 'Bolinho de Costela Defumada',
-          description:
-              'Carne desfiada e marcada pelo sabor intenso da defumação, envolta em massa crocante. Acompanha barbecue',
-          price: 42.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/7f8a57a0-1164-11f0-9d96-b5544eadcadd.jpg?ims=filters:quality(70):format(webp)',
-        ),
-        MenuItem(
-          name: 'Burrata',
-          description:
-              'Burrata cremosa de búfala recheada com molho pesto! Acompanhada de tomates-cereja confitados, tapenade de azeitonas, rúcula e torrada.',
-          price: 88.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/3075c900-1165-11f0-9d96-b5544eadcadd.jpg?ims=filters:quality(70):format(webp)',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Hamburgueres',
-      items: [
-        MenuItem(
-          name: 'Mini Sanduíche de Carpaccio',
-          description:
-              'Carpaccio rústico, marinado em ervas frescas, maionese de alcaparras, lascas de parmesão e brotos de rúcula',
-          price: 52.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/02ebdd30-1160-11f0-9d96-b5544eadcadd.jpg?ims=filters:quality(70):format(webp)',
-          toppings: [
-            Topping(name: 'Batata Frita', price: 12.00),
-            Topping(name: 'Onion Rings', price: 15.00),
-          ],
-        ),
-        MenuItem(
-          name: 'Hambúrguer fofo',
-          description:
-              'Delicioso hambúrguer de filé mignon, com rúcula e mix de queijos. Acompanha fritas',
-          price: 54.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/3140ac60-1160-11f0-9d96-b5544eadcadd.jpg?ims=filters:quality(70):format(webp)',
-          toppings: [
-            Topping(name: 'Batata Frita', price: 12.00),
-            Topping(name: 'Onion Rings', price: 15.00),
-          ],
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Principal',
-      items: [
-        MenuItem(
-          name: 'O Oceano',
-          description:
-              'Deliciosa massa com tinta de lula, acompanhada de pequenos camarões salteados na manteiga, brotos e tomate cereja, finalizada com um toque do nosso azeite de ervas.',
-          price: 74.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/b2b37d20-1162-11f0-bd3f-d523131bd650.jpg?ims=filters:quality(70):format(webp)',
-        ),
-        MenuItem(
-          name: 'Risoto de cogumelos com medalhão de filé mignon',
-          description:
-              'Risoto de cogumelos hidratados ao vinho branco, com medalhão de filé mignon aromatizado com azeite trufado.',
-          price: 76.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/bc7da230-1163-11f0-bd3f-d523131bd650.jpg?ims=filters:quality(70):format(webp)',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Sobremesas',
-      items: [
-        MenuItem(
-          name: 'Da Vinci',
-          description:
-              'Criação original da casa. Sobremesa com um leve sabor de doce de leite, base de cream cheese, pedaços de biscoito Oreo entre biscoitos de chocolate e ganache. Finalizada com caldas de caramelo e framboesa.',
-          price: 42.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/9eb78270-115e-11f0-9d96-b5544eadcadd.jpg?ims=filters:quality(70):format(webp)',
-        ),
-      ],
-    ),
-  ],
-  'ohfregues': [
-    MenuCategory(
-      name: 'Entradinhas',
-      items: [
-        MenuItem(
-          name: 'Justino Fries with Cheddar Cream',
-          description: 'French fries with cheddar and smoked sausage farofa.',
-          price: 46.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/1eb6dcf0-6642-11ef-a44d-f10c103cb578.jpg',
-        ),
-        MenuItem(
-          name: 'Crispy Chicken Strips',
-          description:
-              'Breaded chicken strips in corn flakes flour. Served with spicy citrus mayonnaise.',
-          price: 46.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/09fafb60-6643-11ef-a44d-f10c103cb578.jpg',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Lanches',
-      items: [
-        MenuItem(
-          name: 'Sanduíche de bife de parmesão no pão francês',
-          description:
-              'Sanduíche de filé mignon à parmegiana no pão francês. Servido com batatas fritas.',
-          price: 52.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/fa858420-6647-11ef-938a-a76c2488c351.jpg',
-          toppings: [
-            Topping(name: 'Bacon extra', price: 4.00),
-            Topping(name: 'Cebola caramelizada', price: 3.50),
-            Topping(name: 'Ovo', price: 2.50),
-          ],
-        ),
-        MenuItem(
-          name: 'Justa Burger',
-          description:
-              'Cheeseburger de 180g com queijo prato, bacon, picles de pepino e cebola roxa. Acompanha batata frita e maionese.',
-          price: 48.90,
-          imageUrl:
-              'https://static.tagme.com.br/pubimg/thumbs/MenuItem/353be190-6648-11ef-938a-a76c2488c351.jpg',
-          toppings: [
-            Topping(name: 'Bacon extra', price: 4.00),
-            Topping(name: 'Batata', price: 3.50),
-            Topping(name: 'Molho', price: 2.50),
-          ],
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Drinks',
-      items: [
-        MenuItem(
-          name: 'Manzana',
-          description:
-              'Gin 142, energético Baly de maçã verde, xarope de maçã verde, finalizado com espuma cítrica e hortelã.',
-          price: 29.90,
-          imageUrl:
-              'https://dg-media.com.br/cardapio/produto_379187.png?v=624943130',
-          toppings: [
-            Topping(name: 'Com Cachaça Premium', price: 8.00),
-            Topping(name: 'Com Vodka', price: 6.00),
-          ],
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Gin',
-      items: [
-        MenuItem(
-          name: 'Gin Tônica Mule',
-          description:
-              'Gin & Tônica Clássico com deliciosa espuma artesanal cítrica',
-          price: 26.90,
-          imageUrl:
-              'https://dg-media.com.br/cardapio/produto_379233.png?v=179357896',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Cervejas',
-      items: [
-        MenuItem(
-          name: 'Corona Long Neck',
-          description: 'Corona Long Neck, cremosa e gelada.',
-          price: 16.90,
-          imageUrl:
-              'https://dg-media.com.br/cardapio/produto_379237.png?v=822150555',
-        ),
-      ],
-    ),
-    MenuCategory(
-      name: 'Destilados',
-      items: [
-        MenuItem(
-          name: 'Gin 142',
-          description: 'Dose de Gin 142, perfeito para compartilhar.',
-          price: 24.90,
-          imageUrl:
-              'https://dg-media.com.br/cardapio/produto_379979.png?v=1294786646',
-        ),
-      ],
-    ),
-  ],
+const Map<String, Map<String, String>> DRINK_SEALS = {
+  'assinatura-bartender': {
+    'name': 'Assinatura do Bartender',
+    'color': '#9C27B0'
+  },
+  'edicao-limitada': {'name': 'Edição Limitada', 'color': '#E91E63'},
+  'processo-artesanal': {'name': 'Processo Artesanal', 'color': '#673AB7'},
+  'sem-alcool': {'name': 'Sem Álcool', 'color': '#00BCD4'},
+  'refrescante': {'name': 'Refrescante', 'color': '#00E5FF'},
+  'citrico': {'name': 'Cítrico', 'color': '#FFEB3B'},
+  'doce': {'name': 'Doce', 'color': '#FFC107'},
 };
 
 // --- WIDGET DA TELA ---
@@ -459,47 +43,765 @@ class BarMenuScreen extends StatefulWidget {
 }
 
 class _BarMenuScreenState extends State<BarMenuScreen> {
-  late List<MenuCategory> _currentMenu;
-  int _selectedCategoryIndex = 0;
-  String _barName = 'Cardápio'; // Para exibir no AppBar
+  List<MenuCategory> _currentMenu = [];
+  String _barName = 'Cardápio';
+  bool _isLoading = true;
+  String? _error;
+  final MenuService _menuService = MenuService();
+  final ScrollController _scrollController = ScrollController();
+
+  // Controle do menu pegajoso
+  String _selectedCategory = '';
+  String _selectedSubcategory = '';
+  final Map<String, GlobalKey> _categoryKeys = {};
+  final Map<String, GlobalKey> _subcategoryKeys = {};
 
   @override
   void initState() {
     super.initState();
     _loadMenu();
+    _scrollController.addListener(_onScroll);
   }
 
-  void _loadMenu() {
-    // Busca o Bar pelo ID na lista allBars
-    // Usando firstWhereOrNull para evitar erros se o barId não for encontrado
-    final Bar? bar = allBars.firstWhereOrNull(
-      (b) => b.id == widget.barId,
-    );
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-    if (bar != null) {
-      _barName = bar.name; // Usa o nome real do bar
-      // <<-- CORREÇÃO AQUI: bar.slug deve ser usado para buscar no barMenus
-      final standardizedBarName =
-          removeDiacritics(bar.slug.toLowerCase()).replaceAll(' ', '');
-      _currentMenu = barMenus[standardizedBarName] ?? [];
-    } else {
-      _currentMenu = [];
-      _barName = 'Cardápio não encontrado';
-    }
+  // Listener de scroll para detectar categoria ativa
+  void _onScroll() {
+    if (!_scrollController.hasClients || _currentMenu.isEmpty) return;
 
-    if (_currentMenu.isNotEmpty) {
-      _selectedCategoryIndex =
-          _currentMenu.indexWhere((category) => category.items.isNotEmpty);
-      if (_selectedCategoryIndex == -1) {
-        _selectedCategoryIndex = 0;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final menuHeight = 90.0; // Altura do menu pegajoso
+    final threshold = screenHeight * 0.2; // 20% da tela para detecção
+
+    String? newSelectedCategory;
+    String? newSelectedSubcategory;
+
+    // Detectar categoria ativa baseada na posição do scroll
+    for (final category in _currentMenu) {
+      final key = _categoryKeys[category.name];
+      if (key?.currentContext != null) {
+        final RenderBox? renderBox =
+            key!.currentContext!.findRenderObject() as RenderBox?;
+        if (renderBox != null) {
+          final position = renderBox.localToGlobal(Offset.zero);
+          final categoryTop = position.dy - menuHeight;
+          final categoryBottom = categoryTop + renderBox.size.height;
+
+          // Se a categoria está visível na tela
+          if (categoryTop <= threshold && categoryBottom >= threshold) {
+            newSelectedCategory = category.name;
+
+            // Detectar subcategoria ativa dentro da categoria
+            for (final subcategory in category.subcategories) {
+              final subKey = _subcategoryKeys['${category.name}-$subcategory'];
+              if (subKey?.currentContext != null) {
+                final RenderBox? subRenderBox =
+                    subKey!.currentContext!.findRenderObject() as RenderBox?;
+                if (subRenderBox != null) {
+                  final subPosition = subRenderBox.localToGlobal(Offset.zero);
+                  final subcategoryTop = subPosition.dy - menuHeight;
+                  final subcategoryBottom =
+                      subcategoryTop + subRenderBox.size.height;
+
+                  // Se a subcategoria está visível na tela
+                  if (subcategoryTop <= threshold &&
+                      subcategoryBottom >= threshold) {
+                    newSelectedSubcategory = subcategory;
+                    break;
+                  }
+                }
+              }
+            }
+            break;
+          }
+        }
       }
     }
-    setState(
-        () {}); // Atualiza o estado para reconstruir a UI com o menu carregado
+
+    // Atualizar estado apenas se houver mudanças
+    if (newSelectedCategory != null &&
+        (newSelectedCategory != _selectedCategory ||
+            newSelectedSubcategory != _selectedSubcategory)) {
+      setState(() {
+        _selectedCategory = newSelectedCategory!;
+        _selectedSubcategory = newSelectedSubcategory ?? '';
+      });
+    }
   }
 
-  bool _isColorDark(Color color) {
-    return color.computeLuminance() < 0.5;
+  Future<void> _loadMenu() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      print(
+          'DEBUG: Iniciando carregamento do cardápio para barId ${widget.barId}');
+
+      // Carregar cardápio com timeout para evitar travamentos
+      final menuData = await _menuService
+          .fetchMenuByBar(widget.barId)
+          .timeout(const Duration(seconds: 30));
+
+      // Buscar informações do bar apenas se necessário
+      List<BarFromAPI> bars = [];
+      try {
+        bars =
+            await _menuService.fetchBars().timeout(const Duration(seconds: 10));
+      } catch (e) {
+        print('DEBUG: Erro ao buscar bares, continuando sem nome do bar: $e');
+      }
+
+      // Processar dados de forma otimizada
+      await _processMenuData(menuData, bars);
+
+      print(
+          'DEBUG: Cardápio carregado com sucesso - ${menuData.length} grupos');
+    } catch (e) {
+      print('DEBUG: Erro ao carregar cardápio: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+        _barName = 'Erro ao carregar cardápio';
+      });
+    }
+  }
+
+  // Processar dados do menu de forma otimizada
+  Future<void> _processMenuData(
+    Map<String, List<MenuItemFromAPI>> menuData,
+    List<BarFromAPI> bars,
+  ) async {
+    print('DEBUG: Processando dados do menu - ${menuData.length} grupos');
+
+    // Converter dados da API para o formato da UI (agrupado por categoria e subcategoria)
+    final List<MenuCategory> categories = [];
+    final Map<String, Map<String, List<MenuItem>>> categoryGroups = {};
+
+    // Processar itens de forma mais eficiente
+    for (final entry in menuData.entries) {
+      final key = entry.key; // Formato: "Categoria - Subcategoria"
+      final items = entry.value;
+
+      // Extrair nome da categoria e subcategoria
+      final parts = key.split(' - ');
+      final categoryName = parts[0];
+      final subcategoryName = parts.length > 1 ? parts[1] : 'Geral';
+
+      if (!categoryGroups.containsKey(categoryName)) {
+        categoryGroups[categoryName] = {};
+      }
+      if (!categoryGroups[categoryName]!.containsKey(subcategoryName)) {
+        categoryGroups[categoryName]![subcategoryName] = [];
+      }
+
+      // Converter itens de forma otimizada
+      for (final item in items) {
+        final menuItem = MenuItem.fromAPI(
+            item, _menuService.getValidImageUrl(item.imageUrl));
+        categoryGroups[categoryName]![subcategoryName]!.add(menuItem);
+      }
+    }
+
+    // Converter para lista de categorias com subcategorias
+    for (final entry in categoryGroups.entries) {
+      final categoryName = entry.key;
+      final subcategories = entry.value;
+
+      // Criar chaves para ancoragem
+      _categoryKeys[categoryName] = GlobalKey();
+
+      // Converter subcategorias para lista de itens
+      final List<MenuItem> allItems = [];
+      for (final subcategoryEntry in subcategories.entries) {
+        final subcategoryName = subcategoryEntry.key;
+        final items = subcategoryEntry.value;
+
+        _subcategoryKeys['$categoryName-$subcategoryName'] = GlobalKey();
+        allItems.addAll(items);
+      }
+
+      categories.add(MenuCategory(
+        name: categoryName,
+        items: allItems,
+        subcategories: subcategories.keys.toList(),
+      ));
+    }
+
+    // Inicializar seleção
+    if (categories.isNotEmpty) {
+      _selectedCategory = categories.first.name;
+      if (categories.first.subcategories.isNotEmpty) {
+        _selectedSubcategory = categories.first.subcategories.first;
+      }
+    }
+
+    // Encontrar o nome do bar
+    if (bars.isNotEmpty) {
+      try {
+        final bar = bars.firstWhere(
+          (bar) => bar.id == widget.barId,
+          orElse: () => bars.first,
+        );
+        _barName = bar.name;
+      } catch (e) {
+        print('DEBUG: Erro ao encontrar nome do bar: $e');
+        _barName = 'Cardápio';
+      }
+    } else {
+      _barName = 'Cardápio';
+    }
+
+    print('DEBUG: Menu processado - ${categories.length} categorias');
+
+    if (mounted) {
+      setState(() {
+        _currentMenu = categories;
+        _isLoading = false;
+        _error = null;
+
+        // Selecionar primeira categoria se disponível
+        if (categories.isNotEmpty) {
+          _selectedCategory = categories.first.name;
+          if (categories.first.subcategories.isNotEmpty) {
+            _selectedSubcategory = categories.first.subcategories.first;
+          }
+        }
+      });
+    }
+  }
+
+  // Widget para exibir selos
+  Widget _buildSeals(List<String> seals, {bool isCompact = false}) {
+    if (seals.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: isCompact ? 3 : 6,
+      runSpacing: isCompact ? 2 : 4,
+      children: seals.map((seal) {
+        try {
+          // Verificar se é um selo de comida ou bebida
+          final sealInfo = FOOD_SEALS[seal] ?? DRINK_SEALS[seal];
+          if (sealInfo == null) return const SizedBox.shrink();
+
+          final colorString = sealInfo['color'] ?? '#000000';
+          final color = Color(int.parse(colorString.replaceAll('#', '0xFF')));
+
+          return Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isCompact ? 4 : 8,
+              vertical: isCompact ? 2 : 4,
+            ),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
+            ),
+            child: Text(
+              sealInfo['name'] ?? seal,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: isCompact ? 8 : 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+        } catch (e) {
+          print('Erro ao processar selo $seal: $e');
+          return const SizedBox.shrink();
+        }
+      }).toList(),
+    );
+  }
+
+  // Widget para o menu mobile (igual ao Next.js)
+  Widget _buildMobileMenu() {
+    return Column(
+      children: [
+        // Menu pegajoso de categorias e subcategorias
+        _buildStickyMenu(),
+        // Conteúdo com scroll
+        Expanded(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _currentMenu.map((category) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Título da categoria
+                    Container(
+                      key: _categoryKeys[category.name],
+                      padding: const EdgeInsets.only(top: 32.0, bottom: 16.0),
+                      child: Text(
+                        category.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    // Subcategorias
+                    if (category.subcategories.isNotEmpty) ...[
+                      for (final subcategory in category.subcategories) ...[
+                        Container(
+                          key:
+                              _subcategoryKeys['${category.name}-$subcategory'],
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: Text(
+                            subcategory,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                        // Grid de itens da subcategoria (2 colunas)
+                        _buildItemsGrid(category.items.where((item) {
+                          // Filtrar itens da subcategoria específica
+                          // Por enquanto, mostrar todos os itens da categoria
+                          return true;
+                        }).toList()),
+                        const SizedBox(height: 24),
+                      ],
+                    ] else ...[
+                      // Grid de itens da categoria (2 colunas)
+                      _buildItemsGrid(category.items),
+                    ],
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Widget para o menu pegajoso
+  Widget _buildStickyMenu() {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          // Menu de categorias
+          Container(
+            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _currentMenu.length,
+              itemBuilder: (context, index) {
+                final category = _currentMenu[index];
+                final isSelected = _selectedCategory == category.name;
+
+                return GestureDetector(
+                  onTap: () => _scrollToCategory(category.name),
+                  child: Container(
+                    alignment: Alignment.center,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: isSelected ? widget.appBarColor : Colors.grey[200],
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: Text(
+                      category.name,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // Menu de subcategorias (se houver)
+          if (_selectedCategory.isNotEmpty) ...[
+            Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _currentMenu
+                    .firstWhere((cat) => cat.name == _selectedCategory,
+                        orElse: () => MenuCategory(name: '', items: []))
+                    .subcategories
+                    .length,
+                itemBuilder: (context, index) {
+                  final subcategory = _currentMenu
+                      .firstWhere((cat) => cat.name == _selectedCategory,
+                          orElse: () => MenuCategory(name: '', items: []))
+                      .subcategories[index];
+                  final isSelected = _selectedSubcategory == subcategory;
+
+                  return GestureDetector(
+                    onTap: () =>
+                        _scrollToSubcategory(_selectedCategory, subcategory),
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Colors.blue[600] : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        subcategory,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? Colors.white : Colors.black54,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // Widget para o grid de itens
+  Widget _buildItemsGrid(List<MenuItem> items) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.7, // Ajustado para evitar overflow
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return _buildMenuItemCard(item);
+      },
+    );
+  }
+
+  // Métodos para scroll para categorias e subcategorias
+  void _scrollToCategory(String categoryName) {
+    final key = _categoryKeys[categoryName];
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+      setState(() {
+        _selectedCategory = categoryName;
+        _selectedSubcategory = '';
+      });
+    }
+  }
+
+  void _scrollToSubcategory(String categoryName, String subcategoryName) {
+    final key = _subcategoryKeys['$categoryName-$subcategoryName'];
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+      setState(() {
+        _selectedCategory = categoryName;
+        _selectedSubcategory = subcategoryName;
+      });
+    }
+  }
+
+  // Widget para o card do item (igual ao Next.js mobile)
+  Widget _buildMenuItemCard(MenuItem item) {
+    return GestureDetector(
+      onTap: () => _showItemDetails(item),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Imagem do item
+            Expanded(
+              flex: 3,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
+                child: Stack(
+                  children: [
+                    Image.network(
+                      item.imageUrl,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          color: Colors.grey[300],
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Colors.grey[600],
+                            size: 40,
+                          ),
+                        );
+                      },
+                    ),
+                    // Badge de preço
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'R\$ ${item.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Conteúdo do card
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Nome do item
+                    Text(
+                      item.name,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    // Descrição
+                    Text(
+                      item.description,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey[600],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    // Selos (com tamanho reduzido)
+                    Expanded(
+                      child: _buildSeals(item.seals, isCompact: true),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Mostrar detalhes do item (modal completo)
+  void _showItemDetails(MenuItem item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildItemDetailModal(item),
+    );
+  }
+
+  // Modal de detalhes do item (igual ao Next.js)
+  Widget _buildItemDetailModal(MenuItem item) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Handle do modal
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Conteúdo do modal
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Imagem do item
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      item.imageUrl,
+                      width: double.infinity,
+                      height: 200,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: double.infinity,
+                          height: 200,
+                          color: Colors.grey[300],
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Colors.grey[600],
+                            size: 50,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Nome e preço
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.name,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'R\$ ${item.price.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: widget.appBarColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Descrição
+                  Text(
+                    item.description,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Selos
+                  if (item.seals.isNotEmpty) ...[
+                    const Text(
+                      'Características:',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSeals(item.seals),
+                    const SizedBox(height: 20),
+                  ],
+                  // Toppings (adicionais)
+                  if (item.toppings.isNotEmpty) ...[
+                    const Text(
+                      'Adicionais:',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...item.toppings.map((topping) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                topping.name,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              Text(
+                                '+R\$ ${topping.price.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -507,188 +809,117 @@ class _BarMenuScreenState extends State<BarMenuScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _barName, // Usa o nome do bar encontrado
+          _barName,
           style: const TextStyle(color: Colors.white),
         ),
         centerTitle: true,
         backgroundColor: widget.appBarColor,
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
+        ],
       ),
-      body: _currentMenu.isEmpty
+      body: _isLoading
           ? const Center(
-              child: Text(
-                'Cardápio não disponível no momento.',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Carregando cardápio...',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
               ),
             )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: SizedBox(
-                    height: 50,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _currentMenu.length,
-                      itemBuilder: (context, index) {
-                        final category = _currentMenu[index];
-                        final isSelected = _selectedCategoryIndex == index;
-                        Color textColor;
-
-                        if (isSelected) {
-                          textColor = _isColorDark(widget.appBarColor)
-                              ? Colors.white
-                              : Colors.black;
-                        } else {
-                          textColor = Colors.black87;
-                        }
-
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedCategoryIndex = index;
-                            });
-                          },
-                          child: Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 8),
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? widget.appBarColor
-                                  : Colors.grey[200],
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Text(
-                              category.name,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: textColor,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: _currentMenu.isEmpty ||
-                          _currentMenu[_selectedCategoryIndex].items.isEmpty
-                      ? Center(
-                          child: Text(
-                            'Nenhum item nesta categoria.',
-                            style: TextStyle(
-                                fontSize: 16, color: Colors.grey[600]),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16.0),
-                          itemCount:
-                              _currentMenu[_selectedCategoryIndex].items.length,
-                          itemBuilder: (context, itemIndex) {
-                            final item = _currentMenu[_selectedCategoryIndex]
-                                .items[itemIndex];
-
-                            return GestureDetector(
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  builder: (context) {
-                                    return ItemDetailSheet(
-                                      item: item,
-                                      themeColor: widget.appBarColor,
-                                    );
-                                  },
-                                );
-                              },
-                              child: Card(
-                                margin: const EdgeInsets.only(bottom: 16.0),
-                                elevation: 6,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(
-                                          top: Radius.circular(15)),
-                                      child: Image.network(
-                                        item.imageUrl,
-                                        width: double.infinity,
-                                        height: 200,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Container(
-                                            width: double.infinity,
-                                            height: 200,
-                                            color: Colors.grey[300],
-                                            child: Icon(
-                                              Icons.broken_image,
-                                              color: Colors.grey[600],
-                                              size: 50,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.name,
-                                            style: const TextStyle(
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8.0),
-                                          Text(
-                                            item.description,
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.grey[700],
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 12.0),
-                                          Align(
-                                            alignment: Alignment.centerRight,
-                                            child: Text(
-                                              'R\$ ${item.price.toStringAsFixed(2)}',
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: widget.appBarColor,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+          : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Erro ao carregar cardápio',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
                         ),
-                ),
-              ],
-            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _error!,
+                        style:
+                            const TextStyle(fontSize: 14, color: Colors.grey),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadMenu,
+                        child: const Text('Tentar novamente'),
+                      ),
+                    ],
+                  ),
+                )
+              : _currentMenu.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.restaurant_menu,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Cardápio não disponível',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Este estabelecimento ainda não possui itens cadastrados no cardápio.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _loadMenu,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Tentar novamente'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: widget.appBarColor,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : _buildMobileMenu(),
     );
   }
 }

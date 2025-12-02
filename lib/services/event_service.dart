@@ -1,5 +1,6 @@
 // lib/services/event_service.dart
 
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/models/rule_model.dart';
 // <--- NOVO: Importe Guest para tipagem
@@ -7,7 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class EventService {
-  final String _baseUrl = 'https://vamos-comemorar-api.onrender.com/api';
+  final String _baseUrl = ApiConfig.apiUrl;
   final Dio _dio = Dio();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
@@ -29,7 +30,8 @@ class EventService {
       }
 
       print('Requisição de eventos para: $url');
-      final response = await _dio.get(url, options: await _getAuthHeaders());
+      // A rota GET /events é pública, não requer autenticação
+      final response = await _dio.get(url);
       print('Resposta da API de eventos: Status ${response.statusCode}');
       // print('Dados da resposta de eventos: ${response.data}'); // Descomente para ver o JSON completo
 
@@ -41,18 +43,34 @@ class EventService {
             'Falha ao carregar eventos: Status ${response.statusCode}');
       }
     } on DioException catch (e) {
-      print(
-          'DioError ao buscar eventos: ${e.response?.statusCode} - ${e.response?.data}');
+      print('DioError ao buscar eventos: ${e.response?.statusCode}');
+      print('DioError - Data: ${e.response?.data}');
+      print('DioError - Type: ${e.type}');
+      
+      // Se for erro de conexão/timeout, retornar lista vazia ao invés de lançar exceção
+      if (e.type == DioExceptionType.connectionTimeout || 
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.sendTimeout) {
+        print('Erro de conexão ao buscar eventos. Retornando lista vazia.');
+        return [];
+      }
+      
       String errorMessage = 'Falha ao carregar eventos.';
-      if (e.response != null && e.response!.data is Map) {
-        errorMessage = e.response!.data['message'] ?? errorMessage;
-      } else if (e.response != null && e.response!.data is String) {
-        errorMessage = e.response!.data;
+      if (e.response != null && e.response!.data != null) {
+        if (e.response!.data is Map) {
+          errorMessage = e.response!.data['message'] ?? 
+                         e.response!.data['error'] ?? 
+                         errorMessage;
+        } else if (e.response!.data is String) {
+          errorMessage = e.response!.data;
+        }
       }
       throw Exception(errorMessage);
     } catch (e) {
       print('Erro inesperado ao buscar eventos: $e');
-      throw Exception('Erro desconhecido ao carregar eventos');
+      // Em caso de erro inesperado, retornar lista vazia ao invés de quebrar o app
+      return [];
     }
   }
 

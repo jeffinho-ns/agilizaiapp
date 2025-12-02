@@ -1,5 +1,7 @@
 // lib/models/user_model.dart
 
+import 'package:agilizaiapp/config/api_config.dart';
+
 // Import necessário para o `const` no construtor
 
 class User {
@@ -47,14 +49,14 @@ class User {
     String? finalFotoPerfilUrl;
 
     if (rawFotoPerfil != null && rawFotoPerfil.isNotEmpty) {
-      // Verifica se a URL já é completa (contém 'http' ou 'https')
+      // Verifica se a URL já é completa (Cloudinary, FTP ou outro serviço)
       if (rawFotoPerfil.startsWith('http://') ||
           rawFotoPerfil.startsWith('https://')) {
-        finalFotoPerfilUrl = rawFotoPerfil; // Já é a URL completa
+        finalFotoPerfilUrl = rawFotoPerfil; // Já é a URL completa (Cloudinary ou legado)
       } else {
-        // Se for apenas o nome do arquivo, constrói a URL FTP
-        finalFotoPerfilUrl =
-            'https://grupoideiaum.com.br/cardapio-agilizaiapp/$rawFotoPerfil';
+        // Se for apenas o nome do arquivo (legado), usa método auxiliar
+        // NOTA: O backend agora sempre retorna URLs completas do Cloudinary
+        finalFotoPerfilUrl = ApiConfig.getProfileImageUrl(rawFotoPerfil);
       }
     }
 

@@ -1,6 +1,7 @@
 // Em lib/services/auth_service.dart
 
 import 'dart:convert';
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/user_model.dart'; // Certifique-se que o caminho está correto
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -8,8 +9,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final String _baseUrl =
-      'https://vamos-comemorar-api.onrender.com'; // Sua URL base
+  final String _baseUrl = ApiConfig.apiBaseUrl;
   final Dio _dio = Dio();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
@@ -34,8 +34,20 @@ class AuthService {
         throw Exception(response.data['error'] ?? 'Credenciais inválidas');
       }
     } on DioException catch (e) {
-      print('Erro no login: ${e.response?.data}');
-      throw Exception(e.response?.data['error'] ?? 'Erro ao fazer login.');
+      print('Erro no login: ${e.response?.statusCode}');
+      print('Erro no login - Data: ${e.response?.data}');
+      if (e.response != null && e.response!.data != null) {
+        final errorData = e.response!.data;
+        if (errorData is Map && errorData.containsKey('error')) {
+          throw Exception(errorData['error']);
+        } else if (errorData is String) {
+          throw Exception(errorData);
+        }
+      }
+      throw Exception('Erro ao fazer login. Verifique suas credenciais.');
+    } catch (e) {
+      print('Erro inesperado no login: $e');
+      rethrow;
     }
   }
 
@@ -57,7 +69,7 @@ class AuthService {
 
       // Envia o idToken para o seu backend
       final response = await _dio.post(
-        '$_baseUrl/auth/google', // Verifique se este é o endpoint correto no seu backend
+        '$_baseUrl/auth/google',
         data: {'idToken': idToken},
       );
 

@@ -1,5 +1,6 @@
 // lib/widgets/app_drawer.dart
 
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +49,7 @@ class _AppDrawerState extends State<AppDrawer> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://vamos-comemorar-api.onrender.com/api/users/me'),
+        Uri.parse(ApiConfig.userEndpoint('me')),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

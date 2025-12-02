@@ -118,3 +118,4 @@ Para testar o sistema:
 - **Backup**: Imagens ficam no servidor FTP, não apenas localmente
 - **Limpeza**: Considerar implementar limpeza automática de arquivos antigos
 
+

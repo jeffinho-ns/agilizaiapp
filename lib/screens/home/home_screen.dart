@@ -1,6 +1,7 @@
 // lib/screens/home/home_screen.dart
 
 import 'dart:convert';
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/models/user_model.dart';
 import 'package:agilizaiapp/screens/filter/filter_screen.dart';
@@ -131,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
     try {
       final response = await http.get(
-        Uri.parse('https://vamos-comemorar-api.onrender.com/api/users/me'),
+        Uri.parse(ApiConfig.userEndpoint('me')),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

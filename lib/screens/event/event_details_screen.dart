@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/models/user_model.dart';
 import 'package:agilizaiapp/models/reservation_model.dart';
@@ -28,8 +29,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   late int _mesas;
   bool _isLoading = false;
 
-  static const String apiUrl =
-      'https://vamos-comemorar-api.onrender.com/api/reservas';
+  static String get apiUrl => ApiConfig.reservasEndpoint;
 
   GoogleMapController? _mapController;
   final Set<Marker> _eventMarkers = {};

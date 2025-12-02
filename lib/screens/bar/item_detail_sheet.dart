@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'bar_menu_screen.dart'; // Importe para ter acesso aos modelos MenuItem e Topping
+import 'package:agilizaiapp/models/menu_models.dart';
 
 class ItemDetailSheet extends StatefulWidget {
   final MenuItem item;

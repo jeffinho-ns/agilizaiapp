@@ -1,6 +1,7 @@
 // lib/screens/profile/edit_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/providers/user_profile_provider.dart';
 import 'package:agilizaiapp/models/user_model.dart';
 import 'package:intl/intl.dart';
@@ -93,7 +94,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://vamos-comemorar-api.onrender.com/api/users/me'),
+        Uri.parse(ApiConfig.userEndpoint('me')),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -192,7 +193,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  // NOVA FUNÇÃO: Faz upload da foto para o FTP via API e retorna o nome do arquivo.
+  // Faz upload da foto para o Cloudinary via API e retorna a URL completa.
   Future<String?> _saveProfilePhoto() async {
     if (_imageFile == null) {
       return null;
@@ -208,7 +209,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
 
       final uri = Uri.parse(
-        'https://vamos-comemorar-api.onrender.com/api/images/upload',
+        ApiConfig.uploadImageUrl,
       );
       final request = http.MultipartRequest('POST', uri);
       request.headers['Authorization'] = 'Bearer $token';
@@ -280,7 +281,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       final response = await http.put(
-        Uri.parse('https://vamos-comemorar-api.onrender.com/api/users/me'),
+        Uri.parse(ApiConfig.userEndpoint('me')),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -357,14 +358,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   // Função para obter o provider de imagem de perfil
   ImageProvider _getProfileImageProvider(String fotoPerfil) {
-    // Se já é uma URL completa, usa diretamente
-    if (fotoPerfil.startsWith('http://') || fotoPerfil.startsWith('https://')) {
-      return NetworkImage(fotoPerfil);
-    }
-
-    // Se é apenas o nome do arquivo, constrói a URL FTP
-    const baseUrl = 'https://grupoideiaum.com.br/cardapio-agilizaiapp/';
-    return NetworkImage('$baseUrl$fotoPerfil');
+    return NetworkImage(ApiConfig.getProfileImageUrl(fotoPerfil));
   }
 
   // Função para fazer logout

@@ -1,5 +1,6 @@
 // lib/screens/event/event_booked_screen.dart
 
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/models/reservation_model.dart';
 import 'package:agilizaiapp/services/reservation_service.dart';
@@ -50,7 +51,7 @@ class _EventBookedScreenState extends State<EventBookedScreen> {
     }
 
     socket = io.io(
-        'https://vamos-comemorar-api.onrender.com', // Sua URL base da API
+        ApiConfig.apiBaseUrl, // Sua URL base da API
         io.OptionBuilder()
             .setTransports(['websocket'])
             .disableAutoConnect()

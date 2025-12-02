@@ -149,8 +149,14 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
     switch (barIdStr) {
       case '1':
         return 'Seu Justino';
-      case '7':
+      case '2':
+        return 'Oh Fregues';
+      case '3':
         return 'HighLine';
+      case '4':
+        return 'Pracinha do Seu Justino';
+      case '5':
+        return 'Reserva Rooftop';
       default:
         return 'Bar não especificado';
     }

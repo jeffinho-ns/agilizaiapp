@@ -1,8 +1,9 @@
 import 'dart:math';
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:dio/dio.dart';
 
 class PhoneService {
-  final String _baseUrl = 'https://vamos-comemorar-api.onrender.com';
+  final String _baseUrl = ApiConfig.apiBaseUrl;
   final Dio _dio = Dio();
 
   /// Gera um código de verificação de 4 dígitos

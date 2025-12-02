@@ -1,13 +1,13 @@
 // lib/services/user_service.dart
 
 import 'dart:convert';
+import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/user_model.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
-  final String _baseUrl =
-      'https://vamos-comemorar-api.onrender.com/api/users'; // Ajuste para sua API de usuários
+  final String _baseUrl = ApiConfig.usersEndpoint;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<Map<String, String>> _getHeaders() async {
