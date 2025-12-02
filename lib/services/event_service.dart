@@ -38,14 +38,30 @@ class EventService {
 
       if (response.statusCode == 200) {
         final List<dynamic> eventData = response.data;
+        
+        // Debug: verificar campos do primeiro evento para entender a estrutura
+        if (eventData.isNotEmpty) {
+          final primeiroEvento = eventData[0] as Map<String, dynamic>;
+          print('DEBUG EventService: Estrutura do primeiro evento:');
+          print('   Campos disponíveis: ${primeiroEvento.keys.toList()}');
+          print('   tipoEvento: ${primeiroEvento['tipoEvento']}');
+          print('   tipo_evento: ${primeiroEvento['tipo_evento']}');
+          print('   nome_do_evento: ${primeiroEvento['nome_do_evento']}');
+        }
+        
         final events = eventData.map((json) => Event.fromJson(json)).toList();
         
-        // Debug: verificar tipos de eventos recebidos
+        // Debug: verificar tipos de eventos recebidos após parsing
         final tiposUnicos = events.where((e) => e.tipoEvento?.toLowerCase() == 'unico').length;
         final tiposSemanais = events.where((e) => e.tipoEvento?.toLowerCase() == 'semanal').length;
         print('DEBUG EventService: Total de eventos recebidos: ${events.length}');
         print('DEBUG EventService: Eventos únicos: $tiposUnicos');
         print('DEBUG EventService: Eventos semanais: $tiposSemanais');
+        
+        // Debug: listar tipos de todos os eventos
+        for (var i = 0; i < events.length && i < 5; i++) {
+          print('DEBUG EventService: Evento $i - Nome: ${events[i].nomeDoEvento}, Tipo: ${events[i].tipoEvento}');
+        }
         
         return events;
       } else {

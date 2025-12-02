@@ -239,10 +239,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        if (responseData['success'] == true &&
-            responseData['filename'] != null) {
-          _showSnackBar('Foto de perfil enviada com sucesso!');
-          return responseData['filename']; // Retorna apenas o nome do arquivo
+        if (responseData['success'] == true) {
+          // Priorizar URL completa do Cloudinary se disponível
+          final cloudinaryUrl = responseData['url'] as String?;
+          if (cloudinaryUrl != null && cloudinaryUrl.isNotEmpty) {
+            _showSnackBar('Foto de perfil enviada com sucesso!');
+            print('DEBUG: URL Cloudinary recebida: $cloudinaryUrl');
+            // Retorna a URL completa do Cloudinary
+            return cloudinaryUrl;
+          } else if (responseData['filename'] != null) {
+            // Fallback para filename se URL não estiver disponível
+            _showSnackBar('Foto de perfil enviada com sucesso!');
+            return responseData['filename'];
+          } else {
+            _showSnackBar(
+              'Erro no upload da foto: URL não retornada pelo servidor',
+            );
+            return null;
+          }
         } else {
           _showSnackBar(
             'Erro no upload da foto: ${responseData['error'] ?? 'Resposta inválida'}',
