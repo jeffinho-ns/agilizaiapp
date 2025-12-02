@@ -28,7 +28,7 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 flutter_ios_podfile_setup
 
 target 'Runner' do
-  use_frameworks!
+  use_frameworks! :linkage => :static
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
@@ -39,5 +39,17 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    
+    # Fix para erro de proteção de memória no iOS
+    target.build_configurations.each do |config|
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+      
+      # Fix para erro de memória RX/RW
+      config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
+      config.build_settings['VALID_ARCHS'] = 'arm64'
+      config.build_settings['VALID_ARCHS[sdk=iphonesimulator*]'] = 'x86_64 arm64'
+    end
   end
 end
