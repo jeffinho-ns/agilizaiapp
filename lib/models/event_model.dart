@@ -78,8 +78,10 @@ class Event {
       dataDoEvento: json['data_do_evento'] as String?,
       horaDoEvento: json['hora_do_evento'] as String,
       categoria: json['categoria'] as String?,
-      // Aceita tanto tipoEvento (camelCase) quanto tipo_evento (snake_case)
-      tipoEvento: json['tipoEvento'] as String? ?? json['tipo_evento'] as String?,
+      // Aceita tipoEvento (camelCase), tipo_evento (snake_case) ou tipoevento (tudo minúsculo)
+      tipoEvento: json['tipoEvento'] as String? ?? 
+                  json['tipo_evento'] as String? ?? 
+                  json['tipoevento'] as String?,
       valorDaEntrada:
           parseToDouble(json['valor_da_entrada']), // <--- APLICA PARSE SEGURO
       descricao: json['descricao'] as String?,
