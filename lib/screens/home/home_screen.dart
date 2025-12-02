@@ -15,11 +15,9 @@ import 'package:dio/dio.dart';
 import 'package:agilizaiapp/widgets/app_drawer.dart';
 
 // Importando o modelo do bar, os dados dos bares e a tela de detalhes do bar
-import 'package:agilizaiapp/models/bar_model.dart';
 import 'package:agilizaiapp/data/bar_data.dart';
 import 'package:agilizaiapp/screens/bar/bar_details_screen.dart';
 
-import 'package:agilizaiapp/widgets/event_preview_sheet.dart';
 import 'package:agilizaiapp/services/event_service.dart'; // <--- NOVO: Importe o serviço de eventos
 import 'package:agilizaiapp/l10n/app_localizations.dart';
 
@@ -156,15 +154,34 @@ class _HomeScreenState extends State<HomeScreen>
   */
 
   void _filterEventsByCategory(String category) {
-    // ... (permanece o mesmo) ...
     setState(() {
       _selectedCategory = category;
+      
+      // Debug: verificar tipos de eventos disponíveis
+      final tiposUnicos = _allEvents.where((e) => e.tipoEvento?.toLowerCase() == 'unico').length;
+      final tiposSemanais = _allEvents.where((e) => e.tipoEvento?.toLowerCase() == 'semanal').length;
+      print('DEBUG: Total de eventos: ${_allEvents.length}');
+      print('DEBUG: Eventos únicos: $tiposUnicos');
+      print('DEBUG: Eventos semanais: $tiposSemanais');
+      print('DEBUG: Categoria selecionada: $category');
+      
+      // Filtrar eventos pela categoria selecionada
       _categorizedEvents = _allEvents
-          .where(
-            (event) =>
-                event.tipoEvento?.toLowerCase() == category.toLowerCase(),
-          )
+          .where((event) {
+            final tipo = event.tipoEvento?.toLowerCase().trim();
+            final categoriaLower = category.toLowerCase().trim();
+            final matches = tipo == categoriaLower;
+            
+            // Debug para eventos que não correspondem
+            if (!matches && event.tipoEvento != null) {
+              print('DEBUG: Evento "${event.nomeDoEvento}" tem tipo "${event.tipoEvento}" (esperado: "$category")');
+            }
+            
+            return matches;
+          })
           .toList();
+      
+      print('DEBUG: Eventos filtrados para "$category": ${_categorizedEvents.length}');
     });
   }
 

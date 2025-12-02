@@ -38,7 +38,16 @@ class EventService {
 
       if (response.statusCode == 200) {
         final List<dynamic> eventData = response.data;
-        return eventData.map((json) => Event.fromJson(json)).toList();
+        final events = eventData.map((json) => Event.fromJson(json)).toList();
+        
+        // Debug: verificar tipos de eventos recebidos
+        final tiposUnicos = events.where((e) => e.tipoEvento?.toLowerCase() == 'unico').length;
+        final tiposSemanais = events.where((e) => e.tipoEvento?.toLowerCase() == 'semanal').length;
+        print('DEBUG EventService: Total de eventos recebidos: ${events.length}');
+        print('DEBUG EventService: Eventos únicos: $tiposUnicos');
+        print('DEBUG EventService: Eventos semanais: $tiposSemanais');
+        
+        return events;
       } else {
         throw Exception(
             'Falha ao carregar eventos: Status ${response.statusCode}');

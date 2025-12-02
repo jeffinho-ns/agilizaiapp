@@ -45,7 +45,9 @@ class User {
 
   // Método para criar um User a partir de JSON da API
   factory User.fromJson(Map<String, dynamic> json) {
-    String? rawFotoPerfil = json['foto_perfil'] as String?;
+    // Priorizar foto_perfil_url (URL completa do Cloudinary) se disponível
+    // Caso contrário, usar foto_perfil (pode ser URL completa ou nome do arquivo)
+    String? rawFotoPerfil = json['foto_perfil_url'] as String? ?? json['foto_perfil'] as String?;
     String? finalFotoPerfilUrl;
 
     if (rawFotoPerfil != null && rawFotoPerfil.isNotEmpty) {
