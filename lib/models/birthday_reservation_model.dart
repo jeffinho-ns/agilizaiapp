@@ -133,9 +133,14 @@ class BirthdayReservationModel {
   }
 
   factory BirthdayReservationModel.fromJson(Map<String, dynamic> json) {
-    // Debug para verificar o userId sendo recebido
-    print(
-        'DEBUG - JSON userId: ${json['user_id']} (tipo: ${json['user_id'].runtimeType})');
+    // Função auxiliar para converter ID nullable de string ou int para int?
+    int? parseIdNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
 
     // Conversão mais robusta do userId
     int parseUserId() {
@@ -152,24 +157,13 @@ class BirthdayReservationModel {
     }
 
     final userId = parseUserId();
-    print('DEBUG - userId convertido: $userId');
-
-    // Função auxiliar para converter ID nullable de string ou int para int?
-    int? parseIdNullable(dynamic value) {
-      if (value == null) return null;
-      if (value is int) return value;
-      if (value is num) return value.toInt();
-      if (value is String) return int.tryParse(value);
-      return null;
-    }
 
     return BirthdayReservationModel(
       id: parseIdNullable(json['id']),
       userId: userId,
       aniversarianteNome: json['aniversariante_nome'] ?? '',
       dataAniversario: DateTime.parse(json['data_aniversario']),
-      quantidadeConvidados:
-          (json['quantidade_convidados'] as num?)?.toInt() ?? 1,
+      quantidadeConvidados: parseIdNullable(json['quantidade_convidados']) ?? 1,
       barSelecionado: json['id_casa_evento'],
       decoracaoTipo: json['decoracao_tipo'],
       painelPersonalizado: json['painel_personalizado'] == 1,

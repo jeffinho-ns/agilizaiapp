@@ -142,3 +142,4 @@ Se nenhuma solução funcionar, pode ser necessário:
 
 Este erro é conhecido e está relacionado a mudanças nas políticas de segurança do iOS. A solução mais provável é atualizar o Flutter para uma versão mais recente que tenha correções para este problema.
 
+

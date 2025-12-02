@@ -40,10 +40,10 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Inicializar serviço HTTP centralizado
   HttpService().initialize();
-  
+
   runApp(
     MultiProvider(
       providers: [

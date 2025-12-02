@@ -13,8 +13,8 @@ import 'package:agilizaiapp/screens/profile/profile_screen.dart';
 import 'package:agilizaiapp/screens/my_reservations_screen.dart';
 import 'package:agilizaiapp/screens/reservation/birthday_reservation_screen.dart';
 import 'package:agilizaiapp/screens/search/search_screen.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:agilizaiapp/services/http_service.dart';
+import 'package:dio/dio.dart';
 
 class AppDrawer extends StatefulWidget {
   final VoidCallback? onClose;
@@ -48,18 +48,16 @@ class _AppDrawerState extends State<AppDrawer> {
     }
 
     try {
-      final response = await http.get(
-        Uri.parse(ApiConfig.userEndpoint('me')),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      ).timeout(const Duration(seconds: 15));
+      final dio = HttpService().dio;
+      final response = await dio.get(
+        ApiConfig.userEndpoint('me'),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
 
       if (mounted) {
         setState(() {
           if (response.statusCode == 200) {
-            _currentUser = User.fromJson(jsonDecode(response.body));
+            _currentUser = User.fromJson(response.data);
           }
           _isLoading = false;
         });

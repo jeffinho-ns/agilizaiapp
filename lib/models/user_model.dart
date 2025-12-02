@@ -52,7 +52,8 @@ class User {
       // Verifica se a URL já é completa (Cloudinary, FTP ou outro serviço)
       if (rawFotoPerfil.startsWith('http://') ||
           rawFotoPerfil.startsWith('https://')) {
-        finalFotoPerfilUrl = rawFotoPerfil; // Já é a URL completa (Cloudinary ou legado)
+        finalFotoPerfilUrl =
+            rawFotoPerfil; // Já é a URL completa (Cloudinary ou legado)
       } else {
         // Se for apenas o nome do arquivo (legado), usa método auxiliar
         // NOTA: O backend agora sempre retorna URLs completas do Cloudinary

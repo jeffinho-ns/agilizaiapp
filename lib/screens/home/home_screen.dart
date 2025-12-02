@@ -1,6 +1,5 @@
 // lib/screens/home/home_screen.dart
 
-import 'dart:convert';
 import 'package:agilizaiapp/config/api_config.dart';
 import 'package:agilizaiapp/models/event_model.dart';
 import 'package:agilizaiapp/models/user_model.dart';
@@ -11,7 +10,8 @@ import 'package:agilizaiapp/widgets/event_list_tile.dart';
 import 'package:agilizaiapp/screens/event/see_all_events_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http; // AINDA USADO PARA _fetchCurrentUser
+import 'package:agilizaiapp/services/http_service.dart';
+import 'package:dio/dio.dart';
 import 'package:agilizaiapp/widgets/app_drawer.dart';
 
 // Importando o modelo do bar, os dados dos bares e a tela de detalhes do bar
@@ -124,22 +124,19 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<User?> _fetchCurrentUser() async {
-    // ... (este método permanece o mesmo, pois não usa EventService) ...
     const storage = FlutterSecureStorage();
     final token = await storage.read(key: 'jwt_token');
     if (token == null || token.isEmpty) {
       return null;
     }
     try {
-      final response = await http.get(
-        Uri.parse(ApiConfig.userEndpoint('me')),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      ).timeout(const Duration(seconds: 15));
+      final dio = HttpService().dio;
+      final response = await dio.get(
+        ApiConfig.userEndpoint('me'),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
       if (response.statusCode == 200) {
-        return User.fromJson(jsonDecode(response.body));
+        return User.fromJson(response.data);
       } else {
         return null;
       }

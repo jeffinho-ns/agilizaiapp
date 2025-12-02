@@ -60,3 +60,4 @@ Se após a atualização o problema ainda ocorrer:
 3. Verifique os logs do Xcode para erros específicos
 4. Consulte o arquivo `SOLUCAO_CRITICA_IOS.md` para mais soluções
 
+

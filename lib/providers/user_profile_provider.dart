@@ -2,8 +2,8 @@
 import 'package:agilizaiapp/config/api_config.dart';
 import 'package:flutter/material.dart';
 import 'package:agilizaiapp/models/user_model.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:agilizaiapp/services/http_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class UserProfileProvider with ChangeNotifier {
@@ -61,17 +61,14 @@ class UserProfileProvider with ChangeNotifier {
     }
 
     try {
-      final response = await http.get(
-        Uri.parse(ApiConfig.userEndpoint('me')),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+      final dio = HttpService().dio;
+      final response = await dio.get(
+        ApiConfig.userEndpoint('me'),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> userData = json.decode(response.body);
-        _currentUser = User.fromJson(userData);
+        _currentUser = User.fromJson(response.data);
       } else if (response.statusCode == 401 || response.statusCode == 403) {
         _errorMessage = 'Sessão expirada ou inválida. Faça login novamente.';
         // Opcional: Você pode querer limpar o token do storage aqui se ele for inválido/expirado
@@ -79,8 +76,14 @@ class UserProfileProvider with ChangeNotifier {
       } else {
         _errorMessage = 'Falha ao carregar perfil: ${response.statusCode}.';
         print(
-          'Erro API ao carregar perfil no Provider: ${response.statusCode} ${response.body}',
+          'Erro API ao carregar perfil no Provider: ${response.statusCode} ${response.data}',
         );
+      }
+    } on DioException catch (e) {
+      _errorMessage = 'Erro de conexão: ${e.message}';
+      print('Exceção ao carregar perfil no Provider: $e');
+      if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+        _errorMessage = 'Sessão expirada ou inválida. Faça login novamente.';
       }
     } catch (e) {
       _errorMessage = 'Erro de conexão: $e';
